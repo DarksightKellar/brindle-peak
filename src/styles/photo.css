@@ -1,0 +1,40 @@
+/* The photo viewfinder frame (game/ui/viewfinder.ts). Colours come from the ui.css palette variables;
+   no colour is invented here. Square corners and 2px strokes to sit with the pixel layer (§9). */
+
+.ui-finder { position: absolute; inset: 0; pointer-events: none; }
+
+.ui-finder__corner {
+  position: absolute; width: 34px; height: 24px;
+  border: 0 solid var(--snow-lt); opacity: 0.85;
+}
+.ui-finder__corner.is-tl { left: 9%; top: 11%; border-left-width: 2px; border-top-width: 2px; }
+.ui-finder__corner.is-tr { right: 9%; top: 11%; border-right-width: 2px; border-top-width: 2px; }
+.ui-finder__corner.is-bl { left: 9%; bottom: 11%; border-left-width: 2px; border-bottom-width: 2px; }
+.ui-finder__corner.is-br { right: 9%; bottom: 11%; border-right-width: 2px; border-bottom-width: 2px; }
+
+/* Centre mark: a small open cross. Centred = lantern-lit, with a square ring around it (shape and
+   colour both change, A5). */
+.ui-finder__mark {
+  position: absolute; left: 50%; top: 50%; width: 18px; height: 18px;
+  transform: translate(-50%, -50%); opacity: 0.6;
+  background:
+    linear-gradient(var(--snow-mid), var(--snow-mid)) center 0 / 2px 6px no-repeat,
+    linear-gradient(var(--snow-mid), var(--snow-mid)) center 100% / 2px 6px no-repeat,
+    linear-gradient(var(--snow-mid), var(--snow-mid)) 0 center / 6px 2px no-repeat,
+    linear-gradient(var(--snow-mid), var(--snow-mid)) 100% center / 6px 2px no-repeat;
+}
+.ui-finder.is-centred .ui-finder__mark {
+  opacity: 1; width: 22px; height: 22px;
+  outline: 2px solid var(--lantern); outline-offset: 5px;
+  background:
+    linear-gradient(var(--lantern), var(--lantern)) center 0 / 2px 7px no-repeat,
+    linear-gradient(var(--lantern), var(--lantern)) center 100% / 2px 7px no-repeat,
+    linear-gradient(var(--lantern), var(--lantern)) 0 center / 7px 2px no-repeat,
+    linear-gradient(var(--lantern), var(--lantern)) 100% center / 7px 2px no-repeat;
+}
+
+.ui-finder__keys {
+  position: absolute; left: 50%; top: calc(11% - 22px); transform: translateX(-50%); margin: 0;
+  font-size: 10px; letter-spacing: 0.12em; color: var(--snow-mid); white-space: nowrap;
+  text-shadow: 0 1px 0 var(--shadow);
+}

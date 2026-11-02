@@ -1,0 +1,65 @@
+/* ── The map page: a hand-drawn trail map (src/game/ui/journalMap.ts) ────────────────────────────
+   Back to front: the lake and contours, the trail, home and the mast, place names, finds, the pin,
+   the bird. Only the bird and the pin are warm/saturated, so the page still reads at a glance. The key
+   sits beside the map rather than under it, so the map can take the page's full height. */
+.ui-map { margin: 0; display: flex; align-items: flex-start; justify-content: center; gap: 18px; }
+/*
+ * Height-driven, not width-driven: the journal panel is bounded by min(88vh, 640px), and the map takes
+ * that height less the panel's head, foot and padding. Its width follows the 480:520 frame.
+ */
+.ui-map__svg {
+  display: block; flex: 0 0 auto; height: calc(min(88vh, 640px) - 132px); width: auto; max-width: 62%;
+  aspect-ratio: 480 / 520;
+  background: rgba(30, 42, 68, 0.42);
+  border: 1px solid rgba(156, 184, 210, 0.45);
+}
+
+/* The land. Contours strong enough to read the mountain at a glance; every fourth line heavier. */
+.ui-map__contour { fill: none; stroke: rgba(198, 217, 234, 0.24); stroke-width: 0.8; stroke-linecap: round; }
+.ui-map__contour.is-index { stroke: rgba(198, 217, 234, 0.46); stroke-width: 1.1; }
+/* The frozen lake: the one filled shape, ice-pale, so the Reach reads as water from across the page. */
+.ui-map__water { fill: rgba(170, 214, 236, 0.26); stroke: none; }
+
+/* Zone shapes are data for harnesses, never paint. */
+.ui-map__zone { fill: none; stroke: none; }
+
+/* Place names: walked ground in snow-white, the rest quieter but always there. */
+.ui-map__name {
+  fill: var(--snow-hi); font-family: var(--mono); font-size: 13px; font-weight: 700;
+  letter-spacing: 0.06em; text-anchor: middle;
+  /* A halo, so a name stays legible over contours and the trail. */
+  paint-order: stroke; stroke: var(--shadow); stroke-width: 3px; stroke-linejoin: round;
+}
+.ui-map__name.is-unwalked { fill: var(--snow-sh); font-weight: 400; }
+
+/* The whole path is there from the first look; where you have walked it, it is brighter. */
+.ui-map__trail {
+  fill: none; stroke: var(--snow-hi); stroke-width: 1.8; stroke-dasharray: 6 4;
+  stroke-linecap: round; opacity: 0.9;
+}
+.ui-map__trail.is-far { stroke: var(--snow-sh); stroke-width: 1.4; opacity: 0.6; }
+
+.ui-map__home, .ui-map__goal { fill: none; stroke: var(--snow-hi); stroke-width: 1.8; stroke-linejoin: round;
+  stroke-linecap: round; }
+.ui-map__goal { stroke: var(--lantern); }
+
+/* What was found: a dot for a person met. */
+.ui-map__found { fill: var(--snow-mid); stroke: var(--shadow); stroke-width: 0.8; }
+/* Things to do in walked ground (mapMarks.ts): warm line while still to do, quiet once done. */
+.ui-map__act { fill: rgba(30, 42, 68, 0.75); stroke-width: 1.1; stroke-linejoin: round; stroke-linecap: round; }
+.ui-map__act.is-todo { stroke: var(--lantern); }
+.ui-map__act.is-done { stroke: var(--snow-sh); opacity: 0.7; }
+.ui-map__pin-ring { fill: none; stroke: var(--amber); stroke-width: 1.4; stroke-dasharray: 3 3; }
+.ui-map__pin-mark { fill: var(--amber); stroke: none; }
+/* The tracked errand: the story pin's smaller, duller sibling on a stem. */
+.ui-map__side-stem { fill: none; stroke: var(--snow-sh); stroke-width: 1.2; }
+.ui-map__side-mark { fill: var(--amber); fill-opacity: 0.8; stroke: var(--shadow); stroke-width: 1; }
+/* The bird, and the only cold-bright thing on the page. */
+.ui-map__pip, .ui-map__key-pip { fill: #8FE8FF; stroke: #14324A; stroke-width: 1.1;
+  filter: drop-shadow(0 0 3px rgba(143, 232, 255, 0.9)); }
+
+/* The key: each authored sentence next to its mark. */
+.ui-map__caption { flex: 0 1 220px; margin: 4px 0 0; font-size: 11px; line-height: 1.5; color: var(--snow-mid); }
+.ui-map__key { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.ui-map__key li { display: flex; align-items: center; gap: 10px; }
+.ui-map__key-mark { flex: 0 0 auto; width: 26px; height: 26px; overflow: visible; }

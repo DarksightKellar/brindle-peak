@@ -1,0 +1,259 @@
+/**
+ * The game session: owns the state, the systems, and the frame order.
+ *
+ * Frame order is fixed and documented because it is the thing that breaks when this project is
+ * extended carelessly:
+ *
+ *   input -> dialogue/activity routing -> player step -> zone + proximity -> camera -> world
+ *         -> UI -> events (apply to state, then route to feedback) -> audio -> render
+ *
+ * Events are applied to GameState *before* they are routed to feedback, so a toast can never
+ * announce something the state did not record.
+ *
+ * This file owns the order and nothing else. Each stage lives in its own module:
+ *
+ *   input routing      game/session/frameInput.ts      which press goes where while an overlay is up
+ *   body + footsteps   game/session/playerAdvance.ts   step, clamp, collide, sfx
+ *   state/UI/audio     game/session/frameFeedback.ts   mirror, events, HUD, audio, autosave
+ *   teardown           game/session/dispose.ts         save first, then release
+ *
+ * The split is not cosmetic: the order above is the part that breaks when edited inside one long
+ * function, and each module can now be read without the other systems in scope.
+ */
+
+import type { ActivityInstance, GameState, InputFrame, PlayerState } from './core/contracts';
+import { emptyInput, MAX_STEP_DT } from './core/contracts';
+import { PEAK, WORLD_SIZE } from './data/zones';
+import { NPCS } from './data/npcs';
+import { PICKUPS } from './data/pickups';
+import { FISH } from './data/fish';
+import { mountGoalMarker } from './game/world/goalMarker';
+import { prepareViewFade, updateViewFade } from './game/render/viewFade';
+import type { Collider } from './core/player/collide';
+import { focusShadow } from './game/render/scene';
+import { createFinale } from './game/session/finale';
+import { createActivity } from './game/activities/index';
+import { DIALOGUE as DIALOGUE_NODES } from './data/dialogue';
+import { bootstrap } from './game/session/bootstrap';
+import { createActivityRunner } from './game/session/activityRunner';
+import { createFrameInput } from './game/session/frameInput';
+import { advancePlayer } from './game/session/playerAdvance';
+import { pushFrame } from './game/session/frameFeedback';
+import { disposeSession } from './game/session/dispose';
+import { createDialogueFlow } from './game/session/dialogueFlow';
+import { DIALOGUE_FILLS } from './data/dialogueFills';
+import { createOverlayRouter } from './game/session/overlays';
+import { interact as interactVerb } from './game/session/interactVerb';
+import { inPickupRange } from './game/session/interact';
+import { applyWorldRules } from './game/session/worldRules';
+import type { CameraRig } from './game/camera/rig';
+import { createCameraDirector } from './game/camera/director';
+import { measureStructures } from './game/camera/structures';
+import type { PixelPipeline } from './game/render/pixelPipeline';
+import { savesAllowed } from './game/session/saveGuard';
+import { createDuskStage } from './game/render/dusk';
+import { createViewfinder } from './game/ui/viewfinder';
+import { createPromptAnchor } from './game/ui/promptAnchor';
+
+export interface Session {
+  state: GameState;
+  player: PlayerState;
+  rig: CameraRig;
+  /** The bird's own mesh and the camera that sees it. Exposed for measurement: colour matching cannot
+   *  tell a brown bird from a brown fence, which is how a jump test reported a 112 px tall bird at 540p. */
+  pip: { root: unknown };
+  camera: unknown;
+  pipeline: PixelPipeline;
+  update(dt: number, input: InputFrame): void;
+  interact(): void;
+  advanceDialogue(): void;
+  toggleJournal(): void;
+  /** `M` — the field guide's map page. */
+  toggleMap(): void;
+  toggleMenu(): void;
+  /** Escape routing: close whichever overlay is on top, else open the pause menu. */
+  escape(): void;
+  /** Write progress now. Called on pagehide so picks since the last autosave are not lost. */
+  save(): void;
+  setPixelSize(n: number): void;
+  setVolume(master: number, music: number): void;
+  isBlocking(): boolean;
+  /** What the player collides with. Exposed for the verification harness. */
+  readonly colliders: readonly Collider[];
+  /** Live footprint count, for the verification harness. */
+  footprintCount(): number;
+  destroy(): void;
+}
+
+export interface SessionOptions {
+  canvas: HTMLCanvasElement;
+  uiRoot: HTMLElement;
+  /** Load a previous run if present. Off for the acceptance harness, which wants a clean start. */
+  resume?: boolean;
+}
+
+export function createSession(opts: SessionOptions): Session {
+  const b = bootstrap(opts);
+  const {
+    state, player, store, sampler, kit, pipeline, snowfall, world, markers, pip, prints,
+    footprintTracker, rig, audio, ui, mech, onboarding, wayHome, interactions, bus,
+  } = b;
+
+  let elapsed = 0;
+  // Day to blue hour once the mast quest is given; the one place time of day is decided (render/dusk.ts).
+  const dusk = createDuskStage(kit, pipeline);
+  const finder = createViewfinder(opts.uiRoot);
+  const promptAt = createPromptAnchor(kit.camera, opts.canvas, world.npcs);
+  // The live instance, kept so its optional first-person view() can steer the camera rig.
+  let live: ActivityInstance | null = null;
+
+  // Non-modal opening card, fresh save only: it leaves on the first key or click.
+  if (b.fresh) ui.intro.show();
+
+  const flow = createDialogueFlow({
+    dialogue: ui.dialogue, audio, npcs: NPCS, nodes: DIALOGUE_NODES,
+    fill: (source) => DIALOGUE_FILLS[source]?.(state) ?? [],
+  });
+  // Two-shots, the radio finale's staged shot, and when the ending card may show (camera/director.ts).
+  const director = createCameraDirector({ rig, flow, ending: ui.ending, player, npcs: NPCS, terrain: sampler, mast: PEAK,
+    goal: () => ui.hud.target(), bodies: world.npcs });
+  const onFinale = createFinale(state, ui.ending, director);
+  // Buildings the camera rises over; the mast is a lattice it looks through, Edda's hut 13 u off is not.
+  rig.setStructures(measureStructures(world.group, world.colliders, (x, z) => Math.hypot(x - PEAK.x, z - PEAK.z) < 6));
+  prepareViewFade(world.group); // see-through corners bound from the first draw (render/viewFade.ts)
+  const runner = createActivityRunner({
+    create: (def) => (live = createActivity(def, FISH)),
+    hostFor: (instance, input) => mech.hostFor(instance, input),
+    ui,
+    markers,
+    solids: world.colliders,
+    cameraYaw: () => rig.yaw(),
+    // A throw turns Pip to its aim; the camera swings round behind so the target is in view.
+    faceTo: (yaw) => {
+      player.facing = yaw;
+      rig.turnToward(yaw);
+    },
+  });
+  const overlays = createOverlayRouter({ ui, state, isActivityRunning: () => runner.isRunning() });
+  // Guarded: reset suppresses writes before it clears the key, or the pagehide save rewrites the run.
+  const persist = (): void => {
+    if (savesAllowed()) store.persist();
+  };
+
+  const interact = (): void => interactVerb({ state, player, bus, mech, world, interactions, flow, runner });
+  const routeInput = createFrameInput({ ui, flow, runner, interact });
+  mountGoalMarker({ scene: kit.scene, sampler, camera: kit.camera, hud: ui.hud, busy: () => runner.isRunning() });
+
+  const update = (raw: number, input: InputFrame): void => {
+    const dt = Math.min(raw, MAX_STEP_DT * 4);
+    elapsed += dt;
+    state.playtime += dt;
+
+    // Press routing lives in frameInput.ts: the order (ending, menu/journal, dialogue, world) is the
+    // part that breaks when it is edited in the middle of a 115-line function.
+    const blocked = routeInput(input);
+
+    const gusting = state.zone === 'ridge' && elapsed % 9 < 3;
+    // Movement is emptied behind an overlay, but look is not: see the camera note further down.
+    advancePlayer({
+      player,
+      input: blocked ? emptyInput(rig.yaw()) : input,
+      dt,
+      elapsed,
+      sampler,
+      abilities: state.abilities,
+      gusting,
+      worldSize: WORLD_SIZE,
+      colliders: world.colliders,
+      sfx: (name) => audio.sfx(name),
+    });
+
+    runner.update(dt, input);
+    onboarding.update(dt, input); // before the flush: a beat's payout lands on its own frame
+
+    const sample = sampler.sampleAt(player.pos.x, player.pos.z);
+
+    // Springs, zone changes, the summit and the ending are content rules; they live in worldRules.ts so they can
+    // be read without the renderer, the audio kit or the UI in scope.
+    applyWorldRules({
+      state, player, bus, sampler, worldSize: WORLD_SIZE,
+      onZoneChange: () => {
+        rig.forcePullBack();
+        persist();
+      },
+      // Counted as the homecoming talk with Nana opens; the card waits until it has closed.
+      onFinale,
+    });
+
+    if (!blocked) {
+      for (const p of PICKUPS) {
+        if (p.kind === 'lantern' || state.flags[`picked:${p.id}`]) continue;
+        if (inPickupRange(player.pos, p)) mech.collect(p.id, p.kind);
+      }
+    }
+
+    const nearest = blocked ? null : interactions.update(player.pos);
+    focusShadow(kit, player.pos.x, player.pos.z);
+    footprintTracker.follow(player, dt);
+    pip.sync(player, dt, state.abilities.lantern);
+    // Look (Q/R) works during an activity, not under menus or dialogue. A conversation (or an activity's
+    // subject) is framed with Pip; a photo's viewfinder takes the camera to Pip's eye. Reduce-motion snaps eases.
+    const overlayOpen = ui.dialogue.isOpen() || ui.journal.isOpen() || ui.menu.isOpen();
+    const view = runner.isRunning() ? live?.view?.() ?? null : null;
+    rig.setAim(view);
+    const reduced = document.documentElement.dataset.reduceMotion === 'on';
+    director.update(dt, reduced);
+    wayHome.update(dt, reduced); // after Edda signs off, the posts light the way home
+    if (runner.focus()) rig.setFocus(runner.focus());
+    rig.update(dt, player, sampler, overlayOpen ? 0 : input.lookX, reduced);
+    pip.root.visible = rig.viewBlend() < 0.8; // the camera is inside the bird by then
+    finder.update(rig.viewBlend(), view?.centred === true);
+    // After the rig has placed the camera: fade whatever now stands between it and the bird.
+    updateViewFade(kit.camera, player.pos);
+    // After the rig, pinned over its target's head (ui/promptAnchor.ts); hidden while an activity runs.
+    const shown = runner.isRunning() ? null : nearest;
+    ui.hud.setPrompt(shown ? shown.prompt : null, shown ? promptAt(shown) : null);
+    world.update(dt, elapsed);
+
+    const weather =
+      sample.zone === 'ridge' ? (gusting ? 'gust' : 'snow') : sample.zone === 'pinewind' ? 'snow' : 'calm';
+    pipeline.setSnow(snowfall.update(dt, gusting ? 2.4 : 0.6));
+
+    // State first, then feedback, then the save decision — the ordering rule lives in frameFeedback.ts.
+    ui.hud.setViewYaw(view ? view.yaw : rig.yaw());
+    pushFrame({ state, player, ui, mech, audio, store, persist, blocked, weather }, dt);
+    dusk.update(dt, state, elapsed);
+    pipeline.render();
+  };
+
+  const unlock = (): void => audio.unlock();
+  opts.canvas.addEventListener('pointerdown', unlock, { once: true });
+  window.addEventListener('keydown', unlock, { once: true });
+  ui.menu.onSetPixelSize((n) => pipeline.setPixelSize(n));
+  ui.menu.onSetVolume((master, music) => audio.setVolume(master, music));
+
+  return {
+    state,
+    player,
+    rig,
+    pip,
+    camera: kit.camera,
+    pipeline,
+    update,
+    interact,
+    advanceDialogue: flow.advance,
+    toggleJournal: overlays.toggleJournal,
+    toggleMap: overlays.toggleMap,
+    toggleMenu: overlays.toggleMenu,
+    // Escape belongs to the pause menu; the script never blocks movement, so it has nothing to escape.
+    escape: overlays.escape,
+    save: persist,
+    setPixelSize: (n) => pipeline.setPixelSize(n),
+    setVolume: (m, mu) => audio.setVolume(m, mu),
+    isBlocking: () => ui.dialogue.isOpen() || ui.journal.isOpen() || ui.menu.isOpen()
+      || ui.ending.isOpen() || runner.isRunning(),
+    colliders: b.world.colliders,
+    footprintCount: () => prints.count(),
+    destroy: (): void => disposeSession({ persist, world, prints, snowfall, pipeline, audio, ui }),
+  };
+}

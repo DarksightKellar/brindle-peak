@@ -1,0 +1,260 @@
+/* First Snow — UI layer. Crisp type above the chunky world (ART_BIBLE §9, A6).
+   Colour keys name the PALETTE entry they come from; no colour is invented here. */
+
+@import url('./menu.css');
+@import url('./hud.css');
+
+:root {
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+  --night: #33406B;                     /* PALETTE.NIGHT */
+  --panel: rgba(51, 64, 107, 0.88);     /* PALETTE.NIGHT @ 88% (§9) */
+  --snow-hi: #FAFDFF;                   /* PALETTE.SNOW_HI */
+  --snow-lt: #E4EEF7;                   /* PALETTE.SNOW_LT */
+  --snow-mid: #C6D9EA;                  /* PALETTE.SNOW_MID */
+  --snow-sh: #9CB8D2;                   /* PALETTE.SNOW_SH */
+  --snow-deep: #7796B6;                 /* PALETTE.SNOW_DEEP */
+  --lantern: #FFC46A;                   /* PALETTE.LANTERN */
+  --amber: #E8A64F;                     /* PALETTE.AMBER */
+  --shadow: #1E2A44;                    /* PALETTE.SHADOW_FLOOR */
+  --scarf: #C4574C;                     /* PALETTE.PIP_SCARF */
+  /* 4px pixel-stepped corners, not CSS curves (§9). */
+  --steps: polygon(0 4px, 4px 4px, 4px 0, calc(100% - 4px) 0, calc(100% - 4px) 4px, 100% 4px,
+    100% calc(100% - 4px), calc(100% - 4px) calc(100% - 4px), calc(100% - 4px) 100%,
+    4px 100%, 4px calc(100% - 4px), 0 calc(100% - 4px));
+  /* Prompt pill: a V notch cut into the left edge — shape, not hue, carries the meaning (A5). */
+  --tag: polygon(0 0, 100% 0, 100% 100%, 0 100%, 0 62%, 7px 50%, 0 38%);
+}
+
+* { box-sizing: border-box; }
+#app { position: fixed; inset: 0; overflow: hidden; background: var(--night); }
+#stage { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+#ui {
+  position: absolute; inset: 0; pointer-events: none;
+  font-family: var(--mono); font-size: 13px; line-height: 1.55; letter-spacing: 2px;
+  color: var(--snow-lt); border-radius: 0; -webkit-font-smoothing: antialiased;
+}
+#ui * { border-radius: 0; }
+#ui button, #ui input { font: inherit; letter-spacing: inherit; color: inherit; }
+#ui [hidden], #ui .is-hidden { display: none !important; }
+
+/* Panel: SNOW_SH rim, NIGHT 88% fill, stepped corners. */
+.panel { background: var(--snow-sh); clip-path: var(--steps); padding: 1px; }
+.panel__in { position: relative; background: var(--panel); clip-path: var(--steps); padding: 14px 16px; }
+
+/* ── Toasts ──────────────────────────────────────────────────────────────────
+   One calm layout: top centre says where to go (goal, compass, a near errand), the top-left corner
+   says what just happened, the bottom says what you can press. Toasts used to stack in the centre
+   column under the goal, so a zone name and an achievement made five banners in a pile. They start
+   below the goal's band so a long goal line never runs into them. */
+.ui-toasts {
+  position: absolute; left: 16px; top: 104px; width: min(300px, 34vw); padding: 0;
+  display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 6px;
+}
+.ui-toast {
+  display: grid; grid-template-columns: auto 1fr; align-items: center; column-gap: 10px; max-width: 100%;
+  padding: 6px 12px; background: var(--panel); border-left: 2px solid var(--amber);
+  color: var(--snow-lt); line-height: 1.4; animation: toast-in 180ms steps(4, end) both;
+}
+.ui-toast .ui-toast__icon { grid-row: span 2; }
+.ui-toast .ui-toast__line { grid-column: 2; }
+.ui-toast--finale { padding: 11px 18px; font-size: 15px; color: var(--snow-hi); border-left-color: var(--lantern); }
+.ui-toast--discovery { padding: 2px 10px; background: rgba(30, 42, 68, 0.72); border-left: 1px solid var(--snow-sh); color: var(--snow-mid); font-size: 12px; }
+.ui-toast__icon { display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; border: 1px solid var(--snow-sh); color: var(--lantern); }
+.ui-toast__name { font-weight: 700; color: var(--snow-hi); }
+.ui-toast__line { color: var(--snow-mid); font-size: 12px; }
+.ui-toast.is-out { animation: toast-out 240ms linear both; }
+.ui-toasts.is-reduced .ui-toast { animation: toast-fade 180ms linear both; }
+@keyframes toast-in { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: none; } }
+@keyframes toast-out { from { opacity: 1; } to { opacity: 0; } }
+@keyframes toast-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes caret { 50% { opacity: 0; } }
+
+/* ── Dialogue ────────────────────────────────────────────────────────────── */
+/* Above the tutorial bar and the prompt: nothing is ever drawn over someone speaking. */
+.ui-dlg { position: absolute; left: 0; right: 0; bottom: 0; display: flex; justify-content: center; padding: 0 24px 20px; pointer-events: auto; z-index: 20; }
+.ui-dlg__panel { width: min(880px, 100%); }
+.ui-dlg__panel .panel__in { padding: 16px 20px 20px; }
+.ui-dlg__name { font-size: 11px; text-transform: uppercase; color: var(--lantern); margin-bottom: 6px; }
+.ui-dlg__text { margin: 0; min-height: 3.1em; font-size: 15px; color: var(--snow-hi); line-height: 1.6; }
+.ui-dlg__text.is-typing::after { content: '\258C'; margin-left: 2px; color: var(--lantern); animation: caret 700ms steps(2, end) infinite; }
+.ui-dlg__choices { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; margin-top: 10px; } /* a list: ↑↓ read as they look */
+.ui-dlg__choice { padding: 5px 12px; background: transparent; border: 1px solid var(--snow-sh); color: var(--lantern); cursor: pointer; clip-path: var(--tag); }
+.ui-dlg__choice:hover, .ui-dlg__choice.is-picked { background: rgba(255, 196, 106, 0.16); border-color: var(--lantern); }
+.ui-dlg__choice.is-sel { background: rgba(255, 196, 106, 0.22); border-color: var(--lantern); color: var(--snow-hi); } /* ↑↓ move this; unseen, the keys are guesswork */
+.ui-dlg__hint { position: absolute; right: 16px; bottom: 6px; padding: 0 4px; border: 1px solid var(--snow-sh); color: var(--snow-mid); font-size: 10px; }
+.ui-dlg__hint.is-choosing { display: flex; align-items: center; gap: 6px; padding: 2px 6px; border-color: var(--lantern); color: var(--snow-hi); font-size: 12px; } .ui-dlg__hint kbd { font: inherit; font-weight: 700; padding: 0 4px; background: var(--lantern); color: var(--night); }
+
+/* ── Journal ─────────────────────────────────────────────────────────────── */
+.ui-journal { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 24px; background: rgba(30, 42, 68, 0.6); pointer-events: auto; }
+.ui-journal__panel { width: min(760px, 100%); max-height: min(640px, 88vh); display: flex; }
+.ui-journal__panel .panel__in { display: flex; flex-direction: column; padding: 16px 20px; width: 100%; overflow: hidden; }
+.ui-journal__head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; border-bottom: 1px solid var(--snow-sh); padding-bottom: 8px; }
+.ui-journal__title { margin: 0; font-size: 12px; letter-spacing: 5px; text-transform: uppercase; color: var(--snow-hi); font-weight: 700; }
+.ui-tabs { display: flex; flex-wrap: wrap; gap: 2px; }
+.ui-tab { padding: 3px 8px; background: transparent; border: 0; border-bottom: 2px solid transparent; color: var(--snow-mid); font-size: 11px; cursor: pointer; }
+.ui-tab.is-on { color: var(--lantern); border-bottom-color: var(--lantern); }
+.ui-journal__body { flex: 1; overflow-y: auto; padding: 12px 2px; }
+.ui-journal__foot { border-top: 1px solid rgba(156, 184, 210, 0.4); padding-top: 6px; font-size: 10px; color: var(--snow-deep); }
+.ui-jgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.ui-stat { padding: 7px 9px; background: rgba(30, 42, 68, 0.4); border: 1px solid rgba(156, 184, 210, 0.35); }
+.ui-stat__label { display: block; font-size: 10px; text-transform: uppercase; color: var(--snow-mid); }
+.ui-stat__value { display: flex; align-items: center; gap: 5px; font-size: 15px; color: var(--snow-hi); font-variant-numeric: tabular-nums; } .ui-stat__value svg { color: var(--lantern); } .ui-stat__note { display: block; font-size: 10px; color: var(--snow-sh); }
+.ui-stat__bar { height: 2px; margin-top: 5px; background: rgba(156, 184, 210, 0.25); }
+.ui-stat__bar i { display: block; height: 100%; background: var(--lantern); }
+.ui-zones, .ui-quests, .ui-fish, .ui-ach, .ui-settings { list-style: none; margin: 12px 0 0; padding: 0; }
+.ui-zones { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 16px; }
+.ui-zone { display: flex; align-items: baseline; gap: 8px; font-size: 12px; color: var(--snow-mid); }
+.ui-zone__mark { color: var(--snow-deep); }
+.ui-zone.is-visited .ui-zone__mark { color: var(--lantern); }
+.ui-zone.is-visited .ui-zone__name { color: var(--snow-lt); }
+.ui-zone__note { margin-left: auto; font-size: 10px; color: var(--snow-deep); }
+.ui-journal__meta { margin: 10px 0 0; font-size: 10px; color: var(--snow-deep); }
+.ui-empty { margin: 12px 0 0; font-size: 11px; color: var(--snow-mid); }
+.ui-quest { padding: 6px 0 6px 10px; border-left: 2px solid var(--snow-deep); margin-bottom: 6px; }
+.ui-quest.is-active { border-left-color: var(--lantern); }
+.ui-quest.is-complete { opacity: 0.65; }
+.ui-quest.is-locked { opacity: 0.45; }
+.ui-quest__row { display: flex; justify-content: space-between; gap: 12px; }
+.ui-quest__title { font-size: 13px; color: var(--snow-hi); }
+.ui-quest__status { font-size: 10px; text-transform: uppercase; color: var(--snow-mid); }
+.ui-quest__step { margin: 2px 0 0; font-size: 12px; color: var(--snow-mid); }
+.ui-fishrow, .ui-achrow { display: flex; align-items: baseline; gap: 10px; padding: 4px 0; border-bottom: 1px solid rgba(156, 184, 210, 0.2); font-size: 12px; }
+.ui-fishrow__name, .ui-achrow__name { color: var(--snow-hi); }
+.ui-fishrow__note, .ui-achrow__desc { margin-left: auto; font-size: 10px; color: var(--snow-deep); }
+.ui-fishrow.is-rare .ui-fishrow__note { color: var(--lantern); }
+.ui-achrow__icon { display: flex; color: var(--lantern); }
+.ui-fishrow.is-locked, .ui-achrow.is-locked { opacity: 0.55; }
+.ui-fishrow.is-locked .ui-fishrow__name, .ui-achrow.is-locked .ui-achrow__name { color: var(--snow-deep); }
+.ui-achrow.is-locked .ui-achrow__icon { color: var(--snow-deep); }
+.ui-setting { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; border-bottom: 1px solid rgba(156, 184, 210, 0.2); font-size: 12px; }
+.ui-setting__key { color: var(--snow-mid); }
+.ui-setting__val { color: var(--lantern); font-variant-numeric: tabular-nums; }
+
+/* ── Responsive + accessibility ──────────────────────────────────────────── */
+@media (max-width: 900px) {
+  #ui { font-size: 12px; }
+  .ui-jgrid { grid-template-columns: repeat(2, 1fr); }
+  .ui-zones { grid-template-columns: 1fr; }
+  .ui-journal, .ui-menu { padding: 12px; }
+  .ui-dlg { padding: 0 12px 12px; }
+  .ui-dlg__text { font-size: 14px; }
+  .ui-keys { grid-template-columns: 1fr; }
+}
+@media (min-width: 1600px) {
+  #ui { font-size: 14px; }
+  .ui-dlg__text { font-size: 17px; }
+  .ui-dlg__panel { width: min(1040px, 100%); }
+  .ui-journal__panel { width: min(860px, 100%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ui-toast { animation: toast-fade 180ms linear both; }
+  .ui-toast.is-out { animation: toast-out 120ms linear both; }
+  .ui-dlg__text.is-typing::after { animation: none; }
+}
+[data-reduce-motion='on'] .ui-toast { animation: toast-fade 180ms linear both; }
+[data-reduce-motion='on'] .ui-dlg__text.is-typing::after { animation: none; }
+
+/* Activity HUD (QA D1). The minigames had no presentation at all: starting one froze the player and
+   drew nothing, so there was no title, instruction, score or target. Text-first on purpose — the
+   thing being communicated is timing and counting, and it must be legible at 384x216 upscaled. */
+.ui-activity {
+  position: absolute; left: 50%; bottom: 84px; transform: translateX(-50%);
+  min-width: 260px; max-width: 340px; padding: 10px 14px 8px;
+  background: var(--panel); border: 1px solid var(--snow-sh);
+  font-family: var(--mono); color: var(--snow-mid); text-align: center;
+}
+.ui-activity__kicker {
+  margin: 0 0 2px; font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--snow-sh);
+}
+.ui-activity__name { margin: 0 0 4px; font-size: 13px; color: var(--snow-hi); letter-spacing: 0.04em; }
+.ui-activity__hint { margin: 0 0 8px; font-size: 11px; line-height: 1.35; color: var(--snow-mid); }
+.ui-activity__track { height: 3px; background: rgba(156, 184, 210, 0.25); }
+.ui-activity__fill { display: block; height: 100%; width: 0; background: var(--snow-sh); transition: width 90ms linear; }
+.ui-activity__label { margin: 6px 0 0; font-size: 11px; color: var(--snow-lt); }
+.ui-activity__foot { margin: 6px 0 0; font-size: 9px; letter-spacing: 0.1em; color: var(--snow-sh); }
+/* Urgent state must not rely on colour alone (A5): the border and the fill both change. */
+.ui-activity.is-urgent { border-color: var(--lantern); }
+.ui-activity.is-urgent .ui-activity__fill { background: var(--lantern); }
+.ui-activity.is-urgent .ui-activity__label { color: var(--lantern); font-weight: 700; }
+
+/* The ending. It shows once at the mast, states where the player has been, and gets out of the way. */
+/* Sits above the tutorial bar (bottom 46) and the stats line (bottom 12): the card and beat 1 are on
+   screen together for the opening seconds, and stacked at the same offset they overlapped. */
+.ui-intro {
+  position: absolute; left: 50%; bottom: 96px; transform: translateX(-50%) translateY(6px);
+  max-width: 420px; padding: 14px 18px 12px; font-family: var(--mono);
+  background: rgba(20, 27, 44, 0.88); border: 1px solid var(--snow-sh);
+  opacity: 0; transition: opacity 600ms ease, transform 600ms ease; z-index: 30;
+  pointer-events: none;
+}
+.ui-intro.is-in { opacity: 1; transform: translateX(-50%) translateY(0); }
+.ui-intro__kicker {
+  margin: 0 0 4px; font-size: 9px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--lantern);
+}
+.ui-intro__goal { margin: 0; font-size: 12px; line-height: 1.55; color: var(--snow-hi); }
+/* The card is the whole screen's moment: it keeps a margin on every side at any window size (it used
+   to run edge to edge at 540 px tall, over the goal line), scrolls inside itself if it must, and the
+   corner news and the top-centre guide step aside until it is put away. Toasts earned meanwhile wait
+   (frameFeedback.ts) instead of sliding in beside it. */
+.ui-ending {
+  position: absolute; inset: 0; display: grid; place-items: center; padding: 20px;
+  background: rgba(26, 34, 58, 0.82); font-family: var(--mono); z-index: 40;
+}
+.ui-ending__card {
+  width: min(540px, 100%); max-height: 100%; overflow-y: auto; padding: 22px 30px 18px; text-align: center;
+  background: var(--panel); border: 1px solid var(--snow-sh);
+}
+#ui:has(.ui-ending:not([hidden])) :is(.ui-toasts, .ui-hud__goal, .ui-hud__compass, .ui-hud__next, .ui-hud__prompt) {
+  visibility: hidden;
+}
+.ui-ending__kicker {
+  margin: 0 0 6px; font-size: 9px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--snow-sh);
+}
+.ui-ending__title { margin: 0 0 14px; font-size: 20px; color: var(--lantern); letter-spacing: 0.03em; }
+.ui-ending__body { margin: 0 0 18px; font-size: 12px; line-height: 1.6; color: var(--snow-lt); text-align: left; }
+.ui-ending__stats { margin: 0 0 16px; padding: 12px 0 0; border-top: 1px solid rgba(156, 184, 210, 0.3); }
+.ui-ending__row { display: flex; justify-content: space-between; gap: 16px; margin: 0 0 6px; font-size: 11px; }
+.ui-ending__row dt { color: var(--snow-sh); }
+.ui-ending__row dd { margin: 0; color: var(--snow-hi); }
+.ui-ending__foot { margin: 0; font-size: 10px; letter-spacing: 0.1em; color: var(--snow-mid); visibility: hidden; } .ui-ending__foot.is-ready { visibility: visible; } /* only once E will close it (ending.ts) */
+
+/* ── Tutorial prompt bar (docs/ONBOARDING.md) ─────────────────────────────────
+   One thing at a time. Bottom centre, directly above the stats line: the top-centre slot belongs to
+   the objective line and the toast column, and a prompt there collided with both. Offsets: stats sits
+   at bottom 12 with ~24px of height, the activity panel starts at bottom 84 — the bar lives between
+   them, and it never takes input. */
+.ui-tutorial {
+  position: fixed; left: 50%; bottom: 46px; transform: translateX(-50%) translateY(6px);
+  display: flex; align-items: center; gap: 10px; max-width: min(620px, calc(100vw - 32px));
+  padding: 6px 14px 7px; margin: 0;
+  font-family: var(--mono); font-size: 13px; letter-spacing: 2px;
+  color: var(--snow-hi); background: var(--panel); border: 1px solid var(--snow-sh);
+  clip-path: var(--steps); white-space: nowrap; overflow: hidden; pointer-events: none; z-index: 6;
+  opacity: 0; visibility: hidden;
+  transition: opacity 220ms ease, transform 220ms ease, visibility 0s linear 220ms;
+}
+.ui-tutorial.is-in {
+  opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0);
+  transition: opacity 220ms ease, transform 220ms ease, visibility 0s;
+}
+/* Hidden for a conversation or a panel: gone at once, not faded over the first line. */
+.ui-tutorial.is-snap { transition: none; }
+.ui-tutorial__keys { display: flex; align-items: center; gap: 4px; flex: 0 0 auto; }
+.ui-tutorial__cap {
+  display: inline-block; min-width: 24px; padding: 3px 7px 4px; text-align: center;
+  font-family: var(--mono); font-size: 15px; font-weight: 700; letter-spacing: 0;
+  color: var(--shadow); background: var(--snow-hi);
+  border: 1px solid var(--snow-sh); box-shadow: 0 2px 0 var(--snow-deep);
+}
+.ui-tutorial__text { color: var(--snow-hi); overflow: hidden; text-overflow: ellipsis; }
+
+/* The opening card is the goal sentence only: the key list it used to carry was the manual this
+   system replaces, and it dismissed on the very W key beat 1 asks for. */
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-tutorial { transition: none; }
+}
+
+.ui-quest__step--next { color: var(--snow-lt); }
+

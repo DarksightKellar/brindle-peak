@@ -1,0 +1,910 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>First Snow Board</title>
+<!--
+  HOW TO USE THIS FILE (for any agent session picking this up)
+  - All content lives in the JSON block <script id="board-data"> below. Edit the JSON, nothing else.
+  - Card status: "todo" | "doing" | "done" | "director" (waiting on the director).
+  - Keep exactly one card "doing" per worker. Move a card to "done" only after you have LOOKED at the
+    result in the running game (http://127.0.0.1:5180) — tests alone never count.
+  - Update "handoff.now" and "handoff.next" whenever you stop, and append to "log" (newest first).
+  - Open it: http://127.0.0.1:5180/docs/board.html (vite dev server), or open the file directly.
+-->
+<style>
+  :root {
+    --bg: #f4f1ea; --panel: #fffdf8; --ink: #2a2a33; --muted: #6d6a73; --line: #ddd6c8;
+    --accent: #b5562e; --todo: #8a8f9c; --doing: #c9822b; --done: #4c8a5b; --director: #9a4fb0;
+    --chip: #efe8da;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #1b1d24; --panel: #242733; --ink: #e8e6ef; --muted: #a09cab; --line: #383c4a;
+      --accent: #e08a5f; --chip: #2f3342;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #1b1d24; --panel: #242733; --ink: #e8e6ef; --muted: #a09cab; --line: #383c4a;
+    --accent: #e08a5f; --chip: #2f3342;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+    font: 14px/1.45 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+  header { padding: 20px 16px 8px; max-width: 1500px; margin: 0 auto; }
+  h1 { margin: 0; font-size: 22px; }
+  h2 { font-size: 15px; margin: 0 0 8px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+  .sub { color: var(--muted); margin-top: 4px; }
+  main { max-width: 1500px; margin: 0 auto; padding: 8px 16px 40px; display: grid; gap: 16px; }
+  .ctx { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
+  .panel ul { margin: 0; padding-left: 18px; }
+  .panel li { margin: 3px 0; }
+  code { font: 12px ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--chip); padding: 1px 4px; border-radius: 4px; }
+  .handoff { border-left: 4px solid var(--accent); }
+  .board { display: grid; gap: 12px; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  @media (max-width: 1000px) { .board { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 620px) { .board { grid-template-columns: 1fr; } }
+  .col { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px; min-width: 0; }
+  .col h3 { margin: 2px 4px 10px; font-size: 13px; display: flex; justify-content: space-between; }
+  .col[data-s="todo"] h3 { color: var(--todo); } .col[data-s="doing"] h3 { color: var(--doing); }
+  .col[data-s="done"] h3 { color: var(--done); } .col[data-s="director"] h3 { color: var(--director); }
+  .card { border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; margin-bottom: 8px; background: var(--bg); }
+  .card summary { cursor: pointer; list-style: none; font-weight: 600; }
+  .card summary::-webkit-details-marker { display: none; }
+  .meta { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 4px; }
+  .chip { font-size: 11px; background: var(--chip); border-radius: 999px; padding: 1px 7px; color: var(--muted); }
+  .chip.g1 { color: #b0413e; } .chip.g2 { color: #b7791f; } .chip.g3 { color: #2b7a9b; }
+  .chip.g4 { color: #6b6b6b; } .chip.g5 { color: #6b6b6b; } .chip.g6 { color: #7b4fb0; }
+  .card p { margin: 6px 0 0; color: var(--ink); }
+  .card .ev { color: var(--muted); font-size: 12px; }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; }
+  td, th { border-bottom: 1px solid var(--line); padding: 4px 6px; text-align: left; vertical-align: top; }
+  .filter { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+  .filter button { border: 1px solid var(--line); background: var(--panel); color: var(--ink); border-radius: 999px; padding: 3px 10px; cursor: pointer; font: inherit; font-size: 12px; }
+  .filter button.on { background: var(--accent); color: #fff; border-color: var(--accent); }
+</style>
+</head>
+<body>
+<header>
+  <h1>First Snow — task board</h1>
+  <div class="sub" id="updated"></div>
+</header>
+<main>
+  <section class="panel handoff" id="handoff"></section>
+  <section class="ctx" id="ctx"></section>
+  <section>
+    <div class="filter" id="filter"></div>
+    <div class="board" id="board"></div>
+  </section>
+  <section class="ctx">
+    <div class="panel" id="scores"></div>
+    <div class="panel" id="decisions"></div>
+  </section>
+  <section class="panel" id="log"></section>
+</main>
+
+<script type="application/json" id="board-data">
+{
+ "updated": "2026-10-25",
+ "handoff": {
+  "now": "Polish round 4: six workers running in parallel (controls+camera, guidance/UI, activities, world+level, look, story structure), each briefed from scratchpad brief-common.md + round4-common.md + critic4-report.md. Last scores (critic 4): Art 6, Gameplay 4, Story 7.",
+  "next": "As each worker reports: review its screenshots, commit only its files (shared src/session.ts with the last to land), run tsc + vitest + story-check + build. Then writer pass on the [[W: ...]] placeholders (beats only), smoke check, critic round 5 (NEW agent, not told the bar or earlier scores). Repeat until art, gameplay and story are each >= 8.",
+  "director_waiting": "Nothing."
+ },
+ "context": [
+  {
+   "title": "Mission (director's goal, 2026-10-25)",
+   "items": [
+    "Fix every issue on the prioritised review list (groups 1–5 below).",
+    "Then polish in iterations. After each iteration a critical subagent with an eye for art, gameplay and story plays the game and rates it 1–10 (1 = hard to play and confusing, 10 = the next best-selling cozy game). Stop only at ≥ 8.",
+    "Work from this board. Keep it current so a new session can continue cold."
+   ]
+  },
+  {
+   "title": "The original brief",
+   "items": [
+    "A game just like <b>A Short Hike</b>, winter themed, in three.js for the browser. Cozy, enjoyable, ≤ 5 h, small goals and achievements that each give a satisfying hit, a clear end goal.",
+    "Very easy to play: the player must always know what to do next. Keyboard only (mouse removed; A/D or ←/→ choose dialogue options).",
+    "Code: separation of concerns, no spaghetti, no files over 260 lines (<code>src/core/contracts.ts</code> exempt), no 'later' shortcuts.",
+    "Tests only for core gameplay and critical units. Verify by running the game and looking."
+   ]
+  },
+  {
+   "title": "Director's standing rules (learned the hard way)",
+   "items": [
+    "Judge by playing and looking at screenshots, not by green tests. Never claim done without seeing it in the game.",
+    "Do exactly what was named; your own ideas go to the director as options.",
+    "Talk plainly. No task codes or jargon in reports to the director.",
+    "The director hates: being dropped in with no idea what to do, incoherent dialogue, camera fights, unverified claims.",
+    "Audio: designed with max effort, but the director validates it by ear.",
+    "No pushing, no paid services. Commit locally on <code>master</code> (no remote exists)."
+   ]
+  },
+  {
+   "title": "Where things are",
+   "items": [
+    "Repo: WSL Ubuntu <code>~/projects/winter-hike</code> = <code>\\\\wsl.localhost\\ubuntu\\home\\kel\\projects\\winter-hike</code>.",
+    "Run commands: <code>wsl.exe -d Ubuntu -- bash -lc 'cd ~/projects/winter-hike && …'</code>",
+    "Dev server already running on <code>http://127.0.0.1:5180</code> (also 5181/5182, preview 4180). This board: <code>/docs/board.html</code>.",
+    "Checks: <code>npx tsc --noEmit</code>, <code>npx vitest run</code>, <code>npm run build</code>. Dialogue is generated: edit <code>src/data/dialogue.parts/*.json</code>, then <code>npx vite-node tools/assemble-dialogue.ts</code>.",
+    "Debug hook in the page: <code>window.__game</code> (session, teleport, drive…). Player state: <code>__game.session.state</code>.",
+    "Key code: quests <code>src/data/quests.ts</code>, conditions <code>src/core/progress/</code>, NPC talk <code>src/game/session/interact.ts</code> + <code>interactVerb.ts</code>, guide <code>src/core/guide/nextStep.ts</code>, HUD <code>src/game/ui/hud.ts</code> + <code>hudText.ts</code>, summit/ending <code>src/game/session/worldRules.ts</code> + <code>src/game/ui/ending.ts</code>, camera <code>src/game/camera/rig.ts</code>.",
+    "History: built 2026-10-19..21 by a Hermes agent (transcript in WSL <code>~/.hermes/state.db</code>, session <code>local-8f8c69…</code>). Docs in <code>docs/</code> are partly stale; trust code + game."
+   ]
+  }
+ ],
+ "cards": [
+  {
+   "id": "G1-root",
+   "group": 1,
+   "status": "done",
+   "title": "Redesign how quests own their dialogue",
+   "detail": "Root cause of G1-3/4/6. Quest state is encoded as node-id suffixes (-wait/-done/-b/-bwait/-bdone), capping a giver at two quests; NpcDef.quest mixes with a derived giver list. Declare offer/active/done node ids on each QuestDef; pick the entry node AFTER the talk is applied; one orchestration-level test that walks the main path.",
+   "ev": "New model: quests name their own lines (offer, waiting, notYet), steps have say/hold/gives, NPCs have idle; src/core/progress/conversation.ts picks the line after the talk is counted. Counted steps are baselined when they start (quests.ts). One talk passes one step per person, story first. tests/story.test.ts plays the whole spine."
+  },
+  {
+   "id": "G1-1",
+   "group": 1,
+   "status": "done",
+   "title": "Reaching the mast ends the game regardless of story",
+   "detail": "Ending card fires within 16 u of PEAK with no quest check. Make the ending the payoff of the main quest (talk to Edda / radio up), not a location.",
+   "ev": "Ending now fires when quest the-mast completes (worldRules.ts onFinale), not on reaching the peak."
+  },
+  {
+   "id": "G1-2",
+   "group": 1,
+   "status": "done",
+   "title": "A main-quest spine the guide always points at",
+   "detail": "Nothing covers getting from Nana to the peak; the-mast only starts at the peak. 'Next' and the compass pick the nearest step of ANY quest. Build a main chain Nana → batteries → (feathers/ridge) → Edda → radio → home, and rank main-quest steps first.",
+   "ev": "Main chain the-line > the-climb > the-mast > nana-home (src/data/quests.ts, main: true, then:). Goal line = story step, compass = story target, Next = nearest errand (nextStep.ts which='main'|'side', hud.ts, hudText.ts)."
+  },
+  {
+   "id": "G1-3",
+   "group": 1,
+   "status": "done",
+   "title": "People say the wrong line when you report back",
+   "detail": "Entry node is chosen before npc:talked is applied, so report-back talks replay the old request and the next talk jumps ahead ('You went up. I can see it on you').",
+   "ev": "Played: report-back talks now speak the payoff (bram-paid, nana-done, edda-meet)."
+  },
+  {
+   "id": "G1-4",
+   "group": 1,
+   "status": "done",
+   "title": "Conversations that finish their quest in the first chat",
+   "detail": "Ivy, Corm, Jory, Tuck, Sable chains go errand → wait → done via next links; edda-done → edda-b plays at the peak. Remove the links; add a content check that no errand/wait node reaches a done node.",
+   "ev": "Steps baseline when they begin; a talk from before a step never passes it (tests/progress.test.ts, tests/story.test.ts)."
+  },
+  {
+   "id": "G1-5",
+   "group": 1,
+   "status": "done",
+   "title": "Quest steps count things done before the quest",
+   "detail": "talked/visited/activity are 'ever' facts, evaluated at acceptance. Snapshot at acceptance (like questTalkBase). Fix: Blue House (letter never carried), Good Rope, 'Come down off the peak' while on it, Kettle On before the mast, batteries never handed over, lantern promised in words but not granted.",
+   "ev": "Writer rewrote every offer/wait/done and added say/idle lines; story-check clean (155 nodes, 61 steps)."
+  },
+  {
+   "id": "G1-6",
+   "group": 1,
+   "status": "done",
+   "title": "Second chat silently starts the giver's next quest",
+   "detail": "offerFor skips quests already present, so Orla/Pell's second talk accepts quest 2 under quest-1 text. Offer the next only after the previous is complete, from the node that pitches it.",
+   "ev": "interact.ts:109-113, dialogue.ts:341,351"
+  },
+  {
+   "id": "G2-7",
+   "group": 2,
+   "status": "done",
+   "title": "Photo activities can't be aimed with the keyboard",
+   "detail": "Photo is not free-roam; lookX is always 0; camera eases toward a frozen facing. Aurora photo (main quest), Wren's glade, market lamps are unwinnable. Let A/D turn while aiming (or place the subject in view).",
+   "ev": "5d5afc0 viewfinder A/D turn W/S tilt; aurora at dusk after the-mast starts; market photo spot still inside a house (activities agent fixing)"
+  },
+  {
+   "id": "G2-8",
+   "group": 2,
+   "status": "done",
+   "title": "Races: no visible course, random direction",
+   "detail": "Seeded random bearing, 110 u straight line, no markers. 'Chimney Scramble … to the top' runs flat west. Author start/finish/waypoints per race and draw them.",
+   "ev": "f6172c0 authored gate courses"
+  },
+  {
+   "id": "G2-9",
+   "group": 2,
+   "status": "done",
+   "title": "Build and throw activities are empty",
+   "detail": "Woodpile = press E 3× standing still, nothing appears. Throws complete after 5 presses with 0 hits; 'ring cleanly' not checked; aim uses frozen camera yaw.",
+   "ev": "f6172c0 pieces stay in the world; aimed throws with real flight"
+  },
+  {
+   "id": "G2-10",
+   "group": 2,
+   "status": "done",
+   "title": "Pause menu and journal tabs need the mouse",
+   "detail": "Arrow keys do nothing in the menu, Reset says 'click again', journal tabs are click-only, Enter/Space/arrows are preventDefault-ed on window. Add keyboard navigation with a visible selection.",
+   "ev": "c6609fd. Screenshots in the session scratchpad screens/01..07. Menu: arrows/WASD select and change, Enter/E/Space activate, Reset is a second press. Journal: left/right pages, up/down scroll."
+  },
+  {
+   "id": "G3-11",
+   "group": 3,
+   "status": "done",
+   "title": "Camera: swings, drifts, never frames the speaker",
+   "detail": "~90° swing on a short strafe; drifts during dialogue; no way to look around. Ideas + mock first, then build. Frame the NPC during conversations.",
+   "ev": "e9ac563 leash follow (tap turn 66 -> 1.8 deg), Q/R look, conversation two-shot"
+  },
+  {
+   "id": "G3-12",
+   "group": 3,
+   "status": "done",
+   "title": "Opening frame",
+   "detail": "A pine beside spawn fills ~1/3 of the screen as a dither-dissolve; Nana is a small grey lump off-screen that reads as a rock; talk radius 2.6 u. First frame should show Pip, Nana at the door, the cabin, and the peak.",
+   "ev": "e9ac563 new spawn with clear corridor, Nana at the door facing Pip; peak hidden by fog"
+  },
+  {
+   "id": "G3-13",
+   "group": 3,
+   "status": "done",
+   "title": "The map is seven dashed circles",
+   "detail": "No mountain, mast, path, or landmarks. Make it read like a hand-drawn trail map; show the main-quest pin.",
+   "ev": "c8a64a0"
+  },
+  {
+   "id": "G3-14",
+   "group": 3,
+   "status": "done",
+   "title": "Zone looks: brown hamlet, blank summit, ribbon footprints",
+   "detail": "Hamlet ground is orange-brown (not winter). Summit is a flat blue haze with no view. Footprints draw as a wide translucent band. Characters are tiny and read as rocks.",
+   "ev": "3ceae47 hamlet trodden snow + window light; separate prints; villagers Pip-height with species marks. Summit view not touched."
+  },
+  {
+   "id": "G4-a",
+   "group": 4,
+   "status": "done",
+   "title": "Toast pile-up and wrong achievement text",
+   "detail": "Hello to Nana fires 3 toasts at once. 'The Window Still Lit' mentions the last truck (not in the story). 'Twelve Lights Up the Hill' fires on a race; 'Back to the Kettle' on the thermal race; lighting 12 lanterns earns nothing.",
+   "ev": "7b45db0: toasts wait for a conversation to close then arrive 0.5 s apart; achievement texts fixed in d24af65."
+  },
+  {
+   "id": "G4-b",
+   "group": 4,
+   "status": "done",
+   "title": "Bells out of 60 while quests pay ~293 more",
+   "detail": "Journal hard-codes totals.",
+   "ev": "7b45db0: journal counts found pickups from PICKUPS."
+  },
+  {
+   "id": "G4-c",
+   "group": 4,
+   "status": "done",
+   "title": "'E Light' prompt when lighting is impossible",
+   "detail": "Shows before the lantern is owned and on lit posts.",
+   "ev": "7b45db0: interaction system takes a usable() filter."
+  },
+  {
+   "id": "G4-d",
+   "group": 4,
+   "status": "done",
+   "title": "Overlays: activities run behind the journal; Esc on ending opens menu",
+   "detail": "Esc closes the journal and also aborts the activity; Esc on the ending card stacks the pause menu.",
+   "ev": "7b45db0: overlays.ts busy() guard."
+  },
+  {
+   "id": "G4-e",
+   "group": 4,
+   "status": "done",
+   "title": "Load ignores saved stamina and facing; spawn hard-coded twice",
+   "ev": "7b45db0: bootstrap resumes facing/stamina; groundSpawn deleted.",
+   "detail": ""
+  },
+  {
+   "id": "G4-f",
+   "group": 4,
+   "status": "done",
+   "title": "Small UI: 'M map' twice, intro leaves after 7 s, Next line overlaps compass distance, compass 'behind' marker too faint",
+   "detail": "",
+   "ev": "dc3badf; 'M map' twice and the intro timer were fixed in a4dc3e9"
+  },
+  {
+   "id": "G4-g",
+   "group": 4,
+   "status": "done",
+   "title": "Pickups bob not scaled by dt; lantern posts spin like collectibles",
+   "detail": "",
+   "ev": "7b45db0."
+  },
+  {
+   "id": "G5-a",
+   "group": 5,
+   "status": "done",
+   "title": "Tests where the bugs are; trim ceremonial tests",
+   "detail": "Add orchestration tests for talk→quest→dialogue and the ending. Remove/trim pinned copy, exact counts, music-theory and art-metric suites that are not core gameplay; tests of unused code. Fix or delete broken harnesses (tools/route-walk.ts stuck at waypoint 5).",
+   "ev": "8bddec0; footprints test removed too (cosmetic)"
+  },
+  {
+   "id": "G5-b",
+   "group": 5,
+   "status": "done",
+   "title": "Single sources of truth; delete dead code",
+   "detail": "copy.parts/*.json are mirrors nothing imports; hard-coded totals; 'nana' hard-coded in onboarding/hudText; dead: groundSpawn, interactTarget, zoomDelta/interactHeld, lookX plumbing, dialogue click handlers, FishDef.value never paid.",
+   "ev": "562d32c zoom/held-E getters, camera align module; lookX now a real axis"
+  },
+  {
+   "id": "G5-c",
+   "group": 5,
+   "status": "done",
+   "title": "260-line rule and hidden module state",
+   "detail": "hud.ts 307, ui/dialogue.ts 267, tests/activities.test.ts 763, tools/story-check.ts 549, tools/controls-regressions.ts 319. Module-level state in frameInput.ts:303, step.ts:30, move.ts:17 WeakMaps, viewFade uniforms; dialogue view runs its own rAF loop. contracts.ts holds logic (makeRng, createGameState).",
+   "ev": "562d32c input routing state per session; files under 260"
+  },
+  {
+   "id": "G5-d",
+   "group": 5,
+   "status": "done",
+   "title": "Don't ship the debug hook; small per-frame costs",
+   "detail": "window.__game ships to players (keep it dev-only via import.meta.env.DEV). rig.ts:142-149 clearFraction every frame for nothing; per-frame string/object allocation; every mesh casts shadows incl. terrain.",
+   "ev": "22959f3 debug hook dev-only; e9ac563 clearFraction only on demand"
+  },
+  {
+   "id": "G5-e",
+   "group": 5,
+   "status": "done",
+   "title": "Stale docs",
+   "detail": "README (drag to look, 188 tests, sister/district premise), STATE.md, ARCHITECTURE.md (non-existent files), stale header comments in hud.ts, rig.ts, step.ts, playerAdvance.ts, interactions.ts. Correct in place; don't append.",
+   "ev": "bd40d0b, 61601b4"
+  },
+  {
+   "id": "P-loop",
+   "group": 6,
+   "status": "todo",
+   "title": "Polish loop until the critic scores ≥ 8",
+   "detail": "Each iteration: pick the critic's top issues, fix, look, then run a fresh critic subagent (never told the bar or previous scores) who plays the game in the browser and rates art, gameplay, story 1–10 with reasons. Log every score below.",
+   "ev": ""
+  },
+  {
+   "id": "W-intro",
+   "group": 4,
+   "status": "todo",
+   "title": "Opening card text contradicts the new story",
+   "detail": "src/game/ui/intro.ts says to take the path up to the mast; the story now starts with Nana. Writer pass (beats: the radio went quiet, Nana at the cabin door is where it starts)."
+  },
+  {
+   "id": "P1-cam",
+   "group": 6,
+   "title": "Camera: slopes, jamming into Pip, full-screen dither speckle; stage the radio climax",
+   "status": "done",
+   "detail": "Slope pitch-down shows only blue ground; on steep ground camera jams into Pip; see-through trees/cabin become half-screen speckle; climax camera shows blank slope with mast cut off.",
+   "ev": "5b6ee61, e437880: slope lean, rise over banks and the radio hut, staged radio shot, two-shot timing, porthole fade"
+  },
+  {
+   "id": "P1-act",
+   "group": 6,
+   "title": "Activities: Otter Slide does nothing, race gates invisible, Thermal Descent has no flight, woodpile vanishes, photo/fish placement, results",
+   "status": "done",
+   "detail": "Sled never moves; Lantern Ascent starts facing away with no gate visible; Thermal 'Fly' trudges; woodpile can't be seen before stacking and vanishes after; float on dirt; glade subject generic; aurora 'turn toward it' while ribbons fill frame; 'Done - 92' means nothing; finished build restartable; Kite Line mismatch.",
+   "ev": "589df18: Otter Slide is a real winding run; races face gate 1; thermal hoops; woodpile heap-to-crib stays done; fishing on water; photo ring + 9 deg; plain results; kite activity. 95a4993: finished woodpile drops its prompt. Otter Slide checked in the real browser: 21 s run, result line shows."
+  },
+  {
+   "id": "P1-world",
+   "group": 6,
+   "title": "World: promised places and finish",
+   "status": "done",
+   "detail": "Big pine, split pine + creek, lantern posts on the climb, the mast and radio set as a landmark; steam boxes, olive-brown bare ground, hard sun disc, orange dot block near peak; Nana grey-blue, Bram a bean, Hollis a post; NPCs walk-through.",
+   "ev": "77b71e4: big pine, creek and split pine, lantern posts, summit mast, named places, smooth terrain, solid villagers"
+  },
+  {
+   "id": "P1-ui",
+   "group": 6,
+   "title": "UI and guidance: overlaps, banner stack, dead-end pointers, talk range",
+   "status": "done",
+   "detail": "Map hint over Nana's first line; tip still showing at the end; E prompt floats far below; up to five top banners; mitten pointer leads to nothing; Next points at far errands; Talk only at ~1 u; too many open errands.",
+   "ev": "2888913, 218b7a1: Next line only for near errands (90 u or 20 s news), tips lapse, E prompt under Pip, map names every place with a key"
+  },
+  {
+   "id": "P1-story",
+   "group": 6,
+   "title": "Story: side voices, garbled lines, words vs play, ending payoff",
+   "status": "done",
+   "detail": "Ivy/Corm/Tuck share a template; Tuck third person; Wren garbled; choice capitalisation mixed; 'first light' but always dusk; lantern never pays off; ending card lists things not done; Nana's two canned answers.",
+   "ev": "ff01142, 94ce388, 657308c, ef41c29: side voices, Bram's count, lantern payoff, ending card from the run, Nana hears what Pip did, ending card shows once"
+  },
+  {
+   "id": "P2-cam",
+   "group": 6,
+   "title": "Camera: re-face the goal after talks, keep out of pines/mast, Pip not hiding targets",
+   "status": "done",
+   "detail": "TOP: director rule — see-through only on faces overlapping Pip, no circle. Then: re-face goal after talks, lens out of pines/mast, Pip not hiding targets.",
+   "ev": "1be67a2: per-face see-through (only faces covering Pip, whole; no circle); whole tree/rock/mast cleared at the lens; heading eases to the goal 0.25 s after a talk; camera 7 deg higher + 1.1 u right shoulder. Pending hookups sent: world geoBuilder installViewFade(glow); look pixelPipeline installViewFade(normalMaterial,false). session.ts (goal: () => ui.hud.target(), mountGoalMarker, runner.focus) still uncommitted: commit with the activities/story work; HEAD does not type-check until then."
+  },
+  {
+   "id": "P2-nav",
+   "group": 6,
+   "title": "Guidance: readable compass, world marker on the goal, prompts in context, choice keys",
+   "status": "done",
+   "ev": "5bdcbd7: compass strip N/E/S/W under the goal line; lantern-light column + gem over the goal (world/goalMarker.ts); tips only in their moment; goal held during talks; up/down choices with hint; first-feather nudge, stamina bar grows per feather. session.ts wiring (mountGoalMarker) still uncommitted, lands with the camera commit."
+  },
+  {
+   "id": "P2-look",
+   "group": 6,
+   "title": "Look: exposure toward the sun, peak whiteout, stripe banding",
+   "status": "done",
+   "ev": "c65d4e8: key 4.0 / ambient 0.75 + saturation taper on bright pixels (blown highlights 3-16% -> 0.2-3.7%); altitude sky blends to deep zenith above y 40-85 (summit no longer whiteout); snow veil hash without sin (stripes came from precision loss after ~10 min of play); outline pass honours view fade. 3065559: steam puffs linear-filtered."
+  },
+  {
+   "id": "P2-world",
+   "group": 6,
+   "title": "World: mast seen from afar, lanterns on the route, things in empty basins, blue house, visible lantern, frost",
+   "status": "done",
+   "ev": "862b347: far summit fitted under the frame top, brighter, alpenglow at dusk, straight ride from Hearth aimed at it; WAY_UP trail (world/trail.ts) with all 12 lantern posts beside it, red stakes every 24 u, signposts, rope on the spur; scenes every 20-30 s (sledge, footbridge, Kettles dressing, erratic, pond, bothy, icefall, cairn); feathers on the route + glint, feather-hearth-woodstore replaces feather-pw-fork; blue cabin, boarded walls, blue doors in the hamlet; Pip carries the lantern (actors/pipLantern.ts); frosted glade. session.ts pip.sync(..., state.abilities.lantern) uncommitted."
+  },
+  {
+   "id": "P2-act",
+   "group": 6,
+   "title": "Activities: gates in view, sled on a slope, kite feedback, fish shown, photo subjects named",
+   "status": "done",
+   "ev": "0f04a9b: deer run post in the open, gate 1 ahead, 40 u beams, arrow to next gate, ground gates count in order; Boathouse sled down the north shore (14 u/s, 5 rings); kite always above Pip, dense lift with taut-line feedback, 6 s hold; fishing from the bank, two-shot framing, varied waits with nibbles, fish shown on catch; photo arrow + ground ring, deer recoloured and reframed, market lamps viewpoint moved; woodpile log by log against the woodstore. 49f1e08: glade keep-clear for the new deer line; E prompt hidden while an activity runs."
+  },
+  {
+   "id": "P2-story",
+   "group": 6,
+   "title": "Story structure: Wren's pools step, 'You're back' bug, end card after Nana; then writer cuts",
+   "status": "done",
+   "ev": "b080df2: `reached` condition + data/places.ts (kettle-pools); Pip's own lines now open (dialogueFlow); quests may name a `still` node for asking again before leaving (conversation.ts createDepartures); a talk spent on the story leaves another errand's talk step waiting (Pell's letter, Tuck's rope); ending card after the nana-home talk closes (ENDING_QUEST, flags.ending)."
+  },
+  {
+   "id": "P2-finale",
+   "group": 6,
+   "title": "Finale: radio shot holds then turns home; lanterns light down the trail; porch beat; guide knows `reached`",
+   "status": "done",
+   "ev": "14b20d2: radio staged shot holds 2.5 s then turns home; session/wayHome.ts lights unlit trail posts down the mountain at ~1 post/s once Pip leaves the mast (visual only; all at once on reload or reduced motion), lit posts carry a far glint; 1 s quiet before the porch card; guide handles `reached`; opening script retires once the story has begun. Only 2-3 posts visible from the summit itself (ridge hides the rest)."
+  },
+  {
+   "id": "P2-words",
+   "group": 6,
+   "title": "Writer: round 2 words (homecoming card, Fen vs Wren, shorter Bram/Edda, world-matching lines, placeholders)",
+   "status": "done",
+   "ev": "94f069b: ending card is a homecoming (Hearth Hollow, 'Home, and the Valley Talking'); Nana's homecoming says she watched the trail posts come on down the mountain (depends on the finale worker's lantern lighting); no hat/boots/kettle/knocking; Fen watches the deer trail, Wren listens; Bram 10->6 boxes, Edda 11->7; 13 achievements renamed to match the world; reminder (still) nodes; placeholders filled. story-check now checks still nodes in their quest."
+  },
+  {
+   "id": "P3-cam",
+   "group": 6,
+   "title": "Camera: up and out on slopes, follows heading when walking toward it, no houses/roofs/mast at the lens, faces in talks, an ending shot",
+   "status": "done",
+   "ev": "668384b + 6ebf53c: steep-ground stand keeps the skyline; heading follows Pip; mast clearance; houses cut only faces over Pip; villagers face Pip; ending shot at the blue door; glows cut with their prop; two-shot stands higher on steep ground (Tuck, Sable)."
+  },
+  {
+   "id": "P3-nav",
+   "group": 6,
+   "title": "Guidance: turn cue when behind, side goal on compass + map, Next line stays, activity icons, talk range, bells count, ending card guard",
+   "status": "done",
+   "ev": "c9bbc7b: blinking turn chevrons on the shorter side when the goal is behind (30 deg hysteresis); tracked errand (newest handed/moved) stays on the Next line until done, smaller amber diamond on the compass, smaller gem in the world, pin on the map; compass words dropped (distance only); activity glyphs on the map for walked zones; talk reach >= 5.5 u (session/interact.ts talkReach), opening hint only when E reaches Nana; journal bells: purse first, found count under it; ending card ignores E/Esc for 1.6 s."
+  },
+  {
+   "id": "P3-act",
+   "group": 6,
+   "title": "Activities: start props, woodpile/bell/race arrow/kite readable, snowman and photo with a bit more to do",
+   "status": "done",
+   "ev": "2e972c1: start props at all 22 starts (post + red pennant + light, plus a per-kind prop); woodpile ~0.5 s square window, early press buffered, red flash + early/late words, Pip beside the crib; bell ring moved to the open square (258.5,121.8); race arrow is a rimmed 3D arrow over Pip, only the next gate drawn on foot; kite: 7 crest lights fill gold, dotted height line, wider steadier lift, 4 s hold; snowman rolled ball by ball; aurora long exposure ~2.4 s holding a star. Activity posts, woodpile, snowman solid."
+  },
+  {
+   "id": "P3-world",
+   "group": 6,
+   "title": "World: Tuck's bridge, Skiff's boat, clipping, flame offset, porch snag, cliff rock bands",
+   "status": "done",
+   "ev": "df0f604: a real V gully on the ridge shelf (core/terrain/carving.ts) crossed by Tuck's sagging rope-and-plank bridge (world/tuckBridge.ts, frayed north rope, missing plank); Tuck at its west head; Skiff's boat (world/boat.ts) frozen in pressure ice; upright props padded by BIRD_BULK; oriented cabin collider fixes the porch snag; lamp glass fades with its post; rock strata on steep faces; lake shore traced finer so terrain stays under the ice."
+  },
+  {
+   "id": "P3-look",
+   "group": 6,
+   "title": "Look: snow surface detail (noise, wind ripples, sparkle) on fields, slopes and ice",
+   "status": "done",
+   "ev": "c5ecb49: render/snowSurface.ts + snowSurfaceShader.ts patch terrain (snow/ice) and frozen-reach shaders: 3-tone hard-edged drift patches, 1-px wind marks, long ripples as light, sparkle near Pip in sun; ice one tone, plate cracks, crazing near Pip, polished patches. Depends on mesh names terrain/frozen-reach and material.userData.surface. ART_BIBLE §4 entry."
+  },
+  {
+   "id": "P3-story",
+   "group": 6,
+   "title": "Story structure: snowman credit, shorter cross-map errands; then writer",
+   "status": "done",
+   "ev": "a314fd5: doneOnce rule (activity/place steps count if ever done; `fresh` keeps the old rule, only Margit's ice hole); a talk passes later same-person steps already done; Tuck's rope given by Bram with the batteries (QuestDef.gives, QuestStep.offers); Pell's letter ends with Nana, Pell hears next visit; Tamsin's headband tried on Hollis (Orla out); Nana hands Pip the camera; NANA_POSTS fill (all/some/none). Placeholders for the writer."
+  },
+  {
+   "id": "P3-words",
+   "group": 6,
+   "title": "Writer: round 3 words",
+   "status": "done",
+   "ev": "3447a73: Nana's camera ('Nana's camera sees green'), Bram's rope offer and Tuck's lines, Hollis tries the headband, Pell's letter ends with Nana, Edda relays Nana asking the valley to light the posts, NANA_POSTS all/some/none, lantern-and-dial line cut, activity/journal/map words; 'writer' added to content.test bad words."
+  },
+  {
+   "id": "P4-ctl",
+   "group": 6,
+   "title": "Camera + controls: A/D strafe without orbit, S turns Pip, talk shots clear and unclipped, no wall-filled frames, ending framed on the lit valley",
+   "status": "doing"
+  },
+  {
+   "id": "P4-nav",
+   "group": 6,
+   "title": "Guidance/UI: pin errand from the journal, no silent switching, new-errand toast, prompt priority, journal over dialogue, reset guard, activity panels out of the way",
+   "status": "doing"
+  },
+  {
+   "id": "P4-act",
+   "group": 6,
+   "title": "Activities: woodpile no mashing, kite needs steering, slide track, toss reworked, fish per pool, the mitten catch, aurora photo shown",
+   "status": "doing"
+  },
+  {
+   "id": "P4-world",
+   "group": 6,
+   "title": "World + level: gorge safe, traversal moments on the climb, finds on the path, signposts to activities, Pip model, steam seen, new rope on the bridge",
+   "status": "doing"
+  },
+  {
+   "id": "P4-look",
+   "group": 6,
+   "title": "Look: slope shadow stair-steps, aurora soft up close",
+   "status": "doing"
+  },
+  {
+   "id": "P4-story",
+   "group": 6,
+   "title": "Story structure: idle talk never starts errands silently, Tuck's key shown, posts on the way up, finale indoors?; then writer",
+   "status": "doing"
+  }
+ ],
+ "scores": [
+  {
+   "round": 1,
+   "when": "2026-10-25",
+   "art": 4,
+   "gameplay": 3,
+   "story": 6,
+   "note": "Camera on slopes/trees ugly + dither speckle; set-pieces (Otter Slide, Lantern Ascent, Thermal Descent) don't play; promised places missing (big pine, woodpile, split pine/creek, lantern posts, mast/radio); errand guidance dead-ends; side NPCs one template; climax told on a card, not staged."
+  },
+  {
+   "round": 2,
+   "when": "2026-10-25",
+   "art": 5,
+   "gameplay": 4,
+   "story": 6,
+   "note": "Radio finale and Bram/Edda writing land. Held back by: can't tell where to go (compass reads as a dot on a bar, no world marker, mast not visible from afar, lanterns off-route); camera swings after talks, sits inside pines/mast, Pip hides targets; exposure washes out facing the sun, peak whiteout, vertical stripe banding; race gates out of sight, Boathouse sled on flat ice, kite unreadable, fishing hides float/no fish; words vs world (blue house is brown, no visible lantern/hat, indoor lines on the porch); Wren's pools step ticks on zone entry; long conversations; end card before going home."
+  },
+  {
+   "round": 3,
+   "when": "2026-10-25",
+   "art": 6,
+   "gameplay": 4,
+   "story": 7,
+   "note": "Radio roll-call, voices, lit posts home, Otter Slide and fishing work. Gameplay held back by: camera pitching into slopes on the ridge; walking toward the camera never swings it and 'behind you' gives no turn cue; side goals fade and aren't on compass/map; activities unmarked in the world and map; woodpile/bell/race arrow/kite hard to read, snowman/photo trivial; short talk range; long cross-map errands. Art: flat untextured snow/cliffs, camera inside mast/behind houses, clipping, NPCs don't face Pip. Story: Tuck's bridge missing, a few lines vs world, ending has no visual moment and E skips it."
+  },
+  {
+   "round": 4,
+   "when": "2026-10-25",
+   "art": 6,
+   "gameplay": 4,
+   "story": 7,
+   "note": "No teleports. Mood, lit-post descent, writing and the roll call land. Gameplay: A/D orbit the camera and S never turns Pip; Next errand switches itself; Tuck's gorge traps and blinds; activities thin with panels over Pip (woodpile mashable, kite plays itself, slide has no track, toss camera swings); climb is holding W on empty snow; route skips the hamlet and activities; TALK beats STACK. Art: talk shots blocked/clipping, frames full of walls, Pip a white blob, stair-step slope shadows, flat aurora up close, no photo shown. Story: mitten never appears, warm-air line on empty plain, idle chatter starts errands silently, Tuck's key and new rope unseen."
+  }
+ ],
+ "decisions": [
+  {
+   "when": "2026-10-25",
+   "what": "Work on master, local commits only (no remote). Director chose not to branch."
+  },
+  {
+   "when": "2026-10-25",
+   "what": "Hermes is stopped; Claude Code owns the repo and git history from now on."
+  },
+  {
+   "when": "2026-10-25",
+   "what": "Saves from before this change (version 2) are discarded: their quest ids and step meanings no longer exist. A fresh start is safer than a half-mapped story."
+  },
+  {
+   "when": "2026-10-25",
+   "what": "Bram stops being a quest giver; he is the first stop of the story. The old Bram/Hollis missing-log thread is removed."
+  },
+  {
+   "when": "2026-10-25",
+   "what": "The parked truck at the road head (landmark id 'trucknow') stays: BEATS says Pip came up the valley road, so a truck there fits the story."
+  },
+  {
+   "when": "2026-10-25",
+   "what": "Sky dome now follows the camera (photo agent), so day sun glow shows across the map; kept. Weaken day sun glow in sky.ts if it reads wrong."
+  },
+  {
+   "when": "2026-10-25",
+   "what": "Kept tests: props triangle budget, scatter mesh cap (performance guards), onboarding beat order, lantern chain, toast priority. Removed footprints test (cosmetic)."
+  },
+  {
+   "when": "2026-10-25",
+   "what": "Director: the circular see-through around Pip is 'bad bad bad bad'. See-through applies strictly ONLY to faces that actually overlap Pip; no circle, no radius. Given to the camera worker (P2-cam) as top priority."
+  },
+  {
+   "when": "2026-10-25",
+   "what": "Self-lit trail posts (after the radio call) can't be lit by Pip, so 'Twelve Lights Up the Hill' must be earned on the climb. Kept: a prompt to light an already burning lamp would be odd."
+  },
+  {
+   "when": "2026-10-25",
+   "what": "Tamsin's headband errand now tries the headband on Hollis instead of Orla (417 u instead of 949 u; the headband was always for the hare). Accepted though it changes one person in the errand."
+  },
+  {
+   "when": "2026-10-25",
+   "what": "In the fiction the valley lights the posts for Pip's walk home: Nana asks over the radio. Nana's homecoming line depends on how many Pip lit herself."
+  }
+ ],
+ "log": [
+  {
+   "when": "2026-10-25 01:10",
+   "what": "Board created from the review (play-through + independent code review). Repo at c9f5523, 289 tests green, tsc clean."
+  },
+  {
+   "when": "2026-10-25 01:27",
+   "what": "Group 1 implemented in code (quest model, guide main-first, achievements home-again and lantern-chain retargeted, save v3 with step baselines). Writer dispatched for all new lines. tools/board.py added for board updates."
+  },
+  {
+   "when": "2026-10-25 01:37",
+   "what": "d24af65 story spine committed; c6609fd keyboard menus committed. 298 tests, tsc clean, story-check clean."
+  },
+  {
+   "when": "2026-10-25 01:37",
+   "what": "Dropped the separate 'enter Windscar Ridge' step: reaching Edda with the batteries is the climb, so arriving by any route cannot make her say she is still waiting."
+  },
+  {
+   "when": "2026-10-25 01:45",
+   "what": "7b45db0 small fixes committed after a check in the browser (toasts stagger after the Nana talk)."
+  },
+  {
+   "when": "2026-10-25 01:04",
+   "what": "c8a64a0 map reads like a trail map"
+  },
+  {
+   "when": "2026-10-25 01:04",
+   "what": "dc3badf HUD compass/next overlap fixed; hud.ts 310 -> 220 lines; ui.css 365 -> 244"
+  },
+  {
+   "when": "2026-10-25 01:04",
+   "what": "Intro card 'disappearing' is not a game bug: other agents' edits reload the dev page, and the reload loads the save written on pagehide, so the run is no longer fresh. Re-check on a clean build once agents finish."
+  },
+  {
+   "when": "2026-10-25 01:27",
+   "what": "5d5afc0 photos aimable, dusk + aurora"
+  },
+  {
+   "when": "2026-10-25 01:27",
+   "what": "d53048d tutorial hint hidden during activities"
+  },
+  {
+   "when": "2026-10-25 01:27",
+   "what": "3ceae47 hamlet/footprints/villagers"
+  },
+  {
+   "when": "2026-10-25 01:27",
+   "what": "8bddec0 housekeeping: tests 298 -> 217 total, route-walk fixed"
+  },
+  {
+   "when": "2026-10-25 01:52",
+   "what": "f6172c0 races/builds/throws; 6a0e312 activity hints (writer); e9ac563 camera; 562d32c cleanups"
+  },
+  {
+   "when": "2026-10-25 01:52",
+   "what": "209e648 radio finale speaker labels were one node behind; fixed + story test"
+  },
+  {
+   "when": "2026-10-25 01:52",
+   "what": "Full story played to the end in the browser: all quests complete"
+  },
+  {
+   "when": "2026-10-25 02:12",
+   "what": "Critic 1: Art 4, Gameplay 3, Story 6"
+  },
+  {
+   "when": "2026-10-25 02:12",
+   "what": "Critic's 'key taps ignored' was its background tab: rAF barely runs hidden, so taps collapsed into one frame. input.ts already latches presses between frames. Not a game bug; critics must keep their tab in front."
+  },
+  {
+   "when": "2026-10-25 03:08",
+   "what": "Round 1 commits: ff01142 writer pass; 5b6ee61 + e437880 camera; 94ce388 dialogue fills (Nana's homecoming); 657308c finale shows once; 77b71e4 world landmarks; 2888913 UI guidance; ef41c29 Mitten's creek errand placed at the real pool; 218b7a1 guide doc"
+  },
+  {
+   "when": "2026-10-25 03:08",
+   "what": "Still open after round 1: E TALK prompt sits under Pip not over the villager; map lake runs off the bottom; ridge spikes plain; Kettles warm-pool fishing sits on snow; errands auto-accept on talk; ending/toasts stack top left; docs/ART_PASS.md line 9 and docs/BEATS.md stale"
+  },
+  {
+   "when": "2026-10-25 04:02",
+   "what": "728bf3f leftovers: E prompt floats over the villager it reaches; map fits its frame; ending card keeps margins and hides the HUD and toasts; far mountain no longer fogged flat, lit as snow"
+  },
+  {
+   "when": "2026-10-25 04:02",
+   "what": "71a8238 docs: BEATS points at quests.ts; ART_PASS status"
+  },
+  {
+   "when": "2026-10-25 04:02",
+   "what": "Open question (lead's call, after critic 2): mid-valley distant ground and far pines fog to flat blue (fog 0.018 is ~99% by 120 u). A fog cap in render/compositeShader.ts would change the whole look and needs the art-bible reference shots re-checked."
+  },
+  {
+   "when": "2026-10-25 08:11",
+   "what": "Noticed, not fixed: Boathouse Hill sled (reach-sled-hill) is on flat ice and uses the fallback straight run; the deer run's first arch is partly hidden by trees"
+  },
+  {
+   "when": "2026-10-25 08:24",
+   "what": "79f0b96, 5c6a123 writer: activity results, hints, readouts; photo distance hints fixed"
+  },
+  {
+   "when": "2026-10-25 08:24",
+   "what": "8d31e8e distance fog: light haze before the grade + fade to sky horizon after; ART_BIBLE §1 §6 updated"
+  },
+  {
+   "when": "2026-10-25 08:24",
+   "what": "Noticed by the fog worker, not fixed: chase camera inside the Kettles steam column shows a blocky veil; ground snow very saturated blue in chase view (the grade); hill by the hamlet reads flat (uniform snow lighting); camera near the summit framed by the mast's red legs"
+  },
+  {
+   "when": "2026-10-25 08:24",
+   "what": "Critic round 2 started"
+  },
+  {
+   "when": "2026-10-25 09:00",
+   "what": "Critic 2: Art 5, Gameplay 4, Story 6. Screens: scratchpad screens/critic2 01-49; full report saved as scratchpad critic2-report.md"
+  },
+  {
+   "when": "2026-10-25 14:21",
+   "what": "Writer queue: FEATHER_LINE in src/game/ui/hudFeather.ts; BREATH_WORDS in src/game/ui/hudStamina.ts"
+  },
+  {
+   "when": "2026-10-25 14:21",
+   "what": "Clean-up later: stray .msys* temp files in src/data, src/game/activities, src/game/session (Windows-side write leftovers); delete once workers finish"
+  },
+  {
+   "when": "2026-10-25 14:21",
+   "what": "Noticed: pickups — a feather in Hearth Hollow near Bram's woodstore would meet the player early (world worker owns pickups)"
+  },
+  {
+   "when": "2026-10-25 14:21",
+   "what": "Camera ideas from the world worker (untried): shallower base pitch on open flat ground to show more sky/peak; bias pitch up when the goal is high above the frame so the mast shows sooner on the climb. From Kettle Springs on, Windscar Ridge hides the summit."
+  },
+  {
+   "when": "2026-10-25 14:21",
+   "what": "Noticed by look worker: Frozen Reach ice very cyan and the area empty; far-peak pale disc reads like a giant dome looking NE"
+  },
+  {
+   "when": "2026-10-25 14:21",
+   "what": "Writer queue (round 2): WORDS.kiteRising, WORDS.photoHint(what), HINT_FOR_ID['hearth-kindling'] in activityWords.ts; FEATHER_LINE (ui/hudFeather.ts); BREATH_WORDS (ui/hudStamina.ts); plus story-structure placeholders when that worker lands"
+  },
+  {
+   "when": "2026-10-25 14:21",
+   "what": "Noticed: sled ~12 s and kite ~9 s are short; tests/activities.test.ts is 659 lines (test file, over the budget)"
+  },
+  {
+   "when": "2026-10-25 14:21",
+   "what": "Round 2 finished and committed: 5bdcbd7 guidance, 1be67a2 camera, 862b347 world, c65d4e8 look, 3065559 steam, 0f04a9b activities, 49f1e08/48f0f8f glade + prompt, b080df2 story structure, 94f069b writer, 14b20d2 finale"
+  },
+  {
+   "when": "2026-10-25 14:21",
+   "what": "Critic round 3 started"
+  },
+  {
+   "when": "2026-10-25 14:21",
+   "what": "Critic 3: Art 6, Gameplay 4, Story 7. Report: scratchpad critic3-report.md; screens/critic3"
+  },
+  {
+   "when": "2026-10-25 14:21",
+   "what": "Writer queue (round 3): BELLS_FOUND_WORDS (ui/journalTabs.ts); MAP_KEY_WORDS.errand and .activity (ui/journalMap.ts)"
+  },
+  {
+   "when": "2026-10-25 14:21",
+   "what": "Noticed: no way to pick which errand to track (a journal 'track' action would be next); map glyphs crowd at 960 wide; tools/lib/guide-page.ts mapFacts().found now counts fewer (done activities are .ui-map__act.is-done)"
+  },
+  {
+   "when": "2026-10-25 14:21",
+   "what": "Noticed by world worker: bridge static after Tuck's quest; invisible step under the deck when walking up the gully floor; thin invisible ledge outside the hand ropes; spur-rope stakes have no colliders; PLAYER_RADIUS 0.42 smaller than Pip's drawn body (props padded instead)"
+  },
+  {
+   "when": "2026-10-25 14:21",
+   "what": "Noticed by camera worker: Pip's feet up to ~1.2 u inside drawn terrain on steep faces (mesh vs sampler disagree, ~151.6,-174); browser pane screenshots crop to top-left 80% at DPR 1.25 (use canvas captures)"
+  },
+  {
+   "when": "2026-10-25 14:21",
+   "what": "Round 3 finished: c5ecb49 snow, c9bbc7b guidance, df0f604 world, 668384b + 6ebf53c camera, 2e972c1 activities, a314fd5 story structure, f282ed0 guide rule, 3447a73 writer"
+  },
+  {
+   "when": "2026-10-25 14:21",
+   "what": "Critic round 4 started"
+  },
+  {
+   "when": "2026-10-25 14:21",
+   "what": "Critic 4: Art 6, Gameplay 4, Story 7 (same as critic 3). Report: scratchpad critic4-report.md; screens/critic4"
+  },
+  {
+   "when": "2026-10-25 14:21",
+   "what": "Round 4 workers launched (six in parallel)."
+  },
+  {
+   "when": "2026-10-25 14:21",
+   "what": "Round 4 workers launched (six in parallel)."
+  }
+ ]
+}
+</script>
+
+<script>
+  const data = JSON.parse(document.getElementById('board-data').textContent);
+  const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
+  const GROUPS = { 1: 'Story & quests', 2: 'Activities & keyboard', 3: 'Look & feel', 4: 'Small fixes', 5: 'Housekeeping', 6: 'Polish' };
+  const COLS = [['todo', 'To do'], ['doing', 'Doing'], ['director', 'Waiting on director'], ['done', 'Done']];
+
+  document.getElementById('updated').textContent = 'Last updated ' + data.updated;
+
+  const h = document.getElementById('handoff');
+  h.append(el('h2', null, 'Where we are'));
+  h.append(el('p', null, '<b>Now:</b> ' + data.handoff.now));
+  h.append(el('p', null, '<b>Next:</b> ' + data.handoff.next));
+  h.append(el('p', null, '<b>Waiting on the director:</b> ' + data.handoff.director_waiting));
+
+  const ctx = document.getElementById('ctx');
+  for (const c of data.context) {
+    const p = el('div', 'panel');
+    p.append(el('h2', null, c.title));
+    const ul = el('ul');
+    for (const i of c.items) ul.append(el('li', null, i));
+    p.append(ul);
+    ctx.append(p);
+  }
+
+  let groupFilter = 0;
+  const filter = document.getElementById('filter');
+  const renderFilter = () => {
+    filter.innerHTML = '';
+    for (const [g, name] of [[0, 'All'], ...Object.entries(GROUPS)]) {
+      const n = Number(g);
+      const count = data.cards.filter(c => (n === 0 || c.group === n) && c.status !== 'done').length;
+      const b = el('button', n === groupFilter ? 'on' : '', `${name} · ${count} open`);
+      b.onclick = () => { groupFilter = n; renderFilter(); renderBoard(); };
+      filter.append(b);
+    }
+  };
+  const renderBoard = () => {
+    const board = document.getElementById('board');
+    board.innerHTML = '';
+    for (const [s, label] of COLS) {
+      const cards = data.cards.filter(c => c.status === s && (groupFilter === 0 || c.group === groupFilter));
+      const col = el('div', 'col'); col.dataset.s = s;
+      col.append(el('h3', null, `<span>${label}</span><span>${cards.length}</span>`));
+      for (const c of cards) {
+        const d = el('details', 'card');
+        const sum = el('summary');
+        const meta = el('div', 'meta');
+        meta.append(el('span', 'chip g' + c.group, GROUPS[c.group]));
+        meta.append(el('span', 'chip', c.id));
+        sum.append(meta, document.createTextNode(c.title));
+        d.append(sum);
+        if (c.detail) d.append(el('p', null, c.detail));
+        if (c.ev) d.append(el('p', 'ev', 'Evidence: ' + c.ev));
+        if (c.notes) d.append(el('p', 'ev', 'Notes: ' + c.notes));
+        col.append(d);
+      }
+      board.append(col);
+    }
+  };
+  renderFilter(); renderBoard();
+
+  const sc = document.getElementById('scores');
+  sc.append(el('h2', null, 'Critic scores (stop at ≥ 8)'));
+  if (!data.scores.length) sc.append(el('p', null, 'No critic rounds yet.'));
+  else {
+    const t = el('table');
+    t.append(el('tr', null, '<th>Round</th><th>When</th><th>Art</th><th>Gameplay</th><th>Story</th><th>Overall</th><th>Top complaints</th>'));
+    for (const r of data.scores) t.append(el('tr', null, `<td>${r.round}</td><td>${r.when}</td><td>${r.art}</td><td>${r.gameplay}</td><td>${r.story}</td><td><b>${r.overall}</b></td><td>${r.top}</td>`));
+    sc.append(t);
+  }
+
+  const dec = document.getElementById('decisions');
+  dec.append(el('h2', null, 'Decisions'));
+  const dl = el('ul');
+  for (const d of data.decisions) dl.append(el('li', null, `<b>${d.when}</b> — ${d.what}`));
+  dec.append(dl);
+
+  const log = document.getElementById('log');
+  log.append(el('h2', null, 'Session log (newest first)'));
+  const ll = el('ul');
+  for (const l of data.log) ll.append(el('li', null, `<b>${l.when}</b> — ${l.what}`));
+  log.append(ll);
+</script>
+</body>
+</html>

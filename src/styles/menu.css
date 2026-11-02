@@ -1,0 +1,33 @@
+/* First Snow — pause menu. Split out of ui.css, which was past the file-size ceiling; the palette
+   tokens it uses are defined there. */
+
+.ui-menu { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 24px; background: rgba(30, 42, 68, 0.7); pointer-events: auto; }
+.ui-menu__panel { width: min(430px, 100%); }
+.ui-menu__panel .panel__in { padding: 20px 22px; }
+.ui-menu__title { margin: 0; font-size: 15px; letter-spacing: 6px; text-transform: uppercase; color: var(--snow-hi); }
+.ui-menu__sub { margin: 2px 0 16px; font-size: 10px; text-transform: uppercase; color: var(--snow-deep); }
+.ui-menu__group { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.ui-menu__label { font-size: 10px; text-transform: uppercase; color: var(--snow-mid); }
+.ui-sizes { display: flex; gap: 4px; }
+.ui-size { padding: 3px 9px; background: transparent; border: 1px solid var(--snow-sh); color: var(--snow-mid); font-size: 11px; cursor: pointer; }
+.ui-size.is-on { background: var(--lantern); border-color: var(--lantern); color: var(--night); font-weight: 700; }
+.ui-slider { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 10px 0; font-size: 10px; text-transform: uppercase; color: var(--snow-mid); }
+.ui-slider input { width: 190px; accent-color: var(--lantern); background: transparent; }
+.ui-toggle { display: flex; align-items: center; gap: 8px; margin: 14px 0; font-size: 10px; text-transform: uppercase; color: var(--snow-mid); }
+.ui-toggle input { accent-color: var(--lantern); }
+.ui-keys { list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 3px 14px; margin: 14px 0; padding: 12px 0; border-top: 1px solid rgba(156, 184, 210, 0.3); border-bottom: 1px solid rgba(156, 184, 210, 0.3); font-size: 10px; color: var(--snow-mid); }
+.ui-keys li { display: flex; gap: 6px; }
+.ui-keys b { color: var(--snow-lt); font-weight: 700; }
+.ui-btn { display: block; width: 100%; padding: 9px; background: transparent; border: 1px solid var(--lantern); color: var(--lantern); letter-spacing: 4px; text-transform: uppercase; font-size: 11px; cursor: pointer; clip-path: var(--tag); }
+.ui-btn:hover { background: rgba(255, 196, 106, 0.16); }
+
+/* Keyboard selection: the game has no mouse. Rows carry the dialogue choice's lantern marker on the
+   left edge; the two buttons fill, as a selected dialogue choice does. */
+.ui-menu__nav { margin-left: -8px; margin-right: -8px; padding: 3px 8px 3px 6px; border-left: 2px solid transparent; }
+.ui-menu__nav.is-sel { background: rgba(255, 196, 106, 0.12); border-left-color: var(--lantern); color: var(--snow-hi); }
+.ui-menu__nav.is-sel .ui-menu__label { color: var(--snow-hi); }
+.ui-btn + .ui-btn { margin-top: 6px; }
+.ui-btn.is-sel { background: rgba(255, 196, 106, 0.22); color: var(--snow-hi); }
+/* Armed: one more press of the same key wipes the run, so it reads as a warning, in the scarf red. */
+.ui-menu__reset[data-armed='1'] { border-color: var(--scarf); color: var(--snow-hi); background: rgba(196, 87, 76, 0.32); }
+.ui-menu__hint { margin: 12px 0 0; font-size: 10px; text-align: center; color: var(--snow-deep); }

@@ -1,0 +1,120 @@
+/* The HUD (src/game/ui/hud.ts, hudCompass.ts, hudStamina.ts): breath, bells and feathers bottom-left;
+   the goal, the compass strip and the next step top-centre; the E prompt over its target. */
+
+/* ── HUD ─────────────────────────────────────────────────────────────────── */
+.ui-hud { position: absolute; inset: 0; }
+
+/* Breath: chips above, the bar and its one word below. The bar's width is set from Pip's stamina, so a
+   feather visibly lengthens it (hudStamina.ts). */
+.ui-hud__stamina { position: absolute; left: 18px; bottom: 16px; display: flex; flex-direction: column; align-items: flex-start; gap: 5px; }
+.ui-hud__chips { display: flex; gap: 6px; }
+.ui-hud__barrow { display: flex; align-items: center; gap: 8px; }
+.ui-hud__bar { width: 112px; height: 8px; background: rgba(30, 42, 68, 0.55); border: 1px solid var(--snow-deep); transition: width 300ms ease-out; }
+.ui-hud__bar i { display: block; height: 100%; background: var(--lantern); }
+.ui-hud__breath { font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; padding: 0 5px; background: var(--panel); }
+.ui-hud__feathers, .ui-hud__bells { display: flex; align-items: center; gap: 5px; white-space: nowrap; padding: 1px 6px 1px 4px; font-size: 12px; color: var(--snow-lt); background: var(--panel); border: 1px solid var(--snow-sh); }
+.ui-hud__ficon { display: flex; color: var(--lantern); }
+.ui-hud__fnum { font-weight: 700; color: var(--snow-hi); }
+.ui-hud__bnum { font-weight: 700; color: var(--lantern); }
+/* A pickup's acknowledgement: the chip (or the bar, when a feather lengthens it) swells once. */
+.ui-hud__bells.is-pop, .ui-hud__feathers.is-pop { animation: bell-pop 420ms ease-out; }
+.ui-hud__bar.is-pop { animation: breath-flash 700ms ease-out; }
+@keyframes bell-pop {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.22); }
+  100% { transform: scale(1); }
+}
+
+/* Over whoever E will reach: hud.ts sets left/top to the point above their head and adds `is-over`,
+   and the tick under the pill points down at them. With two villagers in reach, the one with the
+   pill over their head is the one you talk to. The fallback, used only when that point is off camera,
+   is the old place just under Pip (a share of the height, which follows Pip at every window size). */
+.ui-hud__prompt { position: absolute; left: 50%; top: 66%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; pointer-events: none; }
+.ui-hud__prompt.is-over { transform: translate(-50%, -100%); }
+.ui-hud__rim { display: block; background: var(--snow-sh); clip-path: var(--tag); padding: 1px; }
+.ui-hud__tick { display: none; width: 0; height: 0; border: 6px solid transparent; border-top: 7px solid var(--snow-sh); border-bottom: 0; }
+.ui-hud__prompt.is-over .ui-hud__tick { display: block; }
+.ui-hud__pill { display: flex; align-items: center; gap: 10px; background: var(--panel); clip-path: var(--tag); padding: 7px 14px 7px 20px; }
+.ui-hud__key { min-width: 18px; padding: 0 4px; text-align: center; background: var(--lantern); color: var(--night); font-weight: 700; font-size: 11px; }
+.ui-hud__verb { color: var(--lantern); text-transform: uppercase; font-size: 12px; }
+
+/* Fixed, not absolute: centred on the window whatever box they sit in. */
+.ui-hud__goal { position: fixed; left: 50%; transform: translateX(-50%); top: 12px; font-size: 13px; letter-spacing: 0.01em; color: var(--snow-hi); background: var(--panel); border: 1px solid var(--snow-sh); padding: 4px 12px; white-space: nowrap; pointer-events: none; }
+
+/* The stamina bar's acknowledgement for a lesson that costs breath. */
+.ui-hud__stamina.is-pulse { animation: breath-pulse 520ms ease-out; }
+@keyframes breath-pulse {
+  0% { transform: scale(1); filter: none; }
+  40% { transform: scale(1.12); filter: brightness(1.35); }
+  100% { transform: scale(1); filter: none; }
+}
+@keyframes breath-flash {
+  0%, 100% { filter: none; }
+  50% { filter: brightness(1.6); }
+}
+
+/* Stamina speaks before it stops you. Amber at "tired" (a jump is still yours, a flap is not),
+   red at "spent" (neither is), so the state is legible a beat before the refusal. */
+.ui-hud__stamina.is-tired .ui-hud__bar { border-color: #D08A2E; }
+.ui-hud__stamina.is-tired .ui-hud__bar i { background: #E8A33C; }
+.ui-hud__stamina.is-tired .ui-hud__breath { color: #E8A33C; }
+.ui-hud__stamina.is-spent .ui-hud__bar { border-color: #B4462F; }
+.ui-hud__stamina.is-spent .ui-hud__bar i { background: #C9553A; animation: hud-spent 900ms ease-in-out infinite; }
+.ui-hud__stamina.is-spent .ui-hud__breath { color: #E07A62; }
+@keyframes hud-spent { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
+
+/* ── The next step (docs/GUIDE.md §1) ────────────────────────────────────────
+   One line under the compass, and it never repeats the goal: the tracked errand's next action and its
+   distance. Its mark is the diamond hanging under the strip, which is where the bearing went. */
+.ui-hud__next {
+  position: fixed; left: 50%; transform: translateX(-50%); top: 62px;
+  max-width: min(720px, calc(100vw - 32px)); padding: 3px 12px 4px;
+  font-size: 12px; letter-spacing: 0.02em; color: var(--lantern);
+  background: rgba(51, 64, 107, 0.72); border: 1px solid rgba(226, 166, 79, 0.45);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none;
+}
+
+/* ── The compass strip ───────────────────────────────────────────────────────
+   Half the horizon, N E S W sliding past as the view turns; the notch on top is where you face.
+   The goal's diamond rides the strip, its distance at the end; the tracked errand hangs under it. */
+.ui-hud__compass { position: fixed; left: 50%; transform: translateX(-50%); top: 38px; width: 320px; height: 18px; pointer-events: none; }
+.ui-hud__compass-band { position: absolute; left: 0; right: 0; top: 0; height: 18px; box-sizing: border-box; background: var(--panel); border: 1px solid var(--snow-sh); overflow: hidden; }
+.ui-hud__compass-tick { position: absolute; bottom: 0; width: 1px; height: 4px; margin-left: -1px; background: var(--snow-deep); }
+.ui-hud__compass-pt { position: absolute; top: 1px; transform: translateX(-50%); font-size: 9px; line-height: 14px; color: var(--snow-sh); }
+.ui-hud__compass-pt.is-cardinal { top: 0; font-size: 12px; line-height: 15px; font-weight: 700; color: var(--snow-hi); }
+.ui-hud__compass-pt.is-north { color: var(--lantern); }
+.ui-hud__compass-ahead { position: absolute; left: 50%; top: 0; margin-left: -4px; width: 0; height: 0; border: 4px solid transparent; border-top: 4px solid var(--snow-hi); border-bottom: 0; }
+.ui-hud__compass-mark { position: absolute; z-index: 1; top: 3px; width: 11px; height: 11px; margin-left: -6px; transform: rotate(45deg); background: var(--lantern); border: 1px solid #7E5334; }
+.ui-hud__compass-mark.is-behind { background: var(--panel); border: 2px solid var(--lantern); }
+.ui-hud__compass-dist { position: absolute; left: calc(100% + 5px); top: 0; line-height: 16px; border: 1px solid var(--snow-sh); font-size: 11px; color: var(--snow-hi); font-variant-numeric: tabular-nums; white-space: nowrap; padding: 0 5px; background: var(--panel); }
+/* The tracked errand: smaller and a shade duller than the goal, hanging under the strip's lower edge so
+   the two never sit on top of each other. The next-step line starts with the same mark. */
+.ui-hud__compass-side, .ui-hud__next::before { width: 8px; height: 8px; transform: rotate(45deg); background: var(--amber); border: 1px solid #5E3E27; box-sizing: border-box; }
+.ui-hud__compass-side { position: absolute; z-index: 1; top: 13px; margin-left: -4px; }
+.ui-hud__compass-side.is-behind { background: var(--panel); border-color: var(--amber); }
+.ui-hud__next::before { content: ''; display: inline-block; margin: 0 8px 1px 0; }
+/* With no story step to point at, the errand is the goal: its mark is the goal's. */
+.ui-hud__next.is-goal::before { background: var(--lantern); border-color: #7E5334; }
+/* Which way round, when the goal is behind: two chevrons outside the edge the diamond is pinned to. */
+.ui-hud__compass-turn { position: absolute; top: 2px; display: flex; gap: 1px; }
+.ui-hud__compass-turn i { width: 0; height: 0; border: 7px solid transparent; }
+.is-turn-left .ui-hud__compass-turn { right: calc(100% + 3px); animation: turn-left 900ms steps(2, end) infinite; }
+.is-turn-left .ui-hud__compass-turn i { border-right: 7px solid var(--lantern); border-left: 0; }
+.is-turn-right .ui-hud__compass-turn { left: calc(100% + 3px); animation: turn-right 900ms steps(2, end) infinite; }
+.is-turn-right .ui-hud__compass-turn i { border-left: 7px solid var(--lantern); border-right: 0; }
+.is-turn-right .ui-hud__compass-dist { left: calc(100% + 22px); }
+@keyframes turn-left { 50% { transform: translateX(-3px); } }
+@keyframes turn-right { 50% { transform: translateX(3px); } }
+.ui-hud__compass-feather { position: absolute; z-index: 1; top: 0; transform: translateX(-50%); display: flex; padding: 1px; color: var(--lantern); background: var(--panel); border: 1px solid var(--lantern); animation: feather-glint 1400ms steps(2, end) infinite; }
+@keyframes feather-glint { 0%, 100% { border-color: var(--lantern); } 50% { border-color: var(--snow-sh); } }
+
+@media (prefers-reduced-motion: reduce) {
+  /* No scale, but still an acknowledgement — and still an animation, so `animationend` clears the
+     class instead of leaving a permanent outline behind. */
+  .ui-hud__stamina.is-pulse { animation: breath-flash 420ms ease-out; }
+  .ui-hud__bells.is-pop, .ui-hud__feathers.is-pop { animation: breath-flash 420ms ease-out; }
+  .ui-hud__compass-feather { animation: none; }
+  .ui-hud__compass .ui-hud__compass-turn { animation: none; }
+  .ui-hud__bar { transition: none; }
+}
+[data-reduce-motion='on'] .ui-hud__compass-feather, [data-reduce-motion='on'] .ui-hud__compass .ui-hud__compass-turn { animation: none; }
