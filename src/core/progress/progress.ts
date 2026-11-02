@@ -19,7 +19,6 @@
  *   activity:completed  counters['activity:<id>'] += 1
  *   summit:reached      flags['summit'] = true
  *   place:reached       counters['place:<id>'] += 1
- *   place:reached       counters['place:<id>'] += 1
  *   quest:started / quest:completed / achievement:unlocked / toast   (engine-owned, no mutation)
  *
  * Achievement rewards granted by a quest inside `advance` are folded into the returned
@@ -137,11 +136,6 @@ function mutate(s: GameState, name: GameEventName, f: Fields): void {
     case 'summit:reached':
       s.flags['summit'] = true;
       break;
-    case 'place:reached': {
-      const id = readString(f, 'id');
-      if (id !== null) bump(s.counters, 'place:' + id);
-      break;
-    }
     case 'place:reached': {
       const id = readString(f, 'id');
       if (id !== null) bump(s.counters, 'place:' + id);

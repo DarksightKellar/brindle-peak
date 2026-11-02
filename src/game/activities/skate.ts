@@ -8,7 +8,7 @@
  */
 
 import { clamp } from '../../core/contracts';
-import type { ActivityDef, ActivityHost, ActivityInstance, ActivityResult } from '../../core/contracts';
+import type { ActivityDef, ActivityHost, ActivityInstance, ActivityReadout, ActivityResult } from '../../core/contracts';
 
 export const SKATE = {
   /**
@@ -119,6 +119,18 @@ export class SkateActivity implements ActivityInstance {
       this.paid = true;
       host.award(outcome);
     }
+  }
+
+  progress(): ActivityReadout | null {
+    const b = this.balanceState;
+    const off = isOffCentre(b.balance);
+    const side = b.balance > 0.02 ? 'right' : b.balance < -0.02 ? 'left' : 'centred';
+    const warn = off ? ` · falling in ${Math.max(0, SKATE.fallAfter - b.offCentreFor).toFixed(1)}s` : '';
+    return {
+      label: `Balance ${side}${warn} — ${this.elapsed.toFixed(1)} / ${SKATE.goal}s`,
+      fraction: Math.min(1, this.elapsed / SKATE.goal),
+      urgent: off && b.offCentreFor > SKATE.fallAfter * 0.5,
+    };
   }
 
   isComplete(): boolean {

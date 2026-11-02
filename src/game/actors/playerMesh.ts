@@ -112,6 +112,7 @@ export function createPlayerMesh(): PlayerMesh {
   contact.rotation.x = -Math.PI / 2;
   contact.position.y = 0.012;
   contact.renderOrder = 1;
+  contact.name = 'contact-shadow';
   root.add(contact);
 
   // Legs hang to y = -0.46 in body space; lift the body so the feet land on y = 0 in world
@@ -119,12 +120,22 @@ export function createPlayerMesh(): PlayerMesh {
   const FOOT = 0.46;
   body.position.y = FOOT;
 
+  /** One flap's wingbeat, seconds; the first third is the downstroke. */
+  const FLAP = 0.34;
+  const DOWNSTROKE = 0.34;
+  /** How fast the take-off stretch relaxes, seconds. */
+  const STRETCH = 0.16;
+  const lerp = (a: number, b: number, t: number): number => a + (b - a) * Math.max(0, Math.min(1, t));
+
   let clock = 0;
   let squash = 0;
+  let stretch = 0;
+  let flap = 0;
   let flare = 0;
   let lean = 0;
   let prevGrounded = true;
   let prevVy = 0;
+  let prevFlaps = 0;
 
   const sync = (s: PlayerState, dt: number, carrying = false): void => {
     clock += dt;
@@ -134,29 +145,54 @@ export function createPlayerMesh(): PlayerMesh {
 
     const speed = Math.hypot(s.vel.x, s.vel.z);
     const fast = Math.min(1, speed / TUNING.walkSpeed);
+    // 0 at a brisk walk, 1 at full sprint: the run tucks the wings and leans into it.
+    const sprintFrom = TUNING.walkSpeed * 1.15;
+    const sprint = s.grounded && speed > sprintFrom ? Math.min(1, (speed - sprintFrom) / (TUNING.sprintSpeed - sprintFrom)) : 0;
+    const tookOff = prevGrounded && !s.grounded;
 
     if (s.grounded && !prevGrounded && prevVy < -2) squash = 1;
+    if (tookOff) stretch = 1;
+    if (s.flapsUsed > prevFlaps) flap = FLAP;
+    prevFlaps = s.flapsUsed;
     prevGrounded = s.grounded;
     prevVy = s.vel.y;
     squash = Math.max(0, squash - dt / 0.18);
+    stretch = Math.max(0, stretch - dt / STRETCH);
+    flap = Math.max(0, flap - dt);
 
+    // Landing squashes, taking off stretches tall and thin.
     const k = squash * squash;
-    body.scale.set(1 + k * 0.22, 1 - k * 0.3, 1 + k * 0.22);
+    const st = stretch * stretch;
+    body.scale.set(1 + k * 0.22 - st * 0.12, 1 - k * 0.3 + st * 0.3, 1 + k * 0.22 - st * 0.12);
 
-    const bob = s.grounded ? Math.sin(clock * 11 * (0.7 + fast)) * 0.035 * fast : 0;
-    legL.position.y = -0.38 + bob;
-    legR.position.y = -0.38 - bob;
-    body.position.y = FOOT + bob * 0.5;
+    const stride = 0.035 * (fast + sprint * 0.9);
+    const bob = s.grounded ? Math.sin(clock * 11 * (0.7 + fast + sprint * 0.55)) * stride : 0;
+    const air = s.grounded ? 0 : 1;
+    // In the air the feet tuck up and back.
+    legL.position.y = -0.38 + bob + air * 0.12;
+    legR.position.y = -0.38 - bob + air * 0.12;
+    legL.position.z = -0.12 * sprint - air * 0.1;
+    legR.position.z = -0.12 * sprint - air * 0.1;
 
-    const wantFlare = s.mode === 'glide' ? 1 : s.mode === 'climb' ? 0.55 : 0;
+    // A flap is a visible wingbeat: down hard, then back up past rest, with a little lift.
+    const phase = flap > 0 ? 1 - flap / FLAP : 1;
+    const beat = flap > 0
+      ? phase < DOWNSTROKE ? lerp(0.75, -0.95, phase / DOWNSTROKE) : lerp(-0.95, 0.3, (phase - DOWNSTROKE) / (1 - DOWNSTROKE))
+      : 0;
+    const lift = flap > 0 ? Math.sin(Math.PI * Math.min(1, phase)) * 0.06 : 0;
+    body.position.y = FOOT + bob * 0.5 + lift;
+
+    const wantFlare = s.mode === 'glide' ? 1 : s.mode === 'climb' ? 0.55 : s.grounded ? 0 : 0.85;
     flare += (wantFlare - flare) * Math.min(1, dt * 8);
-    wingL.rotation.z = -flare * 0.9;
-    wingR.rotation.z = flare * 0.9;
-    wingL.rotation.y = -flare * 0.3;
-    wingR.rotation.y = flare * 0.3;
+    wingL.rotation.z = -flare * 0.9 + sprint * 0.34 - beat;
+    wingR.rotation.z = flare * 0.9 - sprint * 0.34 + beat;
+    wingL.rotation.y = -flare * 0.3 + sprint * 0.5;
+    wingR.rotation.y = flare * 0.3 - sprint * 0.5;
 
-    const wantLean = s.mode === 'climb' ? -0.4 : s.mode === 'glide' ? 0.18 : s.mode === 'sled' ? -0.14 : 0;
-    lean += (wantLean - lean) * Math.min(1, dt * 6);
+    const wantLean = s.grounded
+      ? s.mode === 'climb' ? -0.4 : s.mode === 'glide' ? 0.18 : s.mode === 'sled' ? -0.14 : sprint * 0.3
+      : s.vel.y > 0.5 ? -0.2 : 0.26;
+    lean += (wantLean - lean) * Math.min(1, dt * (s.grounded ? 6 : 14));
     body.rotation.x = lean;
 
     contact.scale.setScalar(1 + Math.min(0.35, speed * 0.03));

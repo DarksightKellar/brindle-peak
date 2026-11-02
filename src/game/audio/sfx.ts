@@ -11,6 +11,7 @@
 import { clamp, makeRng } from '../../core/contracts';
 import type { SfxName } from './audio';
 import type { AudioRuntime } from './context';
+import { releaseWhenDone } from './teardown';
 
 export type FootSurface = 'snow' | 'ice' | 'rock' | 'wood' | 'spring' | 'deep-snow';
 
@@ -76,6 +77,7 @@ function tone(ctx: AudioContext, dest: AudioNode, at: number, spec: ToneSpec): v
   env.connect(dest);
   osc.start(at);
   osc.stop(at + spec.dur + 0.02);
+  releaseWhenDone([osc], [env]);
 }
 
 function burst(ctx: AudioContext, dest: AudioNode, noise: AudioBuffer, at: number, offset: number, spec: BurstSpec): void {
@@ -98,6 +100,7 @@ function burst(ctx: AudioContext, dest: AudioNode, noise: AudioBuffer, at: numbe
   env.connect(dest);
   src.start(at, offset, spec.dur + 0.02);
   src.stop(at + spec.dur + 0.02);
+  releaseWhenDone([src], [filter, env]);
 }
 
 /** Longest tail per voice, used to hold a slot in the cap for exactly as long as it sounds. */

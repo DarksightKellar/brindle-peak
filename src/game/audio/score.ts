@@ -11,6 +11,12 @@
  */
 import { clamp, smoothstep } from '../../core/contracts';
 import type { AudioRuntime } from './context';
+import { CHORDS, STEPS_PER_BAR, midiHz } from './harmony';
+import { strike, sustain } from './voices';
+
+/** A struck bell is inharmonic: 2.76 and 5.4 are the classic partial ratios, not a chord. */
+const BELL_PARTIALS: readonly [number, number][] = [[1, 1], [2.76, 0.34], [5.4, 0.12]];
+const PLUCK_PARTIALS: readonly [number, number][] = [[1, 1]]; // one fundamental, no harmonics
 
 export type Weather = 'calm' | 'snow' | 'gust';
 export type ScoreMode = 'ground' | 'air' | 'glide' | 'climb' | 'sled';
@@ -68,91 +74,15 @@ export function stepSequence(tempoBpm: number, subdivision: number): { intervalS
   return { intervalSec: 60 / bpm / sub };
 }
 
-const midiHz = (midi: number): number => 440 * Math.pow(2, (midi - 69) / 12);
-
 /** D major pentatonic — D E F# A B. Bright enough for snow, no leading tone pulling at the ear. */
 export const PENTATONIC_HZ: readonly number[] = [62, 64, 66, 69, 71].map(midiHz);
 
-interface ChordDef { pad: readonly number[]; arp: readonly number[] }
-
-/** D - Bm - G - A, back to D. Four bars, and the loop closes on the tonic rather than drifting. */
-const CHORDS: readonly ChordDef[] = [
-  { pad: [50, 57, 62, 66], arp: [62, 66, 69, 74] },
-  { pad: [47, 54, 62, 66], arp: [59, 62, 66, 71] },
-  { pad: [43, 50, 59, 62], arp: [55, 59, 62, 67] },
-  { pad: [45, 52, 61, 64], arp: [57, 61, 64, 69] },
-];
-
-const STEPS_PER_BAR = 8;
 const TOTAL_STEPS = STEPS_PER_BAR * CHORDS.length; // 32 steps: four bars of eighths
 const LOOKAHEAD = 0.25;
 /** Time constant for every gain move: 0.4 s, long enough to be inaudible. */
 const RAMP_TAU = 0.4;
 type BusKey = keyof LayerGains;
-interface SustainSpec { type: OscillatorType; filterHz: number; toHz: number; q: number; peak: number; detune: number }
-/** Pad/strings: detuned stack, slow sweep, and a hold-then-release envelope so the next chord
- * attacks into a still-sounding tail. Releasing at the bar line instead leaves an audible hole. */
-function sustain(ctx: AudioContext, bus: GainNode, notes: readonly number[], at: number, hold: number, spec: SustainSpec): void {
-  const rel = hold * 0.35;
-  const filter = ctx.createBiquadFilter();
-  filter.type = 'lowpass';
-  filter.frequency.setValueAtTime(spec.filterHz, at);
-  filter.frequency.linearRampToValueAtTime(spec.toHz, at + hold * 0.55);
-  filter.Q.setValueAtTime(spec.q, at);
 
-  const env = ctx.createGain();
-  env.gain.setValueAtTime(0.0001, at);
-  // Linear attack: an exponential rise from 1e-4 sags the bed between chords. Release stays exp.
-  env.gain.linearRampToValueAtTime(spec.peak, at + hold * 0.45);
-  env.gain.setValueAtTime(spec.peak, at + hold);
-  env.gain.exponentialRampToValueAtTime(0.0001, at + hold + rel);
-  filter.connect(env);
-  env.connect(bus);
-
-  for (let i = 0; i < notes.length; i++) {
-    const osc = ctx.createOscillator();
-    osc.type = spec.type;
-    osc.frequency.setValueAtTime(midiHz(notes[i]), at);
-    osc.detune.setValueAtTime(i % 2 === 0 ? -spec.detune : spec.detune, at);
-    osc.connect(filter);
-    osc.start(at);
-    osc.stop(at + hold + rel + 0.05);
-  }
-}
-
-/** `sweep`: the pluck's body closes as the string decays; the bell's filter stays open. */
-interface StrikeSpec { type: OscillatorType; dur: number; peak: number; partials: readonly [number, number][]; sweep: boolean }
-/** One struck note — pluck and bell are the same gesture with different partials. */
-function strike(ctx: AudioContext, bus: GainNode, note: number, at: number, spec: StrikeSpec): void {
-  const hz = midiHz(note);
-  const body = ctx.createBiquadFilter();
-  body.type = 'lowpass';
-  body.frequency.setValueAtTime(spec.sweep ? 2800 : 7000, at);
-  if (spec.sweep) body.frequency.exponentialRampToValueAtTime(900, at + 0.3);
-
-  const env = ctx.createGain();
-  env.gain.setValueAtTime(0.0001, at);
-  env.gain.exponentialRampToValueAtTime(spec.peak, at + 0.008);
-  env.gain.exponentialRampToValueAtTime(0.0001, at + spec.dur);
-  body.connect(env);
-  env.connect(bus);
-
-  for (const [mult, amp] of spec.partials) {
-    const osc = ctx.createOscillator();
-    osc.type = spec.type;
-    osc.frequency.setValueAtTime(hz * mult, at);
-    const g = ctx.createGain();
-    g.gain.setValueAtTime(amp, at);
-    osc.connect(g);
-    g.connect(body);
-    osc.start(at);
-    osc.stop(at + spec.dur + 0.05);
-  }
-}
-
-/** A struck bell is inharmonic: 2.76 and 5.4 are the classic partial ratios, not a chord. */
-const BELL_PARTIALS: readonly [number, number][] = [[1, 1], [2.76, 0.34], [5.4, 0.12]];
-const PLUCK_PARTIALS: readonly [number, number][] = [[1, 1]]; // one fundamental, no harmonics
 export interface Score { setAltitude(y: number): void; setWeather(w: Weather): void; setMode(m: ScoreMode): void; update(): void; dispose(): void }
 export function createScore(rt: AudioRuntime): Score {
   const { ctx } = rt;

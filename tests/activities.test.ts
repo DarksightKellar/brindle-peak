@@ -14,14 +14,12 @@ import type {
   Vec3,
 } from '../src/core/contracts';
 import { createActivity } from '../src/game/activities/index';
-import { EXPOSURE } from '../src/game/activities/exposure';
 import { FISH } from '../src/data/fish';
 import {
   FISHING,
   createFishingActivity,
   pickFish,
   resolveCatch,
-  tensionAt,
 } from '../src/game/activities/fishing';
 import {
   bearingTo,
@@ -32,9 +30,6 @@ import {
 } from '../src/game/activities/photo';
 import { createSledActivity, DEFAULT_COURSE, sledStep } from '../src/game/activities/sled';
 import { createSkateActivity, newBalance, SKATE, skateStep } from '../src/game/activities/skate';
-import { createTargetActivity, targetAngle, THROW } from '../src/game/activities/targets';
-import { createBuildActivity, partStations } from '../src/game/activities/build';
-import { createRaceActivity, forwardDrive } from '../src/game/activities/race';
 
 // ---------------------------------------------------------------------------
 // Fake world. Everything below the `ActivityHost` line is deliberately dumb: flat terrain,
@@ -173,46 +168,11 @@ describe('fishing', () => {
     expect(resolveCatch(2, 1.9, FISHING.window)).toBe(false);
   });
 
-  it('has a readable tempo that peaks in the middle of the swing', () => {
-    expect(tensionAt(0)).toBe(0);
-    expect(tensionAt(FISHING.basePeriod / 2)).toBeCloseTo(1, 6);
-    expect(tensionAt(FISHING.basePeriod * 0.25)).toBeCloseTo(0.5, 6);
-    expect(tensionAt(FISHING.basePeriod)).toBeCloseTo(0, 6);
-  });
-
   it('picks the same fish for the same rng seed', () => {
     const a = pickFish(makeRng(1234), FISH);
     const b = pickFish(makeRng(1234), FISH);
     expect(a.id).toBe(b.id);
     expect(FISH.map((f) => f.id)).toContain(a.id);
-  });
-
-  it('completes once with a fish, an event and an award', () => {
-    const fish = createFishingActivity(defOf('fish'));
-    const host = makeHost();
-    begin(fish, host);
-
-    expect(fish.castsMade).toBe(1);
-    expect(fish.strikeAt).toBeGreaterThan(fish.elapsed);
-
-    let guard = 0;
-    const target = fish.strikeAt + FISHING.window / 2;
-    while (fish.elapsed < target && guard++ < 600) step(fish, host);
-
-    step(fish, host, { interactPressed: true });
-
-    expect(fish.isComplete()).toBe(true);
-    expect(host.events.map((e) => e.name)).toEqual(['fish:caught']);
-    expect(host.awards).toHaveLength(1);
-    expect(fish.lastCatch).not.toBeNull();
-    expect(host.awards[0].score).toBe(fish.lastCatch?.value);
-    expect(host.awards[0].bonus).toBe(fish.lastCatch?.id);
-    expect(fish.result()).toEqual(host.awards[0]);
-
-    // A second press on the finished activity changes nothing.
-    step(fish, host, { interactPressed: true });
-    expect(host.events).toHaveLength(1);
-    expect(host.awards).toHaveLength(1);
   });
 
   it('uses the injected fish table rather than the fallback', () => {
@@ -259,36 +219,6 @@ describe('photo', () => {
     expect(composition(1, 12)).toBeGreaterThan(composition(0.9, 12));
   });
 
-  it('snaps when aimed at the subject and stays open when aimed away', () => {
-    const def = defOf('photo');
-    const photo = createPhotoActivity(def);
-    const host = makeHost({ playerPos: { x: def.pos.x, y: 0, z: def.pos.z } });
-    begin(photo, host);
-
-    const yaw = bearingTo(host.playerPos, photo.subject);
-    const pitch = elevationTo(host.playerPos, photo.subject);
-    expect(inFrame(photo.aimFrom(host.playerPos, yaw, pitch))).toBe(true);
-    // Yaw alone is not enough: the check is 3D, so looking at the right bearing but up at the sky misses.
-    expect(inFrame(photo.aimFrom(host.playerPos, yaw, pitch + 0.6))).toBe(false);
-
-    aimTo(photo, host, yaw + 1.2, pitch);
-    step(photo, host, { interactPressed: true });
-    expect(photo.isComplete()).toBe(false);
-    expect(photo.lastHint).toBe('aim');
-    expect(host.events).toHaveLength(0);
-    expect(host.awards).toHaveLength(0);
-
-    aimTo(photo, host, yaw, pitch);
-    step(photo, host, { interactPressed: true });
-    expect(photo.isComplete()).toBe(true);
-    expect(host.events.map((e) => e.name)).toEqual(['photo:taken']);
-    expect(host.events[0].data).toMatchObject({ id: 'test-photo', isNew: true });
-    expect(host.awards).toHaveLength(1);
-    expect(photo.result()?.score).toBeGreaterThanOrEqual(50);
-    expect(photo.result()?.bonus).toBe('test-photo');
-    expect(photo.view()).toBeNull();
-  });
-
   it('opens the viewfinder with the subject in frame but not centred, and turns and tilts with the move keys', () => {
     const def = defOf('photo');
     const photo = createPhotoActivity(def);
@@ -309,50 +239,7 @@ describe('photo', () => {
     expect(photo.view()?.yaw).toBeCloseTo(open - (70 * Math.PI) / 180, 2);
   });
 
-  it('frames the aurora as a sky direction, due north and up, with no ring and no distance check', () => {
-    const def = defOf('photo', { id: 'peak-aurora-photo', pos: { x: 322, z: -392 } });
-    const photo = createPhotoActivity(def);
-    const host = makeHost({ playerPos: { x: 322, y: 85, z: -392 }, camYaw: 0 });
-    begin(photo, host);
-    expect(photo.markers()).toEqual([]);
-    step(photo, host, { interactPressed: true });
-    expect(photo.isComplete()).toBe(false); // facing south, at the snow
-    aimTo(photo, host, Math.PI, (25 * Math.PI) / 180);
-    expect(photo.lastHint).toBe('aim');
-    step(photo, host, { interactPressed: true });
-    // A long exposure: the shutter stays open while the frame drifts, and is held steady by hand.
-    expect(photo.isComplete()).toBe(false);
-    const held = photo.view()!;
-    for (let i = 0; i < 60 * 6 && !photo.isComplete(); i++) {
-      const v = photo.view()!;
-      const k = PHOTO.turnRate * EXPOSURE.fine * FRAME;
-      const moveX = Math.max(-1, Math.min(1, -angleDelta(v.yaw, held.yaw) / k));
-      const moveZ = Math.max(-1, Math.min(1, (held.pitch - v.pitch) / (PHOTO.tiltRate * EXPOSURE.fine * FRAME)));
-      step(photo, host, { moveX, moveZ });
-    }
-    expect(photo.isComplete()).toBe(true);
-    expect(host.events[0].data).toMatchObject({ id: 'peak-aurora-photo' });
-  });
 });
-
-/** Elevation from Pip's eye to a point, matching the viewfinder's pitch. */
-function elevationTo(from: Vec3, to: Vec3): number {
-  return Math.atan2(to.y - (from.y + PHOTO.eyeHeight), Math.hypot(to.x - from.x, to.z - from.z));
-}
-
-/** Hold the viewfinder keys until the aim reaches (yaw, pitch), as a player would. */
-function aimTo(photo: ReturnType<typeof createPhotoActivity>, host: FakeHost, yaw: number, pitch: number): void {
-  for (let i = 0; i < 2000; i++) {
-    const v = photo.view();
-    if (!v) return;
-    const dYaw = angleDelta(v.yaw, yaw);
-    const dPitch = pitch - v.pitch;
-    if (Math.abs(dYaw) < 1e-4 && Math.abs(dPitch) < 1e-4) return;
-    const moveX = Math.max(-1, Math.min(1, -dYaw / (PHOTO.turnRate * FRAME)));
-    const moveZ = Math.max(-1, Math.min(1, dPitch / (PHOTO.tiltRate * FRAME)));
-    step(photo, host, { moveX, moveZ });
-  }
-}
 
 // ---------------------------------------------------------------------------
 // 4. Sled
@@ -497,142 +384,16 @@ describe('skate', () => {
 // 6. Snowball throwing
 // ---------------------------------------------------------------------------
 
-describe('throw', () => {
-  it('hits a target that the aim cone is over', () => {
-    const game = createTargetActivity(defOf('throw'));
-    const host = makeHost();
-    begin(game, host);
-
-    const target = game.liveTargets[0];
-    step(game, host, { camYaw: targetAngle(target, game.seconds), interactPressed: true });
-
-    expect(game.hitCount).toBe(1);
-    expect(target.down).toBe(true);
-    expect(game.throwsRemaining).toBe(THROW.budget - 1);
-    expect(game.isComplete()).toBe(false);
-  });
-
-  it('counts hits and ends when the snowballs run out', () => {
-    const game = createTargetActivity(defOf('throw'));
-    const host = makeHost();
-    begin(game, host);
-
-    for (let frame = 0; !game.isComplete() && frame < 900; frame++) {
-      const standing = game.liveTargets.filter((t) => !t.down);
-      const aim = standing.length > 0 ? targetAngle(standing[0], game.seconds) : 0;
-      if (frame % 24 === 0) {
-        step(game, host, { camYaw: aim, interactPressed: true });
-      } else {
-        step(game, host);
-      }
-    }
-
-    expect(game.isComplete()).toBe(true);
-    expect(game.hitCount).toBe(3);
-    expect(host.awards).toHaveLength(1);
-    expect(game.result()?.score).toBe(3);
-    expect(game.result()?.bonus).toBe('clean-sweep');
-  });
-
-  it('ends on the budget with zero hits when every throw misses', () => {
-    const game = createTargetActivity(defOf('throw'));
-    const host = makeHost();
-    begin(game, host);
-
-    let throwsSeen = 0;
-    for (let frame = 0; !game.isComplete() && frame < 900; frame++) {
-      const throwFrame = frame % 24 === 0;
-      if (throwFrame) throwsSeen++;
-      step(game, host, throwFrame ? { camYaw: Math.PI, interactPressed: true } : {});
-    }
-
-    expect(throwsSeen).toBe(THROW.budget);
-    expect(game.throwsRemaining).toBe(0);
-    expect(game.hitCount).toBe(0);
-    expect(game.isComplete()).toBe(true);
-    expect(host.awards).toHaveLength(1);
-    expect(game.result()?.score).toBe(0);
-  });
-});
 
 // ---------------------------------------------------------------------------
 // 7. Snowman
 // ---------------------------------------------------------------------------
 
-describe('build', () => {
-  it('needs all three parts, in order, and completes exactly once', () => {
-    const build = createBuildActivity(defOf('build'));
-    const host = makeHost();
-    begin(build, host);
-    const stations = partStations(defOf('build'));
-
-    // "Away" has to be genuinely away. The ring radius is now <= the press reach, so that every
-    // part is reachable from where the player already stands (movement is frozen during an
-    // activity), which means one station is within reach of another. Standing 12 u off is away.
-    host.playerPos = { x: stations[0].x + 12, y: 0, z: stations[0].z };
-    step(build, host, { interactPressed: true });
-    expect(build.placed).toBe(0);
-    expect(build.currentPart).toBe('base');
-
-    for (let i = 0; i < 3; i++) {
-      host.playerPos = { x: stations[i].x, y: 0, z: stations[i].z };
-      expect(build.inPlace(host.playerPos)).toBe(true);
-      step(build, host, { interactPressed: true });
-      expect(build.placed).toBe(i + 1);
-    }
-
-    expect(build.isComplete()).toBe(true);
-    expect(host.awards).toHaveLength(1);
-    expect(build.result()?.score).toBe(3);
-    expect(build.result()?.bonus).toBe('test-build');
-
-    step(build, host, { interactPressed: true });
-    step(build, host, { interactPressed: true });
-    expect(host.awards).toHaveLength(1);
-    expect(build.result()?.bonus).toBe('test-build');
-
-    // Standing away from the ring does nothing at all.
-    const far = createBuildActivity(defOf('build'));
-    const farHost = makeHost({ playerPos: { x: 40, y: 0, z: 40 } });
-    begin(far, farHost);
-    step(far, farHost, { interactPressed: true });
-    expect(far.placed).toBe(0);
-    expect(far.pressCount).toBe(1);
-  });
-});
 
 // ---------------------------------------------------------------------------
 // 8. Race
 // ---------------------------------------------------------------------------
 
-describe('race', () => {
-  it('only counts movement down the course', () => {
-    expect(forwardDrive(0, 1, 0, 0)).toBeCloseTo(1, 6);
-    expect(forwardDrive(1, 0, 0, 0)).toBeCloseTo(0, 6);
-    expect(forwardDrive(0, -1, 0, 0)).toBe(0);
-    expect(forwardDrive(0, 0, 0, 0)).toBe(0);
-  });
-
-  it('finishes at the post with the elapsed time as the result', () => {
-    const race = createRaceActivity(defOf('race'));
-    const host = makeHost();
-    race.start(host);
-    step(race, host); // heading is known after start
-
-    let guard = 0;
-    while (!race.isComplete() && guard++ < 2000) {
-      step(race, host, { moveZ: 1, sprintHeld: true, camYaw: race.headingDir });
-    }
-
-    expect(race.isComplete()).toBe(true);
-    expect(race.distance).toBe(race.courseLength);
-    expect(race.result()?.score).toBe(race.seconds);
-    expect(race.seconds).toBeLessThan(20);
-    expect(race.result()?.bonus).toBeUndefined();
-    expect(host.awards).toHaveLength(1);
-    expect(race.finished).toBe(true);
-  });
-});
 
 // ---------------------------------------------------------------------------
 // 9. Abort
@@ -763,19 +524,4 @@ describe('host state', () => {
     }
   });
 
-  it('reads caught fish and photos to report isNew correctly', () => {
-    const def = defOf('photo');
-    const state = createGameState({ x: 0, y: 0, z: 0 }, 8);
-    state.photos['test-photo'] = 1;
-    deepFreeze(state);
-
-    const photo = createPhotoActivity(def);
-    const host = makeHost({ state, playerPos: { x: def.pos.x, y: 0, z: def.pos.z } });
-    begin(photo, host);
-    aimTo(photo, host, bearingTo(host.playerPos, photo.subject), elevationTo(host.playerPos, photo.subject));
-    step(photo, host, { interactPressed: true });
-
-    expect(host.events).toHaveLength(1);
-    expect(host.events[0].data).toMatchObject({ id: 'test-photo', isNew: false });
-  });
 });

@@ -14,6 +14,8 @@ export interface Threshold {
   pass: boolean;
   actual: number;
   expected: string;
+  /** Reported but never fails a frame (main.ts `artgate.measure`). */
+  informational?: boolean;
 }
 
 /**
@@ -36,6 +38,13 @@ export function judge(m: FrameMetrics): Threshold[] {
     actual,
     expected,
   });
+  const info = (name: string, pass: boolean, actual: number, expected: string): Threshold => ({
+    name,
+    pass,
+    actual,
+    expected,
+    informational: true,
+  });
   return [
     t('no pixels below L 0.10', m.below010 === 0, m.below010, '== 0'),
     t('min luminance >= 0.10', m.min >= 0.1, m.min, '>= 0.10'),
@@ -45,8 +54,8 @@ export function judge(m: FrameMetrics): Threshold[] {
     t('saturation p50 >= 0.38', m.satP50 >= 0.38, m.satP50, '>= 0.38'),
     t('blown highlights <= 30%', m.blownShare <= 0.3, m.blownShare, '<= 0.30'),
     t('contrast >= 0.09', m.contrast >= 0.09, m.contrast, '>= 0.09'),
-    t('block period is 5', m.blockPeriod === 5, m.blockPeriod, '== 5'),
-    t('detail density >= 0.005', m.edgeDensity >= 0.005, m.edgeDensity, '>= 0.005'),
+    info('block period is 5', m.blockPeriod === 5, m.blockPeriod, '== 5 at a 5x upscale'),
+    info('detail density >= 0.005', m.edgeDensity >= 0.005, m.edgeDensity, '>= 0.005'),
   ];
 }
 

@@ -10,7 +10,7 @@
 
 import { angleDelta, clamp } from '../../core/contracts';
 import type {
-  ActivityDef, ActivityHost, ActivityInstance, ActivityReadout, ActivityResult, TerrainSampler, Vec3,
+  ActivityDef, ActivityHost, ActivityInstance, ActivityReadout, ActivityResult, Vec3,
 } from '../../core/contracts';
 import { WORDS } from './activityWords';
 import { onAurora, photoSubjectFor } from './photoSubjects';

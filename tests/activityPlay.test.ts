@@ -77,7 +77,7 @@ describe('race', () => {
     const h = host({ x: d.pos.x, y: 0, z: d.pos.z });
     race.start(h);
     step(race, h);
-    expect(race.progress()?.label).toBe(`Gate 1 / ${race.gates.length}`);
+    expect(race.progress()?.label).toBe(`Gate 1 of ${race.gates.length}`);
     const arches = (race.markers() as PlacedMarker[]).filter((m) => m.look === 'arch');
     expect(arches).toHaveLength(1);
     expect(arches[0].strength).toBe(1);

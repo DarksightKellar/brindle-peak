@@ -8,7 +8,6 @@ import { ACTIVITIES } from '../src/data/activities';
 import { PLACES } from '../src/data/places';
 import { ZONES } from '../src/data/zones';
 import { ZONE_NAMES } from '../src/data/zoneNames';
-import { PLACES } from '../src/data/places';
 import { ZONE_IDS, createGameState } from '../src/core/contracts';
 import { MAX_TOASTS, TOAST_LIFE, ToastQueue, splitToast } from '../src/game/ui/toasts';
 import { CHARS_PER_SEC, Typewriter } from '../src/game/ui/dialogue';

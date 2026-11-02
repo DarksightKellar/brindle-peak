@@ -15,6 +15,7 @@ import type { GameState } from '../../core/contracts';
 import { DAY_LIGHT, DUSK, FOG, SKY, SKY_HIGH } from './pixelConfig';
 import type { SceneKit } from './scene';
 import { sunDirection } from './sky';
+import { createSnowSurface } from './snowSurface';
 
 /** Seconds of play from day to full dusk. */
 export const DUSK_SECONDS = 60;
@@ -84,6 +85,7 @@ export function createDuskStage(kit: SceneKit, pipeline: FogSink): DuskStage {
   const fog = new THREE.Color();
   const distant = new THREE.Color();
   let applied = -1, height = -1;
+  const surface = createSnowSurface();
 
   // h: how high the camera is, 0 valley .. 1 summit (SKY_HIGH). The day sky deepens with it; blue
   // hour is already deep, so dusk takes over from it.
@@ -125,6 +127,7 @@ export function createDuskStage(kit: SceneKit, pipeline: FogSink): DuskStage {
         height = step;
         apply(look.dusk, step);
       }
+      surface.update(kit.scene, kit.keyDir, look.dusk);
       return look;
     },
   };

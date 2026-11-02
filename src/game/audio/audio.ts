@@ -45,6 +45,12 @@ export function isAudioAvailable(): boolean {
   return isAudioSupported();
 }
 
+/**
+ * Make-up gain on the master bus. The score and effects are written quietly so they never clip
+ * against each other; this brings the whole mix up to a normal listening level.
+ */
+const MASTER_MAKEUP = 7.1;
+
 export function createAudio(): AudioKit {
   let rt: AudioRuntime | null = null;
   let score: Score | null = null;
@@ -62,7 +68,7 @@ export function createAudio(): AudioKit {
     if (!rt) return;
     const at = rt.ctx.currentTime;
     // Short but non-zero time constants: the context opening and every later slider move glide.
-    rt.master.gain.setTargetAtTime(masterVol, at, 0.08);
+    rt.master.gain.setTargetAtTime(masterVol * MASTER_MAKEUP, at, 0.08);
     rt.music.gain.setTargetAtTime(musicVol, at, 0.08);
     rt.sfx.gain.setTargetAtTime(1, at, 0.08);
   }

@@ -59,32 +59,23 @@ export interface TutorialBeat {
   readonly context?: BeatContextKind;
 }
 
-/** `airborne`: Pip is off the ground. `moving`: walking on the ground. `nearOpener`: within reach of Nana. */
-export type BeatContextKind = 'airborne' | 'moving' | 'nearOpener';
+/** `airborne`: Pip is off the ground. `moving`: walking on the ground. `openerInReach`: E would talk to Nana. */
+export type BeatContextKind = 'airborne' | 'moving' | 'openerInReach';
 
 /** What the glue knows about this frame, for `beatApplies`. Built by `game/session/onboarding.ts`. */
 export interface BeatContext {
   airborne: boolean;
   moving: boolean;
-  /** Horizontal distance to whoever the story opens with, world units. */
-  openerDistance: number;
+  /** Whoever the story opens with is within talking reach, so E would start the conversation. */
+  openerInReach: boolean;
 }
-
-/** Near enough to Nana that "E — talk to her" is the next thing to do (her pill shows inside ~5 u). */
-export const NEAR_OPENER = 9;
 
 /** Should `beat`'s prompt be on screen in this context? */
 export function beatApplies(beat: TutorialBeat, ctx: BeatContext): boolean {
-  switch (beat.context) {
-    case 'airborne':
-      return ctx.airborne;
-    case 'moving':
-      return ctx.moving && !ctx.airborne;
-    case 'nearOpener':
-      return ctx.openerDistance <= NEAR_OPENER;
-    default:
-      return true;
-  }
+  if (beat.context === 'airborne') return ctx.airborne;
+  if (beat.context === 'moving') return ctx.moving && !ctx.airborne;
+  if (beat.context === 'openerInReach') return ctx.openerInReach;
+  return true;
 }
 
 /** How long an optional tip waits, in seconds of it actually being on screen. */
