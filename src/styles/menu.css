@@ -26,7 +26,8 @@
 .ui-menu__nav { margin-left: -8px; margin-right: -8px; padding: 3px 8px 3px 6px; border-left: 2px solid transparent; }
 .ui-menu__nav.is-sel { background: rgba(255, 196, 106, 0.12); border-left-color: var(--lantern); color: var(--snow-hi); }
 .ui-menu__nav.is-sel .ui-menu__label { color: var(--snow-hi); }
-.ui-btn + .ui-btn { margin-top: 6px; }
+.ui-menu__resume { margin-bottom: 14px; }
+.ui-menu__reset { margin-top: 22px; padding: 6px; border-color: var(--snow-sh); color: var(--snow-deep); font-size: 9px; letter-spacing: 3px; }
 .ui-btn.is-sel { background: rgba(255, 196, 106, 0.22); color: var(--snow-hi); }
 /* Armed: one more press of the same key wipes the run, so it reads as a warning, in the scarf red. */
 .ui-menu__reset[data-armed='1'] { border-color: var(--scarf); color: var(--snow-hi); background: rgba(196, 87, 76, 0.32); }

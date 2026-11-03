@@ -17,6 +17,7 @@ import type { GameState } from '../../core/contracts';
 import { ACHIEVEMENTS } from '../../data/achievements';
 import { FISH } from '../../data/fish';
 import { QUESTS } from '../../data/quests';
+import { errandLineFor } from './errandLine';
 import { mapHTML } from './journalMap';
 import type { JournalContent, JournalModel } from './journalModel';
 import { formatJournal } from './journalModel';
@@ -38,22 +39,33 @@ export interface Journal {
   turnPage(dir: number): void;
   /** Up/down: scroll a long page by `px` (negative is up). */
   scroll(px: number): void;
+  /** Up/down on the Quests page: move the errand cursor. False when there is nothing to pick. */
+  select(dir: number): boolean;
+  /** E/Enter on the Quests page: follow the errand under the cursor. */
+  activate(s: GameState): void;
   currentTab(): JournalTab;
   isOpen(): boolean;
   rerender(s: GameState): void;
   destroy(): void;
 }
 
-function tabHTML(tab: JournalTab, m: JournalModel, s: GameState, content: JournalContent): string {
+function tabHTML(
+  tab: JournalTab,
+  m: JournalModel,
+  s: GameState,
+  content: JournalContent,
+  tracked: string | null,
+  cursor: string | null,
+): string {
   switch (tab) {
     case 'Field Notes':
-      return notesHTML(m);
+      return notesHTML(m, content.prints?.() ?? []);
     case 'Map':
       return content.map
         ? mapHTML(s, content.map, content.mapDecor?.())
         : '<p class="ui-empty">No map to draw: the valley content is not loaded.</p>';
     case 'Quests':
-      return questsHTML(m);
+      return questsHTML(m, tracked, cursor);
     case 'Fish':
       return fishHTML(m, s, content.fish);
     case 'Achievements':
@@ -67,7 +79,7 @@ function tabHTML(tab: JournalTab, m: JournalModel, s: GameState, content: Journa
  * Everything the six pages read, flattened. Cheap on purpose: a few dozen short strings, built only
  * while the journal is open.
  */
-function signature(tab: JournalTab, s: GameState): string {
+function signature(tab: JournalTab, s: GameState, tracked: string | null): string {
   const quests = Object.entries(s.quests).map(([id, q]) => `${id}:${q.status}:${q.step}`);
   const counters = Object.entries(s.counters).map(([k, v]) => `${k}=${v}`);
   // Playtime is printed on Field Notes only. Carrying it in every page's signature repainted the map
@@ -75,6 +87,7 @@ function signature(tab: JournalTab, s: GameState): string {
   const clock = tab === 'Field Notes' ? String(Math.floor(s.playtime)) : '';
   return [
     tab,
+    tracked,
     clock,
     s.feathers,
     s.bells,
@@ -113,14 +126,38 @@ export function createJournal(root: HTMLElement, content: JournalContent = {}): 
   let tab: JournalTab = 'Field Notes';
   let state: GameState | null = null;
   let lastSig = '';
+  const errands = src.map ? errandLineFor(src.map) : null;
+  /** The errand under the Quests page's cursor; the tracked one when the page opens. */
+  let cursor: string | null = null;
+  let pickable: string[] = [];
 
   const paint = (s: GameState): void => {
     state = s;
     const m = formatJournal(s, src);
+    pickable = m.quests.filter((q) => q.trackable).map((q) => q.id);
+    if (cursor === null || !pickable.includes(cursor)) {
+      const tracked = errands?.trackedId() ?? null;
+      cursor = tracked !== null && pickable.includes(tracked) ? tracked : pickable[0] ?? null;
+    }
     for (const [i, t] of TABS.entries()) tabButtons[i].classList.toggle('is-on', t === tab);
-    body.innerHTML = tabHTML(tab, m, s, src);
-    lastSig = signature(tab, s);
+    body.innerHTML = tabHTML(tab, m, s, src, errands?.trackedId() ?? null, cursor);
+    lastSig = signature(tab, s, errands?.trackedId() ?? null);
+    body.querySelector('.ui-quest.is-cursor')?.scrollIntoView?.({ block: 'nearest' });
   };
+
+  const follow = (s: GameState, id: string): void => {
+    if (!errands) return;
+    errands.track(s, id);
+    cursor = id;
+    paint(s);
+  };
+
+  // A pointer is hidden over the game, but a click on an errand row should still do what E does.
+  body.addEventListener('click', (e) => {
+    const row = (e.target as HTMLElement).closest?.('.ui-quest.is-pickable') as HTMLElement | null;
+    const id = row?.dataset.quest;
+    if (id && state) follow(state, id);
+  });
 
   // A new page starts at its top; a repaint of the same page keeps the reader's place.
   const turnTo = (next: JournalTab): void => {
@@ -137,6 +174,7 @@ export function createJournal(root: HTMLElement, content: JournalContent = {}): 
       rootEl.hidden = !opening;
       if (!opening) return;
       if (on !== undefined) tab = on;
+      cursor = null;
       paint(s);
       body.scrollTop = 0;
     },
@@ -152,6 +190,18 @@ export function createJournal(root: HTMLElement, content: JournalContent = {}): 
     scroll(px: number): void {
       body.scrollTop += px;
     },
+    select(dir: number): boolean {
+      if (tab !== 'Quests' || pickable.length === 0 || !state) return false;
+      const at = cursor === null ? -1 : pickable.indexOf(cursor);
+      const next = Math.max(0, Math.min(pickable.length - 1, at + Math.sign(dir)));
+      cursor = pickable[next];
+      paint(state);
+      return true;
+    },
+    activate(s: GameState): void {
+      if (tab !== 'Quests' || cursor === null) return;
+      follow(s, cursor);
+    },
     currentTab(): JournalTab {
       return tab;
     },
@@ -160,7 +210,7 @@ export function createJournal(root: HTMLElement, content: JournalContent = {}): 
     },
     rerender(s: GameState): void {
       if (rootEl.hidden) return;
-      const sig = signature(tab, s);
+      const sig = signature(tab, s, errands?.trackedId() ?? null);
       if (sig === lastSig) return;
       paint(s);
     },

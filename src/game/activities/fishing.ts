@@ -14,9 +14,9 @@
 
 import { makeRng } from '../../core/contracts';
 import type {
-  ActivityDef, ActivityHost, ActivityInstance, ActivityReadout, ActivityResult, FishDef, FishRarity, MarkerSpec, Rng, Vec3,
+  ActivityDef, ActivityHost, ActivityInstance, ActivityReadout, ActivityResult, FishDef, FishRarity, GameState, MarkerSpec, Rng, Vec3,
 } from '../../core/contracts';
-import { FISH } from '../../data/fish';
+import { FISH, POOL_FISH } from '../../data/fish';
 import { WORDS } from './activityWords';
 import { fishSpotFor, floatPoint, standPoint, type FishSpot } from './fishSpots';
 import { catchMarkers, floatMarkers } from './fishingLooks';
@@ -61,6 +61,26 @@ export function pickFish(rng: Rng, table: readonly FishDef[]): FishDef {
   return table[table.length - 1];
 }
 
+/**
+ * Hollis's mitten. While "fish the Creek Pool" is the mitten errand's step, what comes up on the line
+ * there is the mitten, not a fish: the step used to land an Arctic Char and then ask Pip to tell Hollis
+ * where a mitten they never saw had been.
+ */
+export const MITTEN: FishDef = { id: 'mitten', name: "Hollis's mitten", rarity: 'common', value: 0, body: '#c4574c', accent: '#f0d8b4' };
+const MITTEN_POOL = 'pinewind-creek-fish';
+
+function mittenWanted(s: Readonly<GameState>): boolean {
+  const p = s.quests['hollis-mitten'];
+  return p !== undefined && p.status === 'active' && Math.floor(p.step) === 1;
+}
+
+/** The pool's own fish, from the journal table; the whole table for a pool with none named. */
+function poolTable(id: string, table: readonly FishDef[]): readonly FishDef[] {
+  const ids = POOL_FISH[id];
+  const own = ids ? ids.map((f) => table.find((t) => t.id === f)).filter((t): t is FishDef => t !== undefined) : [];
+  return own.length > 0 ? own : table;
+}
+
 /** Position-derived seed: activities have authored coordinates, so no string hashing. */
 function seedOf(def: ActivityDef): number {
   return Math.abs(Math.round(def.pos.x * 7919 + def.pos.z * 104729)) >>> 0;
@@ -92,7 +112,7 @@ export class FishingActivity implements ActivityInstance {
 
   constructor(def: ActivityDef, table: readonly FishDef[] = FISH) {
     this.def = def;
-    this.table = table;
+    this.table = poolTable(def.id, table);
     this.spot = fishSpotFor(def.id);
   }
 
@@ -140,8 +160,20 @@ export class FishingActivity implements ActivityInstance {
   }
 
   private land(host: ActivityHost): void {
+    if (this.def.id === MITTEN_POOL && mittenWanted(host.state)) {
+      this.caught = MITTEN;
+      this.outcome = { score: 0, bonus: 'mitten' };
+      this.enter('reel');
+      if (!this.paid) {
+        this.paid = true;
+        host.award(this.outcome);
+      }
+      return;
+    }
     const rng = makeRng(seedOf(this.def) + this.casts * 7919 + this.misses * 104729);
-    const fish = pickFish(rng, this.table);
+    // The pool's own fish first, until the journal has it.
+    const own = this.table[0];
+    const fish = own && !host.state.fish[own.id] ? own : pickFish(rng, this.table);
     const isNew = !host.state.fish[fish.id];
     const outcome: ActivityResult = { score: fish.value, bonus: fish.id };
     this.caught = fish;
@@ -243,7 +275,8 @@ export class FishingActivity implements ActivityInstance {
   }
 
   summary(): string | null {
-    return this.stage === 'done' && this.caught ? WORDS.fishResult(this.caught.name) : null;
+    if (this.stage !== 'done' || !this.caught) return null;
+    return this.caught === MITTEN ? WORDS.mittenResult : WORDS.fishResult(this.caught.name);
   }
 
   /** Seconds since the first cast. */

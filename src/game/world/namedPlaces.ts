@@ -22,7 +22,9 @@ import { BIG_PINE_HEIGHT, bigPine, SPLIT_PINE_HEIGHT, splitPine, woodstore } fro
 import { buildCreek, creekDistance } from './creek';
 import { GeoBuilder } from './geoBuilder';
 import { RADIO_HUT } from './summit';
-import { buildTrail, WAY_UP, wayDistance } from './trail';
+import { buildTrail, type Detour, WAY_UP, wayDistance } from './trail';
+import { LANDMARKS } from './landmarks';
+import { ACTIVITIES } from '../../data/activities';
 import { buildWayScenes, SCENE_CLEARINGS } from './wayScenes';
 import { buildKettlesDressing } from './kettlesDressing';
 import { buildHoarfrostGlade, GLADE } from './hoarfrostGlade';
@@ -106,7 +108,12 @@ export function buildNamedPlaces(sampler: TerrainSampler): NamedPlaces {
   group.add(stand(sampler, store, 'woodstore', WOODSTORE.x, WOODSTORE.z, -0.15));
 
   group.add(buildCreek(sampler));
-  const trail = buildTrail(sampler, LANTERN_POSTS.map((p) => p.pos));
+  const hamlet = LANDMARKS.find((l) => l.id === 'hamlet');
+  const detours: Detour[] = [
+    ...(hamlet ? [{ x: hamlet.x, z: hamlet.z, kind: 'hamlet' as const }] : []),
+    ...ACTIVITIES.map((a) => ({ x: a.pos.x, z: a.pos.z, kind: 'activity' as const })),
+  ];
+  const trail = buildTrail(sampler, LANTERN_POSTS.map((p) => p.pos), detours);
   const scenes = buildWayScenes(sampler);
   const kettles = buildKettlesDressing(sampler, WORLD_SEED);
   const glade = buildHoarfrostGlade(sampler);

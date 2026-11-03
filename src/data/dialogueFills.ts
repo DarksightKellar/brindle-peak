@@ -25,6 +25,13 @@ export const DIALOGUE_FILLS: Readonly<Record<string, (s: GameState) => string[]>
       .map((quest) => NANA_HEARD[quest] as string),
   // Her line about the posts says who lit them on this run: she used to say she watched Pip light
   // them all the way down, on a run where Pip had lit four of twelve and the rest lit themselves.
+  // Ivy's roll-call line says how the pools are on this run: "steaming" sat oddly beside her errand
+  // about them going cold when the dam was never mended.
+  'ivy-radio': (s) => [
+    s.quests['ivy-springs']?.status === 'complete'
+      ? "Kettle Springs here. Dam's whole again, and the pools are steaming."
+      : "Kettle Springs here. Pools are cooling, but there's warm enough yet.",
+  ],
   'nana-posts': (s) => {
     const lit = Object.keys(s.lanterns).length;
     return [lit >= POSTS ? NANA_POSTS.all : lit > 0 ? NANA_POSTS.some : NANA_POSTS.none];

@@ -157,7 +157,7 @@
     "id": "nana-home-close",
     "speaker": "nana",
     "lines": [
-      "Come in out of the cold, then. Sleep, if you like. Or don't.",
+      "Sit out here with me a minute, then. I want to look at those posts.",
       "The valley will be there in the morning. All of it. All of them.",
       "And Pip. I'm glad it was you that went up."
     ],
@@ -323,7 +323,7 @@
     "id": "bram-idle",
     "speaker": "bram",
     "lines": [
-      "Sixty-two, sixty-three... don't talk. I'm counting.",
+      "Four hundred and seventy-nine, four hundred and eighty... don't talk. I'm counting.",
       "Wood's the one thing in this valley that stays counted. I like that.",
       "People don't. People keep changing their numbers.",
       "Go on. Mind the pile on your way past."
@@ -430,9 +430,10 @@
     "id": "edda-line-ivy",
     "speaker": "ivy",
     "lines": [
-      "Kettle Springs here. The pools are steaming. Anyone cold, come down. Over."
+      "Anyone cold, come down. Over."
     ],
-    "next": "edda-line-wren"
+    "next": "edda-line-wren",
+    "fill": "ivy-radio"
   },
   {
     "id": "edda-line-wren",

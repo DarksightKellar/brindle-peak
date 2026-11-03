@@ -38,6 +38,8 @@ export const WORDS = {
   buildResult: { woodpile: 'Stacked straight. Countable at last.', snowman: 'One snowman, standing.', dam: 'The dam is whole again.' } as Record<string, string>,
   // Fishing result; the fish name is the journal's own
   fishResult: (name: string): string => `${name}, landed.`,
+  // Hollis's errand: the line snags under the split pine's roots and comes up with the mitten.
+  mittenResult: "Snagged on the roots: Hollis's mitten, soaked through.",
   // Photo result; `what` comes from photoSubjects.ts
   photoResult: (what: string): string => `The ${what}, caught on camera.`,
   // The photo panel's instruction, naming the subject (`what` from photoSubjects.ts).

@@ -8,6 +8,10 @@
  * standing on a bell is talked to rather than picked up. NPCs also win when a pickup is
  * fractionally closer, which is what stops a bell pile from stealing a conversation.
  *
+ * `wanted` marks what a quest is waiting on right now. In reach, it beats anything that is not, however
+ * close: standing on Bram's heap with his woodpile errand open offered TALK, not STACK, because Bram
+ * stood nearer than the heap's post.
+ *
  * `usable` hides what E cannot act on right now — a lantern post before the lantern is owned, or one
  * already lit — so the prompt never offers a press that does nothing.
  */
@@ -29,7 +33,10 @@ const priority = (kind: InteractableKind): number => {
 /** Squared distances within this of each other count as the same reach. */
 const TIE = 1e-4;
 
-export function createInteractionSystem(usable: (i: Interactable) => boolean = () => true): InteractionSystem {
+export function createInteractionSystem(
+  usable: (i: Interactable) => boolean = () => true,
+  wanted: (i: Interactable) => boolean = () => false,
+): InteractionSystem {
   const items: Interactable[] = [];
 
   return {
@@ -40,6 +47,7 @@ export function createInteractionSystem(usable: (i: Interactable) => boolean = (
     update(playerPos: Vec3): Interactable | null {
       let best: Interactable | null = null;
       let bestD = Number.POSITIVE_INFINITY;
+      let bestWanted = false;
 
       for (let k = 0; k < items.length; k++) {
         const it = items[k];
@@ -47,9 +55,12 @@ export function createInteractionSystem(usable: (i: Interactable) => boolean = (
         const dz = it.pos.z - playerPos.z;
         const d2 = dx * dx + dz * dz;
         if (d2 > it.radius * it.radius || !usable(it)) continue;
-        if (best === null || d2 < bestD - TIE) {
+        const w = wanted(it);
+        if (bestWanted && !w) continue;
+        if (best === null || (w && !bestWanted) || d2 < bestD - TIE) {
           best = it;
           bestD = d2;
+          bestWanted = w;
         } else if (d2 - bestD <= TIE && priority(it.kind) > priority(best.kind)) {
           best = it;
           bestD = d2;

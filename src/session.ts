@@ -37,6 +37,10 @@ import { DIALOGUE as DIALOGUE_NODES } from './data/dialogue';
 import { bootstrap } from './game/session/bootstrap';
 import { createActivityRunner } from './game/session/activityRunner';
 import { createFrameInput } from './game/session/frameInput';
+import { createPolaroid } from './game/ui/polaroid';
+import { setTuckRopeTied } from './game/world/tuckBridge';
+import { PHOTO_SUBJECTS } from './game/activities/photoSubjects';
+import { WORDS } from './game/activities/activityWords';
 import { advancePlayer } from './game/session/playerAdvance';
 import { pushFrame } from './game/session/frameFeedback';
 import { disposeSession } from './game/session/dispose';
@@ -44,7 +48,7 @@ import { createDialogueFlow } from './game/session/dialogueFlow';
 import { DIALOGUE_FILLS } from './data/dialogueFills';
 import { createOverlayRouter } from './game/session/overlays';
 import { interact as interactVerb } from './game/session/interactVerb';
-import { inPickupRange } from './game/session/interact';
+import { inPickupRange, LANTERN_PASS } from './game/session/interact';
 import { applyWorldRules } from './game/session/worldRules';
 import type { CameraRig } from './game/camera/rig';
 import { createCameraDirector } from './game/camera/director';
@@ -100,9 +104,16 @@ export function createSession(opts: SessionOptions): Session {
   } = b;
 
   let elapsed = 0;
+  let ropeTied = false;
   // Day to blue hour once the mast quest is given; the one place time of day is decided (render/dusk.ts).
   const dusk = createDuskStage(kit, pipeline);
   const finder = createViewfinder(opts.uiRoot);
+  // The shutter's picture, printed and kept for the journal (ui/polaroid.ts).
+  const polaroid = createPolaroid(opts.uiRoot, opts.canvas);
+  bus.on('photo:taken', (e) => {
+    const id = String((e.data as { id: string }).id);
+    polaroid.take(id, WORDS.photoResult(PHOTO_SUBJECTS[id]?.what ?? 'view'));
+  });
   const promptAt = createPromptAnchor(kit.camera, opts.canvas, world.npcs);
   // The live instance, kept so its optional first-person view() can steer the camera rig.
   let live: ActivityInstance | null = null;
@@ -141,7 +152,7 @@ export function createSession(opts: SessionOptions): Session {
   };
 
   const interact = (): void => interactVerb({ state, player, bus, mech, world, interactions, flow, runner });
-  const routeInput = createFrameInput({ ui, flow, runner, interact });
+  const routeInput = createFrameInput({ ui, flow, runner, interact, state });
   mountGoalMarker({ scene: kit.scene, sampler, camera: kit.camera, hud: ui.hud, busy: () => runner.isRunning() });
 
   const update = (raw: number, input: InputFrame): void => {
@@ -187,7 +198,18 @@ export function createSession(opts: SessionOptions): Session {
 
     if (!blocked) {
       for (const p of PICKUPS) {
-        if (p.kind === 'lantern' || state.flags[`picked:${p.id}`]) continue;
+        if (p.kind === 'lantern') {
+          // "Light them as you pass": carrying the lantern, walking by a post lights it. The critic was
+          // never asked to light one, because the Light prompt only showed standing right at the post.
+          if (state.abilities.lantern && state.lanterns[p.id] === undefined && !wayHome.lit(p.id)
+            && Math.hypot(player.pos.x - p.pos.x, player.pos.z - p.pos.z) < LANTERN_PASS) {
+            state.lanterns[p.id] = 1;
+            world.setLanternLit(p.id);
+            bus.emit('lantern:lit', { id: p.id, lit: Object.keys(state.lanterns).length });
+          }
+          continue;
+        }
+        if (state.flags[`picked:${p.id}`]) continue;
         if (inPickupRange(player.pos, p)) mech.collect(p.id, p.kind);
       }
     }
@@ -204,6 +226,13 @@ export function createSession(opts: SessionOptions): Session {
     const reduced = document.documentElement.dataset.reduceMotion === 'on';
     director.update(dt, reduced);
     wayHome.update(dt, reduced); // after Edda signs off, the posts light the way home
+    // Tuck reties the bridge with Bram's rope at the talk that takes it from Pip.
+    const rope = state.quests['tuck-rope'];
+    const tied = rope !== undefined && (rope.status === 'complete' || rope.step >= 1);
+    if (tied !== ropeTied) {
+      ropeTied = tied;
+      setTuckRopeTied(world.group, tied);
+    }
     if (runner.focus()) rig.setFocus(runner.focus());
     rig.update(dt, player, sampler, overlayOpen ? 0 : input.lookX, reduced);
     pip.root.visible = rig.viewBlend() < 0.8; // the camera is inside the bird by then
@@ -254,6 +283,9 @@ export function createSession(opts: SessionOptions): Session {
       || ui.ending.isOpen() || runner.isRunning(),
     colliders: b.world.colliders,
     footprintCount: () => prints.count(),
-    destroy: (): void => disposeSession({ persist, world, prints, snowfall, pipeline, audio, ui }),
+    destroy: (): void => {
+      polaroid.destroy();
+      disposeSession({ persist, world, prints, snowfall, pipeline, audio, ui });
+    },
   };
 }

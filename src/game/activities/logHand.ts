@@ -3,21 +3,21 @@
  * press or slipping off on a crooked one (logSwing.ts holds the numbers).
  *
  * Kept out of build.ts so the build only knows "a press laid a log at this angle"; everything about
- * timing it, holding a press made just before square, and saying which way a miss went lives here.
+ * timing it, refusing a mashed press, and saying which way a miss went lives here.
  */
 
 import { PALETTE } from '../../core/palette';
 import type { PlacedMarker } from './markerLooks';
 import { LOG } from './pieceMeshes';
-import { isSquare, missSide, slipAt, squareSoon, swingAt, SWING } from './logSwing';
+import { isSquare, missSide, slipAt, swingAt, SWING } from './logSwing';
 
 export class LogHand {
   /** Clock when the log now swinging was lifted, and when a crooked one began to slip (-1: none). */
   private lifted = 0;
   private slipStart = -1;
   private slipAngle = 0;
-  /** A press made just before square, waiting to lay the log when it gets there. */
-  private held = false;
+  /** Clock at the last press of any kind, laid, crooked or ignored; a press close behind it is a mash. */
+  private lastPress = Number.NEGATIVE_INFINITY;
   /** Clock at the last crooked press (-1: none), and which side of square it missed on. */
   private missAt = -1;
   private missed: 'early' | 'late' = 'early';
@@ -25,7 +25,7 @@ export class LogHand {
   reset(now: number): void {
     this.lifted = now;
     this.slipStart = -1;
-    this.held = false;
+    this.lastPress = Number.NEGATIVE_INFINITY;
     this.missAt = -1;
   }
 
@@ -40,35 +40,28 @@ export class LogHand {
   }
 
   /**
-   * One frame. Returns the angle a log was laid at this frame, or null. A press counts once: while a
-   * log slips or a held press waits, further presses are ignored rather than queued.
+   * One frame. Returns the angle a log was laid at this frame, or null. Presses while a log slips are
+   * ignored, but still count toward a mash: holding E down or hammering it never lays anything.
    */
   update(now: number, layer: number, pressed: boolean): number | null {
+    const mashed = pressed && now - this.lastPress < SWING.mash;
+    if (pressed) this.lastPress = now;
     if (this.slipStart >= 0 && now - this.slipStart >= SWING.slip) {
       this.slipStart = -1;
       this.lifted = now;
     }
-    if (this.slipStart >= 0) return null;
+    if (this.slipStart >= 0 || !pressed) return null;
     const angle = this.angle(now, layer);
-    if (pressed && !this.held) {
-      const t = now - this.lifted;
-      if (isSquare(angle)) return this.lay(now, angle);
-      if (squareSoon(t, layer)) this.held = true;
-      else {
-        this.slipStart = now;
-        this.slipAngle = angle;
-        this.missAt = now;
-        this.missed = missSide(t, layer);
-      }
-      return null;
+    if (!mashed && isSquare(angle)) {
+      this.lifted = now;
+      return angle;
     }
-    return this.held && isSquare(angle) ? this.lay(now, angle) : null;
-  }
-
-  private lay(now: number, angle: number): number {
-    this.held = false;
-    this.lifted = now;
-    return angle;
+    const t = now - this.lifted;
+    this.slipStart = now;
+    this.slipAngle = angle;
+    this.missAt = now;
+    this.missed = missSide(t, layer);
+    return null;
   }
 
   /** Which way the last press missed, for as long as its log is rolling off and coming back. */

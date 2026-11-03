@@ -71,7 +71,25 @@ function deer(b: GeoBuilder): void {
   }
 }
 
+/**
+ * The pinecone toss's target: a little snowman, about two metres, face toward +Z. It replaced a bare
+ * red pillar the critic read as a placeholder; the dark hat and red scarf are what read on snow.
+ */
+function snowmanTarget(b: GeoBuilder): void {
+  b.add(GEO.ico, propMatrix(0, 0.5, 0, 0.58, 0.52, 0.58), 'SNOW_LT', 'SNOW_HI', 0.3);
+  b.add(GEO.ico, propMatrix(0, 1.2, 0, 0.42, 0.4, 0.42, 0.5), 'SNOW_LT', 'SNOW_HI', 0.3);
+  b.add(GEO.ico, propMatrix(0, 1.74, 0, 0.3, 0.29, 0.3, 1.1), 'SNOW_LT', 'SNOW_HI', 0.3);
+  b.add(GEO.stump, propMatrix(0, 1.5, 0, 0.34, 0.1, 0.34), 'PIP_SCARF');
+  b.add(GEO.box, propMatrix(0.2, 1.36, 0.22, 0.12, 0.3, 0.05, -0.4), 'PIP_SCARF'); // the scarf's tail
+  b.add(GEO.stump, propMatrix(0, 2.0, 0, 0.32, 0.05, 0.32), 'PIP_GLASS'); // hat brim
+  b.add(GEO.stump, propMatrix(0, 2.14, 0, 0.21, 0.26, 0.21), 'PIP_GLASS');
+  b.add(GEO.cone5, propMatrix(0, 1.74, 0.42, 0.06, 0.26, 0.06, 0, Math.PI / 2), 'AMBER');
+  for (const side of [-1, 1]) b.add(GEO.octa, propMatrix(side * 0.11, 1.84, 0.26, 0.05, 0.05, 0.05), 'PIP_GLASS');
+  for (const y of [1.08, 1.26]) b.add(GEO.octa, propMatrix(0, y, 0.4, 0.05, 0.05, 0.05), 'PIP_GLASS');
+}
+
 const BUILDERS: Readonly<Record<Solid, (b: GeoBuilder) => void>> = {
+  'snowman-target': snowmanTarget,
   ...START_BUILDERS,
   log,
   pool,

@@ -32,6 +32,11 @@ import { LANDMARKS, TRAIL } from '../world/landmarks';
 import { VIEW_H, VIEW_W, worldX, worldZ, type MapDecor } from '../ui/journalMap';
 import { ICE_SURFACE_Y } from '../world/water';
 import { traceRelief } from '../ui/mapRelief';
+import { forgetPhotos, keptPhotos } from '../ui/polaroid';
+import { ITEMS } from '../../data/items';
+
+/** Every photo viewpoint: the journal's prints and the reset's clean-up both read this. */
+const PHOTO_IDS = ACTIVITIES.filter((a) => a.kind === 'photo').map((a) => a.id);
 
 export interface Presentation {
   hud: Hud;
@@ -95,6 +100,7 @@ export function createPresentation(uiRoot: HTMLElement, audio: AudioKit, heightA
     // unload hook writes the run back over the key we just deleted and reset looks like it did nothing.
     suppressSaves();
     localStorage.removeItem(SAVE_KEY);
+    forgetPhotos(PHOTO_IDS);
     location.reload();
   });
   const journal = createJournal(uiRoot, {
@@ -103,7 +109,9 @@ export function createPresentation(uiRoot: HTMLElement, audio: AudioKit, heightA
     fish: FISH,
     lanternsTotal: PICKUPS.filter((p) => p.kind === 'lantern').length,
     pickups: PICKUPS,
-    photosTotal: ACTIVITIES.filter((a) => a.kind === 'photo').length,
+    photosTotal: PHOTO_IDS.length,
+    items: ITEMS,
+    prints: () => keptPhotos(PHOTO_IDS).map((p) => ({ ...p, caption: ACTIVITIES.find((a) => a.id === p.id)?.name ?? '' })),
     // Live read-out: the Settings tab reports the menu's actual controls, not a captured default.
     settings: () => menu.readSettings(),
     map: guide,
@@ -117,6 +125,11 @@ export function createPresentation(uiRoot: HTMLElement, audio: AudioKit, heightA
   const naming: Naming = {
     zone: (id) => ZONE_NAMES[id as keyof typeof ZONE_NAMES] ?? id,
     quest: (id) => QUESTS.find((q) => q.id === id)?.title ?? id,
+    // An errand says it is one: a bare title read like a place name, and errands started unnoticed.
+    questStarted: (id) => {
+      const def = QUESTS.find((q) => q.id === id);
+      return def?.main === true ? def.title : `New errand: ${def?.title ?? id}`;
+    },
     achievement: (id) => ACHIEVEMENTS.find((a) => a.id === id)?.name ?? id,
   };
 

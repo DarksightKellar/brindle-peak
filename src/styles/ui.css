@@ -114,6 +114,10 @@
 .ui-quest.is-active { border-left-color: var(--lantern); }
 .ui-quest.is-complete { opacity: 0.65; }
 .ui-quest.is-locked { opacity: 0.45; }
+.ui-quest.is-pickable { cursor: pointer; }
+.ui-quest.is-cursor { background: rgba(255, 255, 255, 0.06); outline: 1px solid var(--snow-mid); outline-offset: -1px; }
+.ui-quest.is-tracked { border-left-width: 4px; }
+.ui-quest.is-tracked .ui-quest__status { color: var(--lantern); }
 .ui-quest__row { display: flex; justify-content: space-between; gap: 12px; }
 .ui-quest__title { font-size: 13px; color: var(--snow-hi); }
 .ui-quest__status { font-size: 10px; text-transform: uppercase; color: var(--snow-mid); }
@@ -157,9 +161,11 @@
 /* Activity HUD (QA D1). The minigames had no presentation at all: starting one froze the player and
    drew nothing, so there was no title, instruction, score or target. Text-first on purpose — the
    thing being communicated is timing and counting, and it must be legible at 384x216 upscaled. */
+/* Top right, clear of Pip and the path ahead: centred low, it sat over both (critic round 4). Once play
+   is under way it drops the kicker and the instruction and keeps only what changes. */
 .ui-activity {
-  position: absolute; left: 50%; bottom: 84px; transform: translateX(-50%);
-  min-width: 260px; max-width: 340px; padding: 10px 14px 8px;
+  position: absolute; right: 16px; top: 16px;
+  min-width: 220px; max-width: 300px; padding: 10px 14px 8px;
   background: var(--panel); border: 1px solid var(--snow-sh);
   font-family: var(--mono); color: var(--snow-mid); text-align: center;
 }
@@ -173,6 +179,9 @@
 .ui-activity__fill { display: block; height: 100%; width: 0; background: var(--snow-sh); transition: width 90ms linear; }
 .ui-activity__label { margin: 6px 0 0; font-size: 11px; color: var(--snow-lt); }
 .ui-activity__foot { margin: 6px 0 0; font-size: 9px; letter-spacing: 0.1em; color: var(--snow-sh); }
+.ui-activity.is-compact { min-width: 180px; padding: 6px 10px 5px; }
+.ui-activity.is-compact .ui-activity__kicker, .ui-activity.is-compact .ui-activity__hint { display: none; }
+.ui-activity.is-compact .ui-activity__name { font-size: 11px; margin-bottom: 3px; }
 /* Urgent state must not rely on colour alone (A5): the border and the fill both change. */
 .ui-activity.is-urgent { border-color: var(--lantern); }
 .ui-activity.is-urgent .ui-activity__fill { background: var(--lantern); }

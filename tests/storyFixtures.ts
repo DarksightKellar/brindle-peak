@@ -41,5 +41,11 @@ export function play() {
     else bus.emit(name, { id: id as ZoneId });
     mech.flush();
   };
-  return { state, quests, mech, emit, beside, talk: (id: string) => mech.talk(id) };
+  // Talks as a player who says "i'll do it" to every errand offered: the node opened, as the game opens it.
+  const talk = (id: string): string | null => {
+    const r = mech.talk(id);
+    if (r?.offer) mech.accept(r.offer);
+    return r?.node ?? null;
+  };
+  return { state, quests, mech, emit, beside, talk };
 }

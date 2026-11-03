@@ -38,6 +38,8 @@ export function createPlayerMesh(): PlayerMesh {
   const cream = lambert(PALETTE.PIP_BODY);
   const brown = lambert(PALETTE.PIP_WING);
   const dark = lambert(PALETTE.PIP_BEAK);
+  // A snow bunting's winter bill is straw-yellow: the one warm point on the face, so it reads as a bird.
+  const bill = lambert(PALETTE.AMBER);
   const red = lambert(PALETTE.PIP_SCARF);
   const glass = lambert(PALETTE.PIP_GLASS);
 
@@ -48,7 +50,8 @@ export function createPlayerMesh(): PlayerMesh {
   rig.add(body);
   root.add(rig);
 
-  const torso = shade(new THREE.IcosahedronGeometry(0.4, 0), cream);
+  // One subdivision on the body and head: at detail 0 the critic read Pip as "a faceted white blob".
+  const torso = shade(new THREE.IcosahedronGeometry(0.4, 1), cream);
   torso.scale.set(1, 0.92, 1.2); // PIP_BODY front
   body.add(torso);
 
@@ -56,10 +59,10 @@ export function createPlayerMesh(): PlayerMesh {
   back.scale.set(1.02, 0.72, 1.0); // PIP_WING mantle over the back
   body.add(back);
 
-  const head = shade(new THREE.IcosahedronGeometry(0.26, 0), cream, 0, 0.36, 0.26);
+  const head = shade(new THREE.IcosahedronGeometry(0.27, 1), cream, 0, 0.38, 0.26);
   body.add(head);
 
-  const beak = shade(new THREE.ConeGeometry(0.07, 0.2, 4), dark, 0, 0.33, 0.52);
+  const beak = shade(new THREE.ConeGeometry(0.075, 0.22, 4), bill, 0, 0.34, 0.54);
   beak.rotation.x = Math.PI / 2;
   body.add(beak);
 
@@ -80,9 +83,10 @@ export function createPlayerMesh(): PlayerMesh {
   const legR = shade(legGeo, dark, 0.1, -0.38, 0.04);
   body.add(legL, legR);
 
-  const scarf = shade(new THREE.CylinderGeometry(0.2, 0.2, 0.1, 8, 1, true), red, 0, 0.24, 0.1);
+  // The scarf is Pip's colour accent against the snow: thick enough to read from the chase camera.
+  const scarf = shade(new THREE.CylinderGeometry(0.22, 0.24, 0.14, 8, 1, true), red, 0, 0.24, 0.1);
   body.add(scarf);
-  const scarfEnd = shade(new THREE.BoxGeometry(0.09, 0.24, 0.05), red, 0.16, 0.06, 0.06);
+  const scarfEnd = shade(new THREE.BoxGeometry(0.11, 0.3, 0.05), red, 0.17, 0.04, -0.04);
   scarfEnd.rotation.z = 0.25;
   body.add(scarfEnd);
 
@@ -94,9 +98,16 @@ export function createPlayerMesh(): PlayerMesh {
   body.add(lantern);
 
   const ringGeo = new THREE.TorusGeometry(0.06, 0.014, 3, 5);
-  const lensL = shade(ringGeo, glass, -0.1, 0.38, 0.44);
-  const lensR = shade(ringGeo, glass, 0.1, 0.38, 0.44);
-  body.add(lensL, lensR);
+  // On the face's surface: inside the head, as they were, the spectacles barely showed.
+  const lensL = shade(ringGeo, glass, -0.12, 0.43, 0.5);
+  const lensR = shade(ringGeo, glass, 0.12, 0.43, 0.5);
+  lensL.rotation.y = -0.4;
+  lensR.rotation.y = 0.4;
+  // A dark eye behind each lens: the rings alone read as nothing at play distance.
+  const eyeGeo = new THREE.OctahedronGeometry(0.045, 0);
+  const eyeL = shade(eyeGeo, glass, -0.12, 0.43, 0.48);
+  const eyeR = shade(eyeGeo, glass, 0.12, 0.43, 0.48);
+  body.add(lensL, lensR, eyeL, eyeR);
 
   // A5 contact ellipse. Dark, constant, never depth-writing, never in the normal pass.
   const contactMat = new THREE.MeshBasicMaterial({

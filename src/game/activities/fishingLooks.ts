@@ -85,6 +85,16 @@ export function catchMarkers(fish: FishDef, float: Vec3, stand: Vec3, age: numbe
   const back = { x: -Math.sin(yaw) * Math.cos(pitch), y: Math.sin(pitch), z: -Math.cos(yaw) * Math.cos(pitch) };
   const s = 1.9;
   const eye = 0.3 * s;
+  // Not every catch is a fish: Hollis's mitten hangs off the hook by its cuff, dripping.
+  if (fish.id === 'mitten') {
+    return [
+      { shape: 'float', look: 'mitten', x, y: y - 0.25, z, yaw: yaw + Math.PI / 2, tilt: wriggle * 0.3, size: 1, color: fish.body },
+      ...(k >= 1 ? [0, 1].map((n): PlacedMarker => {
+        const drip = (age * 1.4 + n * 0.5) % 1;
+        return { shape: 'float', look: 'dot', x, y: y - 0.75 - drip * 0.8, z, size: 0.5, strength: 1 - drip, color: PALETTE.WATER_FOAM };
+      }) : []),
+    ];
+  }
   return [
     { shape: 'float', look: 'fish', x, y, z, yaw, pitch, size: s, color: fish.body },
     // An eye on each flank, just proud of the body, so whichever side faces the camera has one.

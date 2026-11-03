@@ -8,6 +8,15 @@
  * north hand rope near Tuck's end a pale frayed stretch with loose strands, the bit he points at.
  * Beside the west posts lies the old rope he coils and recoils while he waits for a good one.
  *
+ * The gully's lips are fenced. Its floor is one grid line at the bottom of a V too steep to walk out of,
+ * and the critic stepped off the lip by Tuck twice and could only flap out. Near the bridge a stake-
+ * and-rope fence runs along both lips; farther off, a low snowbank. Both are colliders a walking bird
+ * cannot pass and a flapping one can clear (`top`), so nobody falls in by accident.
+ *
+ * Once Tuck has tied Bram's rope in (`setTuckRopeTied`), the frayed stretch is gone and a new, paler
+ * hand rope runs the north side, lashed at both posts: "tied, tightened, tested" changed nothing you
+ * could see (critic round 4).
+ *
  * The planks are drawn where the deck overlay puts Pip's feet (`deckY`), from the ground without the
  * deck, so what you walk on and what you see are the same line. The hand ropes are the colliders:
  * nobody walks off the side, and the posts flare the entrance so you are funnelled on, not snagged.
@@ -16,7 +25,7 @@
 import * as THREE from 'three';
 import type { TerrainSampler } from '../../core/contracts';
 import type { Collider } from '../../core/player/collide';
-import { deckY, TUCK_BRIDGE as B } from '../../core/terrain/carving';
+import { deckY, GULLY_LINE, TUCK_BRIDGE as B } from '../../core/terrain/carving';
 import { groundOnly } from '../../core/terrain/heightfield';
 import { GEO, GeoBuilder, propMatrix, type Triple } from './geoBuilder';
 
@@ -27,10 +36,27 @@ const POST_OUT = 1.35;
 const ROPE_SEGMENTS = 14;
 /** Which hand-rope segment is frayed: the third out from Tuck's (west) end, on the north rope. */
 const FRAYED = 2;
+/** The lip fence: this far either side of the gully's centre line, just outside its walls. */
+const LIP = 5.9;
+/** Fence near the bridge, snowbank beyond: within this many units of the deck, along the gully. */
+const FENCE_REACH = 16;
+/** A walking bird is held back; a bird this far above the ground is over it. */
+const LIP_TOP = 0.9;
 
 export interface TuckBridge {
   group: THREE.Group;
   colliders: Collider[];
+}
+
+const OLD_ROPE = 'tuck-rope-old';
+const NEW_ROPE = 'tuck-rope-new';
+
+/** Show the north hand rope as Tuck left it: frayed, or retied with Bram's rope. */
+export function setTuckRopeTied(root: THREE.Object3D, tied: boolean): void {
+  const old = root.getObjectByName(OLD_ROPE);
+  const fresh = root.getObjectByName(NEW_ROPE);
+  if (old) old.visible = !tied;
+  if (fresh) fresh.visible = tied;
 }
 
 export function buildTuckBridge(valley: TerrainSampler): TuckBridge {
@@ -44,6 +70,9 @@ export function buildTuckBridge(valley: TerrainSampler): TuckBridge {
   /** Hand ropes hang from the post tops and sag less than the deck does. */
   const rope = (t: number): number => ha + (hb - ha) * t + 1.2 - 0.38 * Math.sin(Math.PI * t);
   const b = new GeoBuilder();
+  // The frayed stretch and its replacement are their own meshes, so the repair can swap one for the other.
+  const old = new GeoBuilder();
+  const fresh = new GeoBuilder();
 
   // Planks, each tipped to the deck's slope at that point, a little uneven, one gone.
   const n = Math.floor(len / PLANK_PITCH);
@@ -64,13 +93,19 @@ export function buildTuckBridge(valley: TerrainSampler): TuckBridge {
       const frayed = side === 1 && k === FRAYED;
       const a: Triple = [xAt(t0), rope(t0), zc + side * RAIL];
       const c: Triple = [xAt(t1), rope(t1), zc + side * RAIL];
-      b.strut(a, c, frayed ? 0.022 : 0.045, frayed ? 'PIP_WING' : 'BRUSH');
+      // The north hand rope: old and frayed until Tuck reties it, then Bram's new one, a little thicker.
+      if (side === 1) {
+        old.strut(a, c, frayed ? 0.022 : 0.045, frayed ? 'PIP_WING' : 'BRUSH');
+        fresh.strut(a, c, 0.055, 'WOOD_LT');
+      } else {
+        b.strut(a, c, 0.045, 'BRUSH');
+      }
       if (frayed) {
         // Loose strands where the lay has opened: short pale whiskers off the thin stretch.
         for (let s = 0; s < 4; s++) {
           const f = 0.25 + s * 0.17;
           const p: Triple = [a[0] + (c[0] - a[0]) * f, a[1] + (c[1] - a[1]) * f, a[2]];
-          b.strut(p, [p[0] + 0.12 * (s % 2 ? 1 : -1), p[1] - 0.14 - 0.05 * s, p[2] + 0.1], 0.012, 'SUN_MID');
+          old.strut(p, [p[0] + 0.12 * (s % 2 ? 1 : -1), p[1] - 0.14 - 0.05 * s, p[2] + 0.1], 0.012, 'SUN_MID');
         }
       }
       if (k % 2 === 1) b.strut([xAt(t1), rope(t1), zc + side * RAIL], [xAt(t1), deck(t1) - 0.05, zc + side * 0.92], 0.02, 'BRUSH');
@@ -89,7 +124,14 @@ export function buildTuckBridge(valley: TerrainSampler): TuckBridge {
       b.box(ex, y + 1.5, pz, 0.36, 0.08, 0.36, 'WOOD_DK', 'SNOW_HI');
       for (const dy of [1.05, 1.22]) b.box(ex, y + dy, pz, 0.34, 0.07, 0.34, 'BRUSH');
       // The hand rope runs in from the post top to the first span point.
-      b.strut([ex, y + 1.2, pz], [xAt(end), rope(end), zc + side * RAIL], 0.045, 'BRUSH');
+      if (side === 1) {
+        old.strut([ex, y + 1.2, pz], [xAt(end), rope(end), zc + side * RAIL], 0.045, 'BRUSH');
+        fresh.strut([ex, y + 1.2, pz], [xAt(end), rope(end), zc + side * RAIL], 0.055, 'WOOD_LT');
+        // New lashings round the post top, the knot Tuck is proud of.
+        for (const dy of [1.12, 1.3]) fresh.box(ex, y + dy, pz, 0.38, 0.06, 0.38, 'SUN_MID');
+      } else {
+        b.strut([ex, y + 1.2, pz], [xAt(end), rope(end), zc + side * RAIL], 0.045, 'BRUSH');
+      }
       const sx = ex + out * 1.7, sz = pz + side * 0.5;
       b.strut([ex, y + 1.3, pz], [sx, at(sx, sz) + 0.25, sz], 0.035, 'BRUSH');
       b.cyl(sx, at(sx, sz) - 0.2, sz, 0.07, 0.55, 'WOOD_MID');
@@ -109,11 +151,42 @@ export function buildTuckBridge(valley: TerrainSampler): TuckBridge {
   b.strut([cx - 0.1, cy + 0.3, cz], [cx + 0.6, cy + 0.12, cz + 0.4], 0.03, 'WOOD_LT');
   b.box(cx - 0.18, cy + 0.2, cz - 0.04, 0.26, 0.16, 0.16, 'WOOD_DK');
 
+  // The lips: both sides of the gully, head to foot, open only where the bridge crosses.
+  const lipColliders: Collider[] = [];
+  const [[gx, z0], [, z1]] = GULLY_LINE;
+  const gapN = zc + POST_OUT + 0.15, gapS = zc - POST_OUT - 0.15;
+  for (const side of [-1, 1]) {
+    const x = gx + side * LIP;
+    for (const [from, to] of [[z0, gapN], [gapS, z1]] as const) {
+      lipColliders.push({ kind: 'segment', ax: x, az: from, bx: x, bz: to, r: 0.12, top: LIP_TOP });
+      const steps = Math.max(1, Math.round(Math.abs(to - from) / 2.2));
+      for (let i = 0; i <= steps; i++) {
+        const z = from + ((to - from) * i) / steps;
+        const y = at(x, z);
+        const nearDeck = Math.abs(z - zc) < FENCE_REACH;
+        if (nearDeck) {
+          b.cyl(x, y - 0.2, z, 0.07, 1.15, 'WOOD_DK');
+          if (i < steps) {
+            const z2 = from + ((to - from) * (i + 1)) / steps;
+            for (const h of [0.45, 0.85]) b.strut([x, y + h, z], [x, at(x, z2) + h, z2], 0.025, 'BRUSH');
+          }
+        } else {
+          b.add(GEO.ico, propMatrix(x, y + 0.05, z, 1.2, 0.5, 1.7, i * 0.7), 'SNOW_LT', 'SNOW_HI', 0.2);
+        }
+      }
+    }
+  }
+
   const mesh = b.finish('tuck-bridge');
   mesh.userData.noCollide = true;
   const group = new THREE.Group();
   group.name = 'tuck-bridge';
   group.add(mesh);
+  const oldRope = old.finish(OLD_ROPE);
+  const newRope = fresh.finish(NEW_ROPE);
+  for (const m of [oldRope, newRope]) m.userData.noCollide = true;
+  newRope.visible = false;
+  group.add(oldRope, newRope);
 
   // Hand ropes: a funnel in from each pair of posts to the rail line, then straight across.
   const colliders: Collider[] = [];
@@ -127,5 +200,6 @@ export function buildTuckBridge(valley: TerrainSampler): TuckBridge {
     );
   }
   for (const p of posts) colliders.push({ kind: 'circle', x: p.x, z: p.z, r: 0.3 });
+  colliders.push(...lipColliders);
   return { group, colliders };
 }

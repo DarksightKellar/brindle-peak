@@ -43,9 +43,13 @@ export interface Mechanics {
   collect(id: string, kind: string): void;
   /**
    * Count a conversation with `npcId`, advance every quest it touches, and return the node to open.
-   * Accepts the quest being offered, if the node is an offer. Null for an unknown NPC.
+   * A main-story offer is accepted at once. An errand is only offered (`offer`): the conversation ends
+   * on Pip's "i'll do it" / "not now", and `accept` takes it on. Idle talk used to start errands without
+   * the player choosing. Null for an unknown NPC.
    */
-  talk(npcId: string): string | null;
+  talk(npcId: string): { node: string; offer: string | null } | null;
+  /** Take on an offered errand. False if it is no longer available. */
+  accept(questId: string): boolean;
   hostFor(instance: ActivityInstance, input: InputFrame): ActivityHost;
   resetStaminaCap(): void;
 }
@@ -82,7 +86,12 @@ export function createMechanics(deps: MechanicsDeps): Mechanics {
           bus.emit('toast', { text: `Got: ${itemName(p.step.gives.item)}`, icon: 'quest', tier: 'discovery' });
         }
       }
-      for (const id of outcome.completedQuests) bus.emit('quest:completed', { id });
+      for (const id of outcome.completedQuests) {
+        bus.emit('quest:completed', { id });
+        // An errand that pays in a thing, not just bells, says what Pip now carries.
+        const item = QUESTS.find((q) => q.id === id)?.reward.item;
+        if (item) bus.emit('toast', { text: `Got: ${itemName(item)}`, icon: 'quest', tier: 'discovery' });
+      }
       for (const id of outcome.startedQuests) bus.emit('quest:started', { id });
       for (const id of outcome.unlockedAchievements) bus.emit('achievement:unlocked', { id });
     }
@@ -119,7 +128,16 @@ export function createMechanics(deps: MechanicsDeps): Mechanics {
     }
   };
 
-  const talk = (npcId: string): string | null => {
+  const accept = (id: string): boolean => {
+    if (!quests.accept(id, state)) return false;
+    bus.emit('quest:started', { id });
+    // A quest that hands something over as it is taken on (QuestDef.gives) says so, as a step gift does.
+    const gift = QUESTS.find((q) => q.id === id)?.gives;
+    if (gift) bus.emit('toast', { text: `Got: ${itemName(gift.item)}`, icon: 'quest', tier: 'discovery' });
+    return true;
+  };
+
+  const talk = (npcId: string): { node: string; offer: string | null } | null => {
     const npc = NPCS.find((n) => n.id === npcId);
     if (!npc) return null;
     bus.emit('npc:talked', { id: npcId });
@@ -127,13 +145,13 @@ export function createMechanics(deps: MechanicsDeps): Mechanics {
     const stayed = departures.stayed(npcId);
     departures.talked(npcId, npc.pos);
     const chat = conversationFor(npc, passed, QUESTS, quests.status, (id) => state.quests[id]?.step ?? 0, stayed);
-    if (chat.accept !== null && quests.accept(chat.accept, state)) {
-      bus.emit('quest:started', { id: chat.accept });
-      // A quest that hands something over as it is taken on (QuestDef.gives) says so, as a step gift does.
-      const gift = QUESTS.find((q) => q.id === chat.accept)?.gives;
-      if (gift) bus.emit('toast', { text: `Got: ${itemName(gift.item)}`, icon: 'quest', tier: 'discovery' });
+    if (chat.accept === null) return { node: chat.node, offer: null };
+    const main = QUESTS.find((q) => q.id === chat.accept)?.main === true;
+    if (main) {
+      accept(chat.accept);
+      return { node: chat.node, offer: null };
     }
-    return chat.node;
+    return { node: chat.node, offer: chat.accept };
   };
 
   const hostFor = (instance: ActivityInstance, input: InputFrame): ActivityHost => ({
@@ -152,5 +170,5 @@ export function createMechanics(deps: MechanicsDeps): Mechanics {
     },
   });
 
-  return { flush, collect, talk, hostFor, resetStaminaCap };
+  return { flush, collect, talk, accept, hostFor, resetStaminaCap };
 }

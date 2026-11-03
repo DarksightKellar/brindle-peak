@@ -25,8 +25,8 @@ import { PALETTE } from '../../core/palette';
 import { PIECE_LOOKS, type PieceLook, type PlacedMarker, type TransientLook } from '../activities/markerLooks';
 import { disposePieces, makePiece } from '../activities/pieceMeshes';
 
-/** Most transient markers any activity needs at once: the kite's line, tail, crest lights and lift. */
-const POOL = 48;
+/** Most transient markers any activity needs at once: a slide's edge stakes, or the kite's line and lift. */
+const POOL = 64;
 
 /**
  * A flat arrow, nose up (+Y), face toward +Z, centred on its middle. Turned to face the camera and
@@ -45,6 +45,25 @@ function arrowGeometry(scale: number, back: number): THREE.BufferGeometry {
   s.lineTo(-0.74, 0.08);
   s.closePath();
   return new THREE.ExtrudeGeometry(s, { depth: 0.1, bevelEnabled: false }).translate(0, 0, -0.05 - back).scale(scale, scale, 1);
+}
+
+/** Hollis's mitten, flat, thumb out to one side, cuff at the top where the hook has it. Faces +Z. */
+function mittenGeometry(): THREE.BufferGeometry {
+  const s = new THREE.Shape();
+  s.moveTo(-0.24, 0.32);
+  s.lineTo(0.24, 0.32);
+  s.lineTo(0.24, 0.06);
+  s.lineTo(0.42, -0.02);
+  s.lineTo(0.44, -0.2);
+  s.lineTo(0.27, -0.2);
+  s.lineTo(0.27, -0.44);
+  s.lineTo(0.16, -0.6);
+  s.lineTo(-0.16, -0.6);
+  s.lineTo(-0.27, -0.44);
+  s.lineTo(-0.27, 0.06);
+  s.lineTo(-0.24, 0.06);
+  s.closePath();
+  return new THREE.ExtrudeGeometry(s, { depth: 0.16, bevelEnabled: false }).translate(0, 0, -0.08);
 }
 
 interface Prototype {
@@ -91,6 +110,9 @@ const PROTOTYPES: Readonly<Record<MarkerShape | TransientLook, Prototype>> = {
   target: { geometry: new THREE.CylinderGeometry(0.26, 0.3, 2, 6), color: PALETTE.PIP_SCARF, dim: PALETTE.ROCK_MID, lift: 1 },
   // A flat ring that grows out from something struck: the bell "rang".
   pulse: { geometry: new THREE.TorusGeometry(1, 0.08, 4, 16), color: PALETTE.LANTERN, lift: 0 },
+  mitten: { geometry: mittenGeometry(), color: PALETTE.PIP_SCARF, lift: 0 },
+  // A slide's edge stake: knee-high, red fading to snow-blue down the line ahead.
+  stake: { geometry: new THREE.CylinderGeometry(0.08, 0.1, 1.1, 4), color: PALETTE.PIP_SCARF, dim: PALETTE.SNOW_SH, lift: 0.55 },
   // The board Pip rides down a slide: a plank under the feet, long along the direction of travel.
   sled: { geometry: new THREE.BoxGeometry(0.85, 0.16, 1.6), color: PALETTE.WOOD_MID, lift: 0.06 },
   // Sable's kite: a diamond, flat to the wind, red so it reads against sky and snow alike.

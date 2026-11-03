@@ -22,6 +22,12 @@
  * from the middle out as the hold counts up. The lift is wider and wanders less, the kite sinks slowly
  * once it is over the crest, and the hold is shorter, so a first flight lands in about twenty seconds.
  *
+ * Round 4: it then played itself. The critic tapped A once and the calm, wide column carried the kite
+ * up and held it there; done in twenty seconds with almost no input. Now the column starts wandering
+ * after a few seconds and keeps wandering, the wind pushes a kite that has left it firmly away, the kite
+ * sinks over the crest unless it stays in the lift, and the hold is twice as long. While the kite is in
+ * the lift it wears a bright ring, so "in the updraft" is a state you can see, not a guess.
+ *
  * Nothing fails: the kite cannot crash and there is no clock. The score is the time it took.
  */
 
@@ -48,25 +54,26 @@ export const KITE = {
   ceiling: 5.5,
   line: 2.5,
   /** Climb rate in the lift (full across most of its width), the steady sink, and the sink over the crest. */
-  climb: 2.4,
+  climb: 2.2,
   sink: 0.8,
-  sinkAbove: 0.55,
+  sinkAbove: 1.1,
   /** Sideways speed at full A / D, in fractions of the span per second. */
   steer: 0.9,
   /** How fast the wind slides a kite outside the lift further away from it, in the same fraction. */
-  slide: 0.1,
+  slide: 0.35,
   /** Half-width of the lifting column, in the same fraction. */
   lane: 0.4,
-  /** Seconds above the line that count as done. */
-  hold: 4,
+  /** Seconds above the line that count as done, and how much faster the count drains below it. */
+  hold: 8,
+  drain: 2,
   /** Seconds over which the column's wander grows from almost nothing to its full swing. */
-  settle: 14,
+  settle: 6,
 } as const;
 
 /** Where the lift is at time `t`: a slow wander across the sky, -1..1 of the span, calm at first. */
 export function liftAt(t: number): number {
   const calm = Math.min(1, 0.1 + t / KITE.settle);
-  return clamp(-0.2 + calm * (0.5 * Math.sin(t * 0.3) + 0.22 * Math.sin(t * 0.75 + 1)), -0.9, 0.9);
+  return clamp(-0.2 + calm * (0.6 * Math.sin(t * 0.42) + 0.26 * Math.sin(t * 1.05 + 1)), -0.9, 0.9);
 }
 
 /** Rising snowflakes drawn in the column; enough that it reads as a stream, not as flecks. */
@@ -118,7 +125,7 @@ export class KiteActivity implements ActivityInstance {
     const lift = Math.min(1, this.inLift() * 1.8);
     const sink = this.height >= KITE.line ? KITE.sinkAbove : KITE.sink;
     this.height = clamp(this.height + (KITE.climb * lift - sink) * step, KITE.floor, KITE.ceiling);
-    this.held = this.height >= KITE.line ? this.held + step : Math.max(0, this.held - step);
+    this.held = this.height >= KITE.line ? this.held + step : Math.max(0, this.held - step * KITE.drain);
     if (this.held >= KITE.hold) this.finish(host);
   }
 
@@ -151,6 +158,10 @@ export class KiteActivity implements ActivityInstance {
     // Out of the lift it wobbles and droops; in it, it steadies.
     const sway = Math.sin(this.t * 3) * 0.3 * (1 - lift);
     out.push({ shape: 'float', look: 'kite', ...kite, yaw: KITE.facing, tilt: sway, size: 1.5 + 0.25 * lift });
+    // In the updraft: a bright ring round the kite, gone the moment it slips out.
+    if (lift > 0.35) {
+      out.push({ shape: 'ring', look: 'pulse', ...kite, yaw: KITE.facing, size: 1.7 + 0.15 * Math.sin(this.t * 6), strength: lift });
+    }
     // The tail: hanging and fluttering below it, streaming up and out behind it when the wind has it.
     for (let k = 1; k <= 4; k++) {
       const flutter = Math.sin(this.t * 5 + k) * 0.25 * k * (1 - lift * 0.6);

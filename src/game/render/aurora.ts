@@ -6,8 +6,8 @@
  *    camera and pins it to the far plane, so it never parallaxes, needs no follow logic, and the depth
  *    test lets it paint only pixels nothing else has claimed (terrain occludes it for free). It writes
  *    no depth, so the composite still reads those pixels as depth = far: unfogged sky.
- *  - It is pixel art. At 384x216 any fine noise becomes shimmer, so the curtain is three or four broad
- *    bands of brightness, quantised to four levels with a 4x4 ordered dither in internal pixels. The
+ *  - It is pixel art. At 384x216 any fine noise becomes shimmer, so the curtain is a few broad columns
+ *    with slow streaks, quantised to five levels with a 4x4 ordered dither in internal pixels. The
  *    ripple is a slow, low-frequency sway of the lower edge plus wide drifting folds.
  *  - It is beauty-only. It lives on its own layer, which the pipeline hides from the normal pass; on
  *    layer 0 its colours would land in the normal target and the edge pass would outline the folds.
@@ -65,17 +65,20 @@ void main() {
   // Rays: two broad, slowly drifting waves along the curtain (periods ~15 and ~8 deg), never finer.
   float rays = clamp(0.5 + 0.35 * sin(a * 23.0 + uTime * 0.2) + 0.25 * sin(a * 41.0 - uTime * 0.13), 0.0, 1.0);
   // The hem: a bright drape along the bottom whose depth follows the rays, so it hangs in folds
-  // instead of reading as a tube of even width.
-  float hem = smoothstep(0.0, 0.04, v) * (1.0 - smoothstep(0.08 + 0.22 * rays, 0.3 + 0.3 * rays, v));
+  // instead of reading as a tube of even width. Its lower edge fades in over a tenth of the height, so
+  // the curtain hangs out of the sky instead of being cut off by a ruler.
+  float hem = smoothstep(0.0, 0.11, v) * (1.0 - smoothstep(0.06 + 0.2 * rays, 0.34 + 0.32 * rays, v));
   // Above it, the rays climb as upright columns (their sides come from the rays term alone, so they stay
-  // vertical) and fade toward the top edge.
-  float body = smoothstep(0.0, 0.08, v) * pow(1.0 - v, 1.0) * smoothstep(0.55, 0.85, rays) * 0.62;
-  float ends = 1.0 - smoothstep(0.55, 1.0, abs(vSky.z));
-  float level = max(hem, body) * ends * vShape.y * uAmount;
-  // Three flat steps. Only a short ramp at each step is dithered, so the inside of a band is one
-  // solid colour and the checker pattern appears only on its edge.
-  float x = level * 3.0;
-  float q = (floor(x) + step(bayer4(gl_FragCoord.xy), smoothstep(0.3, 0.7, fract(x)))) / 3.0;
+  // vertical) and thin out slowly toward the top edge.
+  float body = smoothstep(0.02, 0.16, v) * pow(1.0 - v, 1.5) * smoothstep(0.4, 0.9, rays) * 0.6;
+  // Fine streaks inside the columns (about 4 deg apart) so a band up close is striated light, not a slab.
+  float streak = 0.78 + 0.22 * sin(a * 90.0 + 2.0 * sin(a * 13.0 + uTime * 0.09));
+  float ends = 1.0 - smoothstep(0.5, 1.0, abs(vSky.z));
+  float level = max(hem, body) * streak * ends * vShape.y * uAmount;
+  // Five steps, each ramp dithered across most of its width, so a band shades from its bright hem
+  // into the sky through a few dithered tones instead of three flat slabs.
+  float x = level * 5.0;
+  float q = (floor(x) + step(bayer4(gl_FragCoord.xy), smoothstep(0.1, 0.9, fract(x)))) / 5.0;
   vec3 col = mix(uLow, uMid, smoothstep(0.15, 0.45, v));
   col = mix(col, uTop, smoothstep(0.4, 0.75, v));
   gl_FragColor = vec4(col * q, 1.0);

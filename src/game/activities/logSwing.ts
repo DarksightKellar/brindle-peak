@@ -9,8 +9,12 @@
  *
  * Round 3: the square moment was a sliver (~0.18 s) on a plain pendulum, and a press a frame early
  * dropped the log. The swing now lingers through square (it is a pendulum shaped to dwell at the
- * bottom), the window is wider, and a press made just before the log comes square is held and laid
- * the moment it gets there, so a player who reads the swing and presses on the beat always lands it.
+ * bottom), so a player who reads the swing and presses on the beat lands it.
+ *
+ * Round 4: mashing E stacked the pile. A press just before square was held and laid when the log got
+ * there, so a stream of presses always had one in that window, and the window was open more than a
+ * third of each swing. Now the window is narrower, nothing is held, and a press that follows another
+ * within `mash` seconds is crooked whatever the log is doing: only a deliberate press lays a log.
  *
  * Pure numbers, so the rule can be tested without a world.
  */
@@ -21,10 +25,10 @@ export const SWING = {
   /** Seconds for a full swing on the bottom layer; each layer up is a touch quicker. */
   period: 2.6,
   quicken: 0.08,
-  /** Within this many radians of square the log drops in straight: about half a second per pass. */
-  square: 0.2,
-  /** A press this many seconds before the log comes square is held and laid when it gets there. */
-  grace: 0.16,
+  /** Within this many radians of square the log drops in straight: about a third of a second per pass. */
+  square: 0.13,
+  /** A press this soon after the last one is a mash, and lands crooked. */
+  mash: 0.3,
   /** Seconds a crooked log takes to land, roll off and come back up. */
   slip: 0.8,
   /** Metres the log hangs above its place while it swings. */
@@ -39,11 +43,6 @@ export function swingAt(t: number, layer: number): number {
   const period = Math.max(1.9, SWING.period - layer * SWING.quicken);
   const c = Math.cos((t / period) * Math.PI * 2);
   return SWING.amp * c * Math.abs(c);
-}
-
-/** True when a press now should be held for the square moment just ahead rather than dropped crooked. */
-export function squareSoon(t: number, layer: number): boolean {
-  return !isSquare(swingAt(t, layer)) && isSquare(swingAt(t + SWING.grace, layer));
 }
 
 /** Which way a crooked press missed: 'early' while the log is still swinging in toward square. */

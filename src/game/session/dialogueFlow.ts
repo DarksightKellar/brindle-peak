@@ -5,6 +5,10 @@
  * speaker's species, so a ptarmigan and a fox sound like different animals without any recorded
  * audio. `speechNode` tracks which line is currently being spoken so re-opening the same node does
  * not restart the chirp.
+ *
+ * An errand offer ends on Pip's answer. When the offer's last line closes, Pip is asked "take it on?"
+ * with "i'll do it." and "not now."; only the first takes the errand. Escape is "not now". Declined,
+ * the errand stays on offer and the villager asks again next time.
  */
 
 import type { NpcDef } from '../../core/contracts';
@@ -25,8 +29,14 @@ export interface DialogueFlowDeps {
   fill?(source: string): string[];
 }
 
+/** An errand on offer in this conversation: its title, and what taking it on does. */
+export interface PendingOffer {
+  title: string;
+  accept(): void;
+}
+
 export interface DialogueFlow {
-  open(npcId: string, nodeId: string): void;
+  open(npcId: string, nodeId: string, offer?: PendingOffer): void;
   advance(): void;
   close(): void;
   isOpen(): boolean;
@@ -48,9 +58,31 @@ export function pitchFor(species: string): number {
  */
 const PIP = { id: 'pip', name: 'Pip', species: 'snow bunting' };
 
+/** Route ids for Pip's answer to an offer; never real node ids. */
+const TAKE = '§take';
+const LEAVE = '§leave';
+const ASK = '§ask';
+
+function askNode(title: string): DialogueNode {
+  return {
+    id: ASK,
+    speaker: PIP.id,
+    lines: [`(take on "${title}"?)`],
+    choices: [{ text: "i'll do it.", next: TAKE }, { text: 'not now.', next: LEAVE }],
+  };
+}
+
 export function createDialogueFlow(d: DialogueFlowDeps): DialogueFlow {
   let speechNode: string | null = null;
   let speakerId: string | null = null;
+  let offer: PendingOffer | null = null;
+
+  const shut = (): void => {
+    d.dialogue.close();
+    speechNode = null;
+    speakerId = null;
+    offer = null;
+  };
 
   const open = (npcId: string, nodeId: string): void => {
     const node = d.nodes[nodeId];
@@ -65,14 +97,26 @@ export function createDialogueFlow(d: DialogueFlowDeps): DialogueFlow {
   };
 
   return {
-    open,
+    open(npcId, nodeId, pending): void {
+      offer = pending ?? null;
+      open(npcId, nodeId);
+    },
     advance(): void {
       if (!d.dialogue.isOpen()) return;
       const next = d.dialogue.advance();
       if (next === 'close') {
-        d.dialogue.close();
-        speechNode = null;
-        speakerId = null;
+        if (offer && speechNode !== ASK) {
+          speechNode = ASK;
+          d.dialogue.open(askNode(offer.title), PIP.name, (syllables) => d.audio.chirp(syllables, pitchFor(PIP.species)));
+          return;
+        }
+        shut();
+        return;
+      }
+      if (next.id === TAKE || next.id === LEAVE) {
+        const took = next.id === TAKE ? offer : null;
+        shut();
+        took?.accept();
         return;
       }
       // The view only knows the node it just finished, so the speaker comes from the node being
@@ -80,11 +124,7 @@ export function createDialogueFlow(d: DialogueFlowDeps): DialogueFlow {
       // finale put Bram's name on the baker and Ivy's on Nana.
       if (next.id !== speechNode) open(d.nodes[next.id]?.speaker ?? next.speaker, next.id);
     },
-    close(): void {
-      d.dialogue.close();
-      speechNode = null;
-      speakerId = null;
-    },
+    close: shut,
     isOpen: () => d.dialogue.isOpen(),
     currentNode: () => speechNode,
     speaker: () => (d.dialogue.isOpen() ? speakerId : null),

@@ -11,7 +11,7 @@
  * player, the renderer or the audio kit in scope.
  */
 
-import type { InputFrame } from '../../core/contracts';
+import type { GameState, InputFrame } from '../../core/contracts';
 import type { ActivityRunner } from './activityRunner';
 import type { DialogueFlow } from './dialogueFlow';
 import type { Presentation } from './presentation';
@@ -23,6 +23,8 @@ export interface FrameInputDeps {
   runner: ActivityRunner;
   /** Act on the world: talk, pick up, start an activity. */
   interact(): void;
+  /** The run's state: the journal writes the player's errand pick into it. */
+  state: GameState;
 }
 
 /**
@@ -59,10 +61,10 @@ export function createFrameInput(d: FrameInputDeps): FrameInput {
      */
     if (ui.menu.isOpen() || ui.journal.isOpen()) {
       lastChoiceSign = 0;
-      routeOverlayNav(endingTook ? { ...input, interactPressed: false } : input, ui);
+      routeOverlayNav(endingTook ? { ...input, interactPressed: false } : input, ui, d.state);
       return blocked;
     }
-    routeOverlayNav(input, ui); // closed: only lets it forget the last hold
+    routeOverlayNav(input, ui, d.state); // closed: only lets it forget the last hold
 
     if (ui.dialogue.isOpen() && input.cancelPressed) {
       lastChoiceSign = 0;

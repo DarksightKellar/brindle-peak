@@ -11,6 +11,9 @@
  * that closes a panel. So no panel opens over a running activity at all: a race clock ticking behind
  * the journal, and an Escape that closed the journal and quit the race together, were both reported.
  * The ending card takes its own Escape through the frame too, so the menu never stacks on it.
+ *
+ * Nor does the journal open over a conversation: Tab mid-sentence laid the book on top of the dialogue
+ * box, and the next E was read by both.
  */
 
 import type { GameState } from '../../core/contracts';
@@ -33,10 +36,11 @@ export interface OverlayDeps {
 export function createOverlayRouter(d: OverlayDeps): OverlayRouter {
   const { ui, state } = d;
   const busy = (): boolean => d.isActivityRunning() || ui.ending.isOpen();
+  const talking = (): boolean => ui.dialogue.isOpen();
 
   return {
     toggleJournal(): void {
-      if (busy()) return;
+      if (busy() || talking()) return;
       if (!ui.journal.isOpen() && ui.menu.isOpen()) ui.menu.toggle();
       ui.journal.toggle(state);
     },
@@ -46,7 +50,7 @@ export function createOverlayRouter(d: OverlayDeps): OverlayRouter {
      * whatever was in front. Pressing it again on the map does close it, so it is never a dead key.
      */
     toggleMap(): void {
-      if (busy()) return;
+      if (busy() || talking()) return;
       if (ui.menu.isOpen()) ui.menu.toggle();
       if (ui.journal.isOpen() && ui.journal.currentTab() !== 'Map') {
         ui.journal.setTab('Map', state);

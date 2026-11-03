@@ -16,7 +16,7 @@ import { createAchievementEngine } from '../../core/progress/achievements';
 import { ACHIEVEMENTS } from '../../data/achievements';
 import { ACTIVITIES } from '../../data/activities';
 import { finishedBuildMarkers } from '../activities/buildSites';
-import { activityOffered } from '../activities/offered';
+import { activityOffered, questWants } from '../activities/offered';
 import { NPCS } from '../../data/npcs';
 import { PICKUPS } from '../../data/pickups';
 import { QUESTS } from '../../data/quests';
@@ -153,7 +153,7 @@ export function bootstrap(opts: BootOptions): Booted {
     if (i.kind === 'lantern') return state.abilities.lantern && !state.lanterns[i.id] && !wayHome.lit(i.id);
     const def = i.kind === 'activity' ? activityById.get(i.id) : undefined;
     return def === undefined || activityOffered(def, state);
-  });
+  }, (i) => i.kind === 'activity' && questWants(i.id, state));
   for (const i of buildInteractables(sampler, NPCS, ACTIVITIES, PICKUPS)) interactions.register(i);
 
   // Restore what the save says was already taken or lit.

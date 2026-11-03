@@ -43,6 +43,7 @@ export function createMenu(root: HTMLElement, onReset?: () => void): Menu {
     '<section class="panel ui-menu__panel" role="dialog" aria-label="Paused"><div class="panel__in">' +
     '<h2 class="ui-menu__title">First Snow</h2>' +
     '<p class="ui-menu__sub">Paused</p>' +
+    '<button class="ui-btn ui-menu__resume" type="button">Resume</button>' +
     '<div class="ui-menu__group ui-menu__nav"><span class="ui-menu__label">Pixel size</span>' +
     '<div class="ui-sizes" role="group" aria-label="Pixel size"></div></div>' +
     '<label class="ui-slider ui-menu__nav"><span>Master</span>' +
@@ -61,9 +62,9 @@ export function createMenu(root: HTMLElement, onReset?: () => void): Menu {
     '<li><b>Tab · J</b><span>journal</span></li>' +
     '<li><b>M</b><span>map</span></li>' +
     '</ul>' +
-    '<button class="ui-btn ui-menu__resume" type="button">Resume</button>' +
-    `<button class="ui-btn ui-menu__reset" type="button">${RESET_LABEL}</button>` +
     '<p class="ui-menu__hint">↑↓ choose · ←→ change · Enter select · Esc close</p>' +
+    // Far from Resume, and quiet: critic round 4 found it one row under the button a pause is for.
+    `<button class="ui-btn ui-menu__reset" type="button">${RESET_LABEL}</button>` +
     '</div></section>';
   root.appendChild(layer);
 
@@ -111,7 +112,7 @@ export function createMenu(root: HTMLElement, onReset?: () => void): Menu {
   motion.addEventListener('change', () => setMotion(motion.checked));
 
   // Rows in key order. The key list is not a row: it is reading, not a control.
-  const rows = [...Array.from(layer.querySelectorAll('.ui-menu__nav')), resume, reset] as HTMLElement[];
+  const rows = [resume, ...Array.from(layer.querySelectorAll('.ui-menu__nav')), reset] as HTMLElement[];
   const RESUME = rows.indexOf(resume);
   let sel = RESUME;
   // Which key armed the wipe; empty when it is not armed.

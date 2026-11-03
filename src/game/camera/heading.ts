@@ -13,7 +13,9 @@
  * camera for minutes, and circled the mast at the peak without once seeing it. So while Pip keeps
  * walking, the view also comes round behind the way Pip faces (`align`), slowly, the way A Short
  * Hike's camera follows a walk: after a moment of walking (ALIGN_WAIT), most of the way in a couple
- * of seconds, never faster than ALIGN_MAX. A full about-turn takes about four seconds.
+ * of seconds, never faster than ALIGN_MAX. Walking back toward the lens (holding S) the align is a
+ * little brisker (ALIGN_BACK_*), since that is a player turning round, not drifting off a line: the
+ * director played it and asked for the about-turn to come round a bit faster.
  *
  * That turn does not turn the walk with it: move.ts latches a held key's direction in the world when
  * it goes down, so holding S the bird walks on in a straight line while the camera comes round behind
@@ -51,6 +53,9 @@ const ALIGN_IN = 0.6;
 const WALK = 6.5;
 const ALIGN_TAU = 1.4;
 const ALIGN_MAX = 0.8;
+/** The same for an about-turn: blended in as the gap opens past 45 degrees, fully past 105. */
+const ALIGN_BACK_TAU = 0.8;
+const ALIGN_BACK_MAX = 1.6;
 /** After a hand on Q or R, the align waits this long. */
 const ALIGN_HOLD = 2.5;
 
@@ -90,7 +95,10 @@ export function createHeading(): Heading {
     walking += step;
     const weight = Math.min(1, Math.max(0, (walking - ALIGN_WAIT) / ALIGN_IN)) * Math.min(1.5, speed / WALK);
     const gap = shortestTurn(yaw, facing);
-    const rate = Math.min(ALIGN_MAX, Math.abs(gap) / ALIGN_TAU) * weight;
+    const back = Math.min(1, Math.max(0, (Math.abs(gap) - Math.PI / 4) / (Math.PI / 3)));
+    const max = ALIGN_MAX + (ALIGN_BACK_MAX - ALIGN_MAX) * back;
+    const tau = ALIGN_TAU + (ALIGN_BACK_TAU - ALIGN_TAU) * back;
+    const rate = Math.min(max, Math.abs(gap) / tau) * weight;
     return Math.sign(gap) * Math.min(Math.abs(gap), rate * step);
   };
 

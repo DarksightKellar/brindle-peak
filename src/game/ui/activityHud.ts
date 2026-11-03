@@ -57,6 +57,9 @@ export function formatClock(seconds: number): string {
   return m > 0 ? `${m}:${String(s).padStart(2, '0')}` : `${s}s`;
 }
 
+/** Seconds the instruction stays up before the panel shrinks to the readout. */
+export const HINT_SECONDS = 6;
+
 export function createActivityHud(root: HTMLElement): ActivityHud {
   const panel = document.createElement('section');
   panel.className = 'ui-activity';
@@ -86,11 +89,12 @@ export function createActivityHud(root: HTMLElement): ActivityHud {
       foot.hidden = false;
       label.textContent = formatClock(0);
       fill.style.width = '0%';
-      panel.classList.remove('is-urgent');
+      panel.classList.remove('is-urgent', 'is-compact');
       panel.hidden = false;
     },
     update(readout, seconds): void {
       if (panel.hidden) return;
+      if (seconds >= HINT_SECONDS) panel.classList.add('is-compact');
       if (readout) {
         label.textContent = `${readout.label} · ${formatClock(seconds)}`;
         fill.style.width = readout.fraction === null ? '0%' : `${Math.round(readout.fraction * 100)}%`;
@@ -106,11 +110,12 @@ export function createActivityHud(root: HTMLElement): ActivityHud {
       foot.hidden = true;
       label.textContent = line;
       panel.classList.add('is-urgent');
+      panel.classList.remove('is-compact');
       panel.hidden = false;
     },
     hide(): void {
       panel.hidden = true;
-      panel.classList.remove('is-urgent');
+      panel.classList.remove('is-urgent', 'is-compact');
     },
     isOpen: () => !panel.hidden,
   };

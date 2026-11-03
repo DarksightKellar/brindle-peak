@@ -33,7 +33,15 @@ const bellsHTML = (m: JournalModel): string =>
   statHTML('Bells', m.bells, `${icon('bell', 12)}${m.purse}`,
     `<span class="ui-stat__note">${esc(m.bells.text)} ${esc(BELLS_FOUND_WORDS)}</span>`);
 
-export function notesHTML(m: JournalModel): string {
+/** The kept photographs, pinned under the counts. The src is a data URL this game wrote itself. */
+const printsHTML = (prints: readonly { src: string; caption: string }[]): string =>
+  prints.length === 0
+    ? ''
+    : `<ul class="ui-prints">${prints
+      .map((p) => `<li><figure class="ui-print"><img src="${esc(p.src)}" alt="${esc(p.caption)}"><figcaption>${esc(p.caption)}</figcaption></figure></li>`)
+      .join('')}</ul>`;
+
+export function notesHTML(m: JournalModel, prints: readonly { src: string; caption: string }[] = []): string {
   const stats = [m.feathers, m.bells, m.lanterns, m.fish, m.photos, m.achievements];
   const labels = ['Feathers', 'Bells', 'Lanterns', 'Fish', 'Photos', 'Feats'];
   const zones = m.zones
@@ -45,6 +53,8 @@ export function notesHTML(m: JournalModel): string {
     .join('');
   return (
     `<div class="ui-jgrid">${stats.map((r, i) => (r === m.bells ? bellsHTML(m) : statHTML(labels[i], r))).join('')}</div>` +
+    (m.carrying.length > 0 ? `<p class="ui-journal__meta">Carrying: ${m.carrying.map(esc).join(' · ')}</p>` : '') +
+    printsHTML(prints) +
     `<ul class="ui-zones">${zones}</ul>` +
     `<p class="ui-journal__meta">Played ${m.playtime} · best sled ${m.sledBest}</p>`
   );
@@ -55,7 +65,7 @@ export function notesHTML(m: JournalModel): string {
  * collapses to a tick and one authored line — its blurb — so the page reads as a record rather than
  * a list of unfinished business.
  */
-export function questsHTML(m: JournalModel): string {
+export function questsHTML(m: JournalModel, tracked: string | null = null, cursor: string | null = null): string {
   if (m.quests.length === 0) {
     return '<p class="ui-empty">No quests yet. Someone by a warm window is waiting.</p>';
   }
@@ -68,13 +78,19 @@ export function questsHTML(m: JournalModel): string {
           ? q.nextText ?? '—'
           : q.stepText;
     const cls = q.status === 'active' ? ' ui-quest__step--next' : '';
+    const on = q.id === tracked;
+    const status = on ? 'following' : q.status;
+    const pick = q.trackable ? ` is-pickable${q.id === cursor ? ' is-cursor' : ''}${on ? ' is-tracked' : ''}` : '';
     return (
-      `<li class="ui-quest is-${q.status}"><div class="ui-quest__row"><span class="ui-quest__title">${tick}${esc(q.title)}</span>` +
-      `<span class="ui-quest__status">${q.status}</span></div>` +
+      `<li class="ui-quest is-${q.status}${pick}" data-quest="${esc(q.id)}"><div class="ui-quest__row"><span class="ui-quest__title">${tick}${esc(q.title)}</span>` +
+      `<span class="ui-quest__status">${status}</span></div>` +
       `<p class="ui-quest__step${cls}">${esc(line)}</p></li>`
     );
   });
-  return `<ul class="ui-quests">${rows.join('')}</ul>`;
+  const hint = m.quests.some((q) => q.trackable)
+    ? '<p class="ui-journal__meta">↑↓ choose an errand · E follow it</p>'
+    : '';
+  return `${hint}<ul class="ui-quests">${rows.join('')}</ul>`;
 }
 
 export function fishHTML(m: JournalModel, s: GameState, fish: readonly FishDef[] | undefined): string {

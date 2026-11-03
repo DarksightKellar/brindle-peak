@@ -103,6 +103,37 @@ describe('a conversation that hands between speakers', () => {
     expect(flow.speaker()).toBe('wren'); // the camera keeps Wren in the shot while Pip speaks
   });
 
+  it('ends an errand offer on Pip choosing: only "i\'ll do it" takes it on', () => {
+    // A view that plays each node in one press and takes the highlighted (first, or second) choice.
+    const run = (pick: 0 | 1): { took: number; asked: string[] } => {
+      let node: { id: string; speaker: string; lines: string[]; next?: string; choices?: { next: string }[] } | null = null;
+      const asked: string[] = [];
+      const view = {
+        open(n: typeof node): void { node = n; if (n?.choices?.some((c) => c.next.startsWith('§'))) asked.push(n.lines[0]); },
+        advance(): { id: string; speaker: string } | 'close' {
+          if (!node) return 'close';
+          const done = node;
+          node = null;
+          const to = done.choices?.[Math.min(pick, done.choices.length - 1)]?.next ?? done.next;
+          return to ? { id: to, speaker: done.speaker } : 'close';
+        },
+        close(): void { node = null; },
+        isOpen: (): boolean => node !== null,
+      };
+      const flow = createDialogueFlow({
+        dialogue: view as never, audio: { chirp: () => undefined } as unknown as AudioKit, npcs: NPCS, nodes: DIALOGUE,
+      });
+      let took = 0;
+      flow.open('fen', 'fen-root', { title: 'Something on the Trail', accept: () => { took++; } });
+      for (let i = 0; i < 20 && flow.isOpen(); i++) flow.advance();
+      return { took, asked };
+    };
+    const yes = run(0);
+    expect(yes.asked).toEqual(['(take on "Something on the Trail"?)']);
+    expect(yes.took).toBe(1);
+    expect(run(1).took).toBe(0); // "why keep a tally?", then "not now."
+  });
+
   it('names whoever is speaking on every node of the radio finale', () => {
     // The view reports the next node with the speaker of the node it just finished, as the real one
     // does. The flow must name the node it opens.

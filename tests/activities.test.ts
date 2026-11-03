@@ -190,6 +190,35 @@ describe('fishing', () => {
     expect(host.awards[0].score).toBe(9);
   });
 
+  const landAt = (id: string, state?: GameState): { host: FakeHost; fish: ReturnType<typeof createFishingActivity> } => {
+    const fish = createFishingActivity(defOf('fish', { id }));
+    const host = makeHost({ state });
+    begin(fish, host);
+    let guard = 0;
+    while (fish.elapsed < fish.strikeAt + 0.05 && guard++ < 600) step(fish, host);
+    step(fish, host, { interactPressed: true });
+    return { host, fish };
+  };
+
+  it("a first catch at each pool is that pool's own fish", () => {
+    const firsts = ['pinewind-creek-fish', 'kettles-spring-fish', 'reach-ice-fish', 'ridge-tarn-fish']
+      .map((id) => landAt(id).fish.lastCatch?.id);
+    expect(new Set(firsts).size).toBe(4);
+  });
+
+  it("while the mitten errand waits on the Creek Pool, the catch there is the mitten, not a fish", () => {
+    const state = createGameState({ x: 0, y: 0, z: 0 }, 8);
+    state.quests['hollis-mitten'] = { status: 'active', step: 1 };
+    const { host, fish } = landAt('pinewind-creek-fish', state);
+    expect(fish.lastCatch?.id).toBe('mitten');
+    expect(host.events.some((e) => e.name === 'fish:caught')).toBe(false);
+    expect(host.awards).toHaveLength(1);
+    // Anywhere else, or once the step has moved on, it is fish again.
+    expect(landAt('kettles-spring-fish', state).fish.lastCatch?.id).not.toBe('mitten');
+    state.quests['hollis-mitten'] = { status: 'active', step: 2 };
+    expect(landAt('pinewind-creek-fish', state).fish.lastCatch?.id).not.toBe('mitten');
+  });
+
   it('recovers from an early press with a new cast instead of ending', () => {
     const fish = createFishingActivity(defOf('fish'));
     const host = makeHost();

@@ -19,6 +19,7 @@ import type {
 import type { PlacedMarker } from './markerLooks';
 import { launch, linedUp, previewArc, stepShot, turnAim, type Shot, type Strikeable } from './throwFlight';
 import { bellTarget, FAN, makeFan, setupFor, targetFoot, type ThrowSetup, type ThrowTarget } from './throwSetups';
+import { WORDS } from './activityWords';
 
 export { targetAngle } from './throwSetups';
 
@@ -68,7 +69,7 @@ export class TargetActivity implements ActivityInstance {
   start(host: ActivityHost): void {
     this.terrain = host.terrain;
     this.feet = { ...host.playerPos };
-    this.fan = this.setup.kind === 'fan' ? makeFan(this.def, host.cameraYaw) : [];
+    this.fan = this.setup.kind === 'fan' ? makeFan(this.def, this.setup.facing ?? host.cameraYaw) : [];
     this.bell = this.setup.kind === 'bell' ? bellTarget(this.groundAt) : null;
     this.shots = [];
     this.puffs = [];
@@ -164,20 +165,22 @@ export class TargetActivity implements ActivityInstance {
 
   markers(): readonly MarkerSpec[] {
     const out: PlacedMarker[] = [];
-    this.fan.forEach((t) => {
-      const foot = targetFoot(this.def.pos, t, this.elapsed);
-      const toward = Math.atan2(this.feet.x - foot.x, this.feet.z - foot.z);
-      // A knocked post tips over away from the thrower, pivoting on its foot, and greys out.
-      const tip = t.down ? Math.min(1, (this.elapsed - t.downAt) / 0.3) * 1.35 : 0;
-      const lean = Math.sin(tip) * FAN.centre;
-      out.push({
-        shape: 'post', look: 'target',
-        x: foot.x - Math.sin(toward) * lean,
-        y: this.groundAt(foot.x, foot.z) + (Math.cos(tip) - 1) * FAN.centre + 0.25 * (tip / 1.35),
-        z: foot.z - Math.cos(toward) * lean,
-        yaw: toward + Math.PI / 2, tilt: -tip, strength: t.down ? 0 : 1, size: 1,
+    // The snowmen are kept pieces (lit like the world), in one group that is emptied when the round ends.
+    const keep = `throw:${this.def.id}`;
+    if (this.fan.length > 0 && this.stage !== 'throwing') out.push({ shape: 'post', look: 'empty', keep, x: 0, y: 0, z: 0 });
+    else if (this.fan.length > 0) {
+      this.fan.forEach((t) => {
+        const foot = targetFoot(this.def.pos, t, this.elapsed);
+        const toward = Math.atan2(this.feet.x - foot.x, this.feet.z - foot.z);
+        // A struck snowman falls flat on its back, away from the thrower, pivoting on its foot.
+        const tip = t.down ? Math.min(1, (this.elapsed - t.downAt) / 0.3) * 1.45 : 0;
+        out.push({
+          shape: 'post', look: 'snowman-target', keep,
+          x: foot.x, y: this.groundAt(foot.x, foot.z), z: foot.z,
+          yaw: toward, pitch: -tip, size: 1,
+        });
       });
-    });
+    }
     if (this.bell && this.rang >= 0 && this.rang < 1.2) {
       const b = this.bell.pos;
       const toward = Math.atan2(this.feet.x - b.x, this.feet.z - b.z);
@@ -208,6 +211,11 @@ export class TargetActivity implements ActivityInstance {
       label: `Hits ${Math.min(this.hits, need)} / ${need} · ${this.throwsLeft} left`,
       fraction: need === 0 ? 0 : Math.min(1, this.hits / need),
     };
+  }
+
+  /** The result card: critic round 4 used all eight throws and the panel just went away. */
+  summary(): string | null {
+    return this.stage === 'done' ? WORDS.throwResult(this.hits, this.setup.need) : null;
   }
 
   isComplete(): boolean {

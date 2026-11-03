@@ -7,6 +7,7 @@
  * face, or outside its band fails here rather than in the player's hands.
  */
 
+import { PLACES } from '../src/data/places';
 import { describe, expect, it } from 'vitest';
 import { ZONE_IDS, type Condition, type Vec2, type ZoneId } from '../src/core/contracts';
 import { createSampler, generateHeightfield } from '../src/core/terrain/heightfield';
@@ -151,6 +152,7 @@ describe('references', () => {
     const counters = new Set([
       'fish', 'fish:species', 'photo', 'spring', 'lantern',
       ...ACTIVITIES.map((a) => `activity:${a.id}`),
+      ...PLACES.map((p) => `place:${p.id}`),
     ]);
     for (const a of ACHIEVEMENTS) {
       const t = a.trigger;

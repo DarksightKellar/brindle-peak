@@ -121,8 +121,10 @@ export function buildWorld(
   group.traverse((o) => {
     if (o instanceof THREE.Mesh) {
       // Light laid on the snow (lamp pools, window pools) is not a solid: it must not shade itself.
+      // The ground does not cast either: its flat-shaded facets shaded each other in a stair-step
+      // checker down every slope facing away from the sun. The slope's own shading already darkens it.
       const m = o.material;
-      o.castShadow = !(m instanceof THREE.Material && m.transparent);
+      o.castShadow = o.name !== 'terrain' && !(m instanceof THREE.Material && m.transparent);
       o.receiveShadow = true;
     }
   });

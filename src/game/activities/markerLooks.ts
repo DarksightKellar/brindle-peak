@@ -18,9 +18,11 @@ import type { StartLook } from './startPropMeshes';
 
 export type TransientLook =
   | 'arch' | 'beam' | 'hoop' | 'lamp' | 'lamp-post' | 'shot' | 'pinecone' | 'dot' | 'puff' | 'target' | 'pulse'
-  | 'sled' | 'kite' | 'arrow' | 'arrow-rim' | 'beacon' | 'fish' | 'fin' | 'halo' | 'streak';
+  | 'sled' | 'kite' | 'arrow' | 'arrow-rim' | 'beacon' | 'fish' | 'fin' | 'halo' | 'streak' | 'stake' | 'mitten';
 
-export type PieceLook = 'log' | 'snowball' | 'stone' | 'carrot' | 'coal' | 'twig' | 'pool' | 'hole' | 'deer' | 'empty' | StartLook;
+export type PieceLook =
+  | 'log' | 'snowball' | 'stone' | 'carrot' | 'coal' | 'twig' | 'pool' | 'hole' | 'deer' | 'snowman-target' | 'empty'
+  | StartLook;
 
 export type MarkerLook = TransientLook | PieceLook;
 
@@ -45,7 +47,7 @@ export interface PlacedMarker extends MarkerSpec {
 }
 
 export const PIECE_LOOKS: ReadonlySet<MarkerLook> = new Set<MarkerLook>([
-  'log', 'snowball', 'stone', 'carrot', 'coal', 'twig', 'pool', 'hole', 'deer', 'empty',
+  'log', 'snowball', 'stone', 'carrot', 'coal', 'twig', 'pool', 'hole', 'deer', 'snowman-target', 'empty',
   'pennant', 'start-sled', 'start-kite', 'start-banner', 'start-windsock', 'start-stool', 'start-frame',
   'start-snowballs', 'start-cones', 'start-skates', 'start-shovel',
 ]);

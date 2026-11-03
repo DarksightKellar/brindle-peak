@@ -24,7 +24,10 @@ function sheet(b: GeoBuilder, pts: readonly Triple[], color: PaletteKey): void {
   }
 }
 
-/** The shared mark: a tall post, a red pennant off its top, a warm light on the tip. */
+/**
+ * The shared mark: a tall post, a red pennant off its top, a warm light on the tip. The light is a round
+ * globe: an amber diamond up there read as the quest marker (critic round 4).
+ */
 function pennant(b: GeoBuilder, x: number, z: number, h = 4.2): void {
   // Tall enough to stand over the snow drifts and rocks from thirty metres off.
   b.strut([x, 0, z], [x, h, z], 0.09, 'WOOD_DK');
@@ -37,7 +40,7 @@ function pennant(b: GeoBuilder, x: number, z: number, h = 4.2): void {
   sheet(b, [low, tip, mid], 'PIP_SCARF');
   sheet(b, [tip, top, mid], 'BRICK');
   b.glow();
-  b.add(GEO.octa, propMatrix(x, h + 0.2, z, 0.22, 0.26, 0.22), 'LANTERN');
+  b.add(GEO.ico, propMatrix(x, h + 0.16, z, 0.17, 0.17, 0.17), 'SUN_HI');
   b.glow(false);
 }
 

@@ -8,6 +8,7 @@
 
 import type { EventBus, GameState, PlayerState } from '../../core/contracts';
 import { ACTIVITIES } from '../../data/activities';
+import { QUESTS } from '../../data/quests';
 import type { InteractionSystem } from '../interactions';
 import type { WorldBuild } from '../world/assemble';
 import type { ActivityRunner } from './activityRunner';
@@ -34,8 +35,11 @@ export function interact(d: InteractVerbDeps): void {
   if (target.kind === 'npc') {
     // The talk is counted first and the node chosen from what it changed (core/progress/conversation),
     // so a report-back conversation speaks the payoff instead of replaying the request.
-    const node = d.mech.talk(target.id);
-    if (node !== null) d.flow.open(target.id, node);
+    const talk = d.mech.talk(target.id);
+    if (talk === null) return;
+    const offered = talk.offer === null ? undefined : QUESTS.find((q) => q.id === talk.offer);
+    const id = talk.offer;
+    d.flow.open(target.id, talk.node, offered && id !== null ? { title: offered.title, accept: () => d.mech.accept(id) } : undefined);
     return;
   }
 

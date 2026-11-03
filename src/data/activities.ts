@@ -14,7 +14,7 @@ import type { ActivityDef } from '../core/contracts';
 export const ACTIVITIES: readonly ActivityDef[] = [
   // Hearth Hollow — one, because Nana is standing right there.
   // At the east end of Bram's woodstore, where the end of the pile came down (buildSites.ts).
-  { id: 'hearth-kindling', name: 'Woodpile', kind: 'build', zone: 'hearth', pos: { x: -335.5, z: 296.4 }, radius: 3.2, prompt: 'Stack' },
+  { id: 'hearth-kindling', name: 'Woodpile', kind: 'build', zone: 'hearth', pos: { x: -335.5, z: 296.4 }, radius: 4.6, prompt: 'Stack' },
 
   // Pinewind Wood — four.
   { id: 'pinewind-pinecone-throw', name: 'Pinecone Toss', kind: 'throw', zone: 'pinewind', pos: { x: -206, z: 160 }, radius: 3, prompt: 'Throw' },

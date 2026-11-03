@@ -14,6 +14,8 @@ import type { PickupDef } from '../../data/pickups';
 export const NPC_RADIUS = 5.5;
 export const ACTIVITY_RADIUS = 2.6;
 export const LANTERN_RADIUS = 2.4;
+/** Carrying the lantern, Pip lights a post just by passing this close to it. */
+export const LANTERN_PASS = 6;
 
 /** The reach E has on this villager. The tutorial's talk hint shows only inside it. */
 export const talkReach = (n: Pick<NpcDef, 'radius'>): number => Math.max(n.radius ?? 0, NPC_RADIUS);

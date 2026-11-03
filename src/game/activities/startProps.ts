@@ -21,7 +21,7 @@ import { RACE_COURSES } from './raceCourses';
 import { SLIDE_COURSES } from './slidePath';
 import { FISH_SPOTS } from './fishSpots';
 import { PHOTO_SUBJECTS } from './photoSubjects';
-import { BELL } from './throwSetups';
+import { BELL, THROW_SETUPS } from './throwSetups';
 import { BUILD_SITES, woodpileFootprint } from './buildSites';
 
 interface StartProp {
@@ -31,11 +31,15 @@ interface StartProp {
   side: -1 | 0 | 1;
   /** Turn the prop to face along the aim instead of facing the post. */
   alongAim?: boolean;
+  /** Metres behind the post, against the aim. Default 0.6 for a prop off to one side. */
+  back?: number;
 }
 
 const BY_ID: Readonly<Record<string, StartProp>> = {
   'hearth-kindling': { look: 'pennant', out: 3.2, side: 1 },
-  'pinewind-pinecone-throw': { look: 'start-cones', out: 2.4, side: -1 },
+  // Well out to the side of where Pip throws from, level with it, so its pole is never between the
+  // camera, Pip and a snowman.
+  'pinewind-pinecone-throw': { look: 'start-cones', out: 3.8, side: 1, back: 0.8 },
   'pinewind-deer-run': { look: 'start-banner', out: 0, side: 0, alongAim: true },
   'pinewind-creek-fish': { look: 'start-stool', out: 2.2, side: 1 },
   'pinewind-glade-photo': { look: 'start-frame', out: 1.8, side: 1, alongAim: true },
@@ -73,6 +77,8 @@ function aimOf(def: ActivityDef): number {
   if (photo?.kind === 'ground') return bearing(p, photo);
   if (photo?.kind === 'aurora') return Math.PI;
   if (def.id === 'hamlet-bell-throw') return bearing(p, BELL);
+  const toss = THROW_SETUPS[def.id]?.facing;
+  if (toss !== undefined) return toss;
   if (def.id === 'ridge-kite') return Math.PI;
   const site = BUILD_SITES[def.id];
   if (site && Math.hypot(site.at.x - p.x, site.at.z - p.z) > 0.5) return bearing(p, site.at);
@@ -85,7 +91,7 @@ function placeOf(def: ActivityDef): { prop: StartProp; x: number; z: number; yaw
   const aim = aimOf(def);
   // Right of the aim line under forward = (sin yaw, cos yaw) is (-cos, sin).
   const rx = -Math.cos(aim), rz = Math.sin(aim);
-  const back = prop.side === 0 ? 0 : 0.6;
+  const back = prop.back ?? (prop.side === 0 ? 0 : 0.6);
   const x = def.pos.x + rx * prop.out * prop.side - Math.sin(aim) * back;
   const z = def.pos.z + rz * prop.out * prop.side - Math.cos(aim) * back;
   return { prop, x, z, yaw: prop.alongAim ? aim : bearing({ x, z }, def.pos) };

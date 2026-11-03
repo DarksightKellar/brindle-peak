@@ -11,7 +11,7 @@
  * it is let go, or walking into Esc would scroll the menu on the way in.
  */
 
-import type { InputFrame } from '../../core/contracts';
+import type { GameState, InputFrame } from '../../core/contracts';
 import type { Presentation } from './presentation';
 
 const REPEAT_DELAY = 0.38;
@@ -41,7 +41,7 @@ function pulse(a: Axis, v: number, now: number): number {
 }
 
 /** Routes one frame's presses into whichever of the two panels is open. */
-export type OverlayNav = (input: InputFrame, ui: Presentation) => boolean;
+export type OverlayNav = (input: InputFrame, ui: Presentation, state: GameState) => boolean;
 
 /**
  * One per session: the repeat timers and the carried-in hold belong to this run's panels, not to the
@@ -51,7 +51,7 @@ export function createOverlayNav(): OverlayNav {
   const axisX: Axis = { sign: 0, next: 0 };
   const axisZ: Axis = { sign: 0, next: 0 };
   let wasOpen = false;
-  return (input, ui) => {
+  return (input, ui, state) => {
     const open = ui.menu.isOpen() || ui.journal.isOpen();
     if (!open) {
       wasOpen = false;
@@ -77,7 +77,9 @@ export function createOverlayNav(): OverlayNav {
     }
 
     if (x !== 0) ui.journal.turnPage(x);
-    if (z !== 0) ui.journal.scroll(-z * SCROLL_STEP);
+    // On the Quests page the rows are errands to pick, so Up/Down move the cursor instead of scrolling.
+    if (z !== 0 && !ui.journal.select(-z)) ui.journal.scroll(-z * SCROLL_STEP);
+    if (input.interactPressed || input.jumpPressed) ui.journal.activate(state);
     return true;
   };
 }

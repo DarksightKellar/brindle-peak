@@ -186,6 +186,18 @@ export class SledActivity implements ActivityInstance {
         size: (0.3 + age * 0.5) * (0.4 + k), strength: 1 - age, yaw: age * 3,
       });
     }
+    // The track's edges: a stake each side every few metres for the stretch ahead, so the line through
+    // the next bends reads before you are on it. The critic could see no track at all (round 4).
+    const half = (this.course?.halfWidth ?? 4.5) + 0.5;
+    for (let at = Math.ceil(this.run.distance / STAKE_EVERY) * STAKE_EVERY; at < this.run.distance + STAKES_AHEAD; at += STAKE_EVERY) {
+      if (at > this.path.length) break;
+      const fade = 1 - (at - this.run.distance) / STAKES_AHEAD;
+      const red = Math.round(at / STAKE_EVERY) % 2 === 0;
+      for (const side of [-1, 1]) {
+        const e = this.pointAt(at, side * half);
+        out.push({ shape: 'post', look: 'stake', x: e.x, y: e.y, z: e.z, yaw: 0, strength: red ? 0.4 + 0.6 * fade : 0.15 + 0.3 * fade, size: 1 });
+      }
+    }
     // The next three rings: the one coming up bright, the two after it dim.
     let shown = 0;
     for (const r of this.rings) {
@@ -246,6 +258,10 @@ export class SledActivity implements ActivityInstance {
   get position(): Vec3 { return this.pointAt(this.run.distance, this.run.lateral); }
   get isPersonalBest(): boolean { return this.outcome?.bonus === 'personal-best'; }
 }
+
+/** Metres between edge stakes, and how far ahead of the sled they are planted. */
+const STAKE_EVERY = 4;
+const STAKES_AHEAD = 44;
 
 export function createSledActivity(def: ActivityDef, options: SledOptions = {}): SledActivity {
   return new SledActivity(def, options);

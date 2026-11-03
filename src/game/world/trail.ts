@@ -24,7 +24,7 @@
 import * as THREE from 'three';
 import type { TerrainSampler, Vec2 } from '../../core/contracts';
 import type { Collider } from '../../core/player/collide';
-import { GeoBuilder } from './geoBuilder';
+import { GEO, GeoBuilder, propMatrix } from './geoBuilder';
 import { gullyDepth, TUCK_BRIDGE } from '../../core/terrain/carving';
 import { BIRD_BULK } from './birdBulk';
 
@@ -114,13 +114,87 @@ function signpost(b: GeoBuilder, x: number, y: number, z: number, upX: number, u
   }
 }
 
+/**
+ * Where the way up passes something worth a detour: the hamlet, and every activity standing off the
+ * line. Critic round 4 followed the compass to the peak and only learned from the map afterwards that
+ * it had walked straight past Hollowpine Hamlet and most of the activities. Each detour gets an arm on
+ * a signpost at the nearest point of the trail, turned toward it; an activity's arm carries the same
+ * pale globe its own pennant wears, so the sign and the place match. The story's route is unchanged.
+ */
+export interface Detour {
+  x: number;
+  z: number;
+  kind: 'hamlet' | 'activity';
+}
+
+/** Detours farther than this from the trail get no sign; nearer than OFF_ROUTE need none. */
+const DETOUR_MAX = 130;
+const OFF_ROUTE = 22;
+/** Detours whose junctions fall within this much trail of each other share one post. */
+const JUNCTION_BIN = 48;
+const ARMS_MAX = 3;
+
+/** The nearest point of the trail to (x, z), with its direction of travel and distance along. */
+function nearestOnWay(x: number, z: number): WayPoint & { off: number } {
+  let best: (WayPoint & { off: number }) | null = null;
+  let s0 = 0;
+  for (let i = 0; i < WAY_UP.length - 1; i++) {
+    const [ax, az] = WAY_UP[i];
+    const [bx, bz] = WAY_UP[i + 1];
+    const len = Math.hypot(bx - ax, bz - az);
+    const dx = (bx - ax) / len, dz = (bz - az) / len;
+    const t = Math.max(0, Math.min(len, (x - ax) * dx + (z - az) * dz));
+    const px = ax + dx * t, pz = az + dz * t;
+    const off = Math.hypot(x - px, z - pz);
+    if (!best || off < best.off) best = { x: px, z: pz, dx, dz, s: s0 + t, leg: i, off };
+    s0 += len;
+  }
+  return best as WayPoint & { off: number };
+}
+
+/** One post per junction, its arms pointing at the detours that branch off there, nearest first. */
+function detourSigns(b: GeoBuilder, sampler: TerrainSampler, detours: readonly Detour[], posts: readonly Vec2[], colliders: Collider[]): void {
+  const bins = new Map<number, { at: WayPoint; to: (Detour & { off: number })[] }>();
+  for (const d of detours) {
+    const at = nearestOnWay(d.x, d.z);
+    if (at.off < OFF_ROUTE || (d.kind === 'activity' && at.off > DETOUR_MAX)) continue;
+    const key = Math.round(at.s / JUNCTION_BIN);
+    const bin = bins.get(key) ?? { at, to: [] };
+    bin.to.push({ ...d, off: at.off });
+    bins.set(key, bin);
+  }
+  for (const { at, to } of bins.values()) {
+    // Right of the direction of travel, across the trail from the red stakes.
+    let x = at.x - at.dz * 3, z = at.z + at.dx * 3;
+    const crowded = posts.some((q) => Math.hypot(q.x - x, q.z - z) < POST_GAP);
+    if (crowded) { x += at.dx * 6; z += at.dz * 6; }
+    if (gullyDepth(x, z) > 0 || Math.hypot(x - (TUCK_BRIDGE.ax + TUCK_BRIDGE.bx) / 2, z - TUCK_BRIDGE.az) < 12) continue;
+    const y = sampler.heightAt(x, z);
+    b.cyl(x, y - 0.3, z, 0.13, 2.7, 'WOOD_MID');
+    b.box(x, y + 2.4, z, 0.3, 0.12, 0.3, 'SNOW_LT', 'SNOW_HI');
+    to.sort((p, q) => (p.kind === 'hamlet' ? -1 : q.kind === 'hamlet' ? 1 : p.off - q.off));
+    to.slice(0, ARMS_MAX).forEach((d, i) => {
+      const len = Math.hypot(d.x - x, d.z - z) || 1;
+      const ux = (d.x - x) / len, uz = (d.z - z) / len;
+      const h = 2.05 - i * 0.38;
+      const ex = x + ux * 1.05, ez = z + uz * 1.05;
+      b.strut([x, y + h, z], [ex, y + h, ez], 0.15, 'WOOD_LT');
+      b.glow();
+      if (d.kind === 'hamlet') b.strut([x + ux * 0.65, y + h, z + uz * 0.65], [ex, y + h, ez], 0.16, 'LANTERN');
+      else b.add(GEO.ico, propMatrix(ex + ux * 0.1, y + h, ez + uz * 0.1, 0.15, 0.15, 0.15), 'SUN_HI');
+      b.glow(false);
+    });
+    colliders.push({ kind: 'circle', x, z, r: 0.12 + BIRD_BULK });
+  }
+}
+
 export interface Trail {
   group: THREE.Group;
   colliders: Collider[];
 }
 
 /** The stakes and signposts along WAY_UP. `posts` are Nana's lantern posts, already on the line. */
-export function buildTrail(sampler: TerrainSampler, posts: readonly Vec2[]): Trail {
+export function buildTrail(sampler: TerrainSampler, posts: readonly Vec2[], detours: readonly Detour[] = []): Trail {
   const b = new GeoBuilder();
   const colliders: Collider[] = [];
   for (const p of wayPoints(STAKE_EVERY)) {
@@ -160,6 +234,7 @@ export function buildTrail(sampler: TerrainSampler, posts: readonly Vec2[]): Tra
   signpost(b, head.x, sampler.heightAt(head.x, head.z), head.z, ux, uz, -ux, -uz);
   signpost(b, turn.x, sampler.heightAt(turn.x, turn.z), turn.z, nx - tx, nz - tz, ax - tx, az - tz);
   colliders.push({ kind: 'circle', ...head, r: 0.11 + BIRD_BULK }, { kind: 'circle', ...turn, r: 0.11 + BIRD_BULK });
+  detourSigns(b, sampler, detours, posts, colliders);
 
   const group = new THREE.Group();
   group.name = 'trail';

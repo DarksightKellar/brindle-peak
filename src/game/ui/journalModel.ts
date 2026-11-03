@@ -34,6 +34,8 @@ export interface JournalQuest {
   nextText: string | null;
   /** The quest's authored one-liner, used as the epilogue once it is complete. */
   epilogue: string;
+  /** A live errand: one the player can pick to follow (the story is always followed). */
+  trackable: boolean;
 }
 export interface JournalAch { id: string; name: string; desc: string; unlocked: boolean }
 export interface JournalSettingsView { pixelSize: number; master: number; music: number; reduceMotion: boolean }
@@ -46,6 +48,10 @@ export interface JournalContent {
   /** The placed feathers and bells, so the journal can count finds rather than the wallet. */
   pickups?: readonly { id: string; kind: string }[];
   photosTotal?: number;
+  /** Item names, for the "carrying" line on Field Notes. */
+  items?: readonly { id: string; name: string }[];
+  /** The photographs kept so far (ui/polaroid.ts), pinned on Field Notes. Read at paint time. */
+  prints?: () => readonly { id: string; src: string; caption: string }[];
   /** Everything the map page needs: zones, people, activities and the names to print. */
   map?: GuideContent;
   /** The map's land, trail and anchors; a function so the relief is traced on first open, not at boot. */
@@ -72,6 +78,8 @@ export interface JournalModel {
   achievements: CountRow;
   zones: JournalZone[];
   quests: JournalQuest[];
+  /** What Pip carries, by name, in the order picked up. */
+  carrying: string[];
   achievementsList: JournalAch[];
   playtime: string;
   sledBest: string;
@@ -115,6 +123,7 @@ export function formatJournal(s: GameState, content: JournalContent = {}): Journ
         stepText: def?.steps[p.step]?.text ?? `Step ${p.step + 1}`,
         nextText: now?.step.text ?? null,
         epilogue: def?.blurb ?? '',
+        trackable: p.status === 'active' && def?.main !== true && now !== null,
       };
     })
     .sort((a, b) => QUEST_ORDER[a.status] - QUEST_ORDER[b.status]);
@@ -146,6 +155,9 @@ export function formatJournal(s: GameState, content: JournalContent = {}): Journ
     achievements: tally(Object.keys(s.achievements).length, content.achievements?.length ?? ACHIEVEMENTS_TOTAL),
     zones,
     quests,
+    carrying: Object.keys(s.items)
+      .filter((id) => (s.items[id] ?? 0) > 0)
+      .map((id) => content.items?.find((i) => i.id === id)?.name ?? id),
     achievementsList,
     playtime: formatPlaytime(s.playtime),
     sledBest: bests.length > 0 ? `${Math.min(...bests).toFixed(1)}s` : '—',

@@ -22,10 +22,15 @@ export interface ThrowSetup {
   budget: number;
   /** What leaves the hand. */
   missile: 'shot' | 'pinecone';
+  /**
+   * Bearing the fan of targets is centred on, from the post. Fixed so the start prop can stand clear of
+   * it: centred on wherever the camera happened to look, the toss's own flagpole stood in the aim line.
+   */
+  facing?: number;
 }
 
 export const THROW_SETUPS: Readonly<Record<string, ThrowSetup>> = {
-  'pinewind-pinecone-throw': { kind: 'fan', need: 3, budget: 8, missile: 'pinecone' },
+  'pinewind-pinecone-throw': { kind: 'fan', need: 3, budget: 8, missile: 'pinecone', facing: 0 },
   'hamlet-bell-throw': { kind: 'bell', need: 1, budget: 8, missile: 'shot' },
 };
 

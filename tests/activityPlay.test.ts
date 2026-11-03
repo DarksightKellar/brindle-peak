@@ -143,6 +143,17 @@ describe('build', () => {
     expect(build.placed).toBe(1);
   });
 
+  it('mashing E never lays a log, at any rate', () => {
+    const d = def('build', 'hearth-kindling', { x: -335.5, z: 296.4 });
+    for (const every of [1, 3, 6, 12]) {
+      const build = createBuildActivity(d);
+      const h = host({ x: d.pos.x + 2, y: 0, z: d.pos.z });
+      build.start(h);
+      for (let f = 0; f < 60 * 12; f++) step(build, h, { interactPressed: f % every === 0 });
+      expect(build.placed).toBe(0);
+    }
+  });
+
   it('each square press moves a log from the crooked heap onto the crib; the last one lands before it counts', () => {
     const d = def('build', 'hearth-kindling', { x: -335.5, z: 296.4 });
     const build = createBuildActivity(d);
@@ -272,6 +283,23 @@ describe('kite', () => {
     const kite = fly(() => 0);
     expect(kite.isComplete()).toBe(false);
     expect(kite.kiteHeight).toBeGreaterThanOrEqual(KITE.floor);
+  });
+
+  it('a player who reads the lift half a second late still gets there inside a minute', () => {
+    const kite = createKiteActivity(def('throw', 'ridge-kite', { x: 205, z: -195 }));
+    const h = host({ x: 205, y: 0, z: -194 });
+    kite.start(h);
+    for (let i = 0; i < 60 * 60 && !kite.isComplete(); i++) {
+      const seen = liftAt(Math.max(0, kite.seconds - 0.5));
+      step(kite, h, { moveX: Math.max(-1, Math.min(1, (seen - kite.kiteSide) * 3)) });
+    }
+    expect(kite.isComplete()).toBe(true);
+    expect(kite.seconds).toBeGreaterThan(10);
+  });
+
+  it('one tap into the lift is not enough: it has to be flown', () => {
+    const kite = fly((k) => (k.seconds < 0.5 ? -1 : 0));
+    expect(kite.isComplete()).toBe(false);
   });
 
   it('plays as a kite, not as the post throw it used to be', () => {

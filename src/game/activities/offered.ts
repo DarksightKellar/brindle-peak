@@ -12,7 +12,7 @@ import type { ActivityDef, GameState } from '../../core/contracts';
 import { QUESTS } from '../../data/quests';
 
 /** True when some active quest's current step is "do activity `id`". */
-function questWants(id: string, state: Readonly<GameState>): boolean {
+export function questWants(id: string, state: Readonly<GameState>): boolean {
   return QUESTS.some((q) => {
     const p = state.quests[q.id];
     if (!p || p.status !== 'active') return false;

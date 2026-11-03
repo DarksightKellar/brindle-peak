@@ -15,6 +15,8 @@ import type { AudioKit, SfxName } from '../audio/audio';
 export interface Naming {
   zone(id: string): string;
   quest(id: string): string;
+  /** The toast for a quest being taken on. */
+  questStarted(id: string): string;
   achievement(id: string): string;
 }
 
@@ -45,7 +47,7 @@ export function routeEvent(e: GameEvent, d: RouterDeps): void {
 
     case 'quest:started':
       d.audio.sfx('ui');
-      push(d, d.naming.quest(e.data.id), 'quest', 'milestone');
+      push(d, d.naming.questStarted(e.data.id), 'quest', 'milestone');
       return;
 
     case 'quest:completed':
