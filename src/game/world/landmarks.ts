@@ -21,6 +21,16 @@ import { icedBoat } from './boat';
 import type { Collider } from '../../core/player/collide';
 import { BIRD_BULK } from './birdBulk';
 
+/**
+ * Gus's bell: a brass bell's profile turned round its axis, mouth down, about 0.9 tall. It was a small
+ * lantern-coloured diamond, and from the throwing spot it read as a light on the post, not a bell.
+ */
+const BELL_SHAPE = new THREE.LatheGeometry(
+  ([[0, 0.55], [0.1, 0.54], [0.19, 0.47], [0.23, 0.3], [0.26, 0.08], [0.33, -0.06], [0.42, -0.14], [0.42, -0.17], [0, -0.17]] as const)
+    .map(([r, y]) => new THREE.Vector2(r, y)),
+  8,
+).toNonIndexed();
+
 export const LANDMARKS: readonly { id: string; x: number; z: number }[] = [
   { id: 'station', x: -352, z: 352 },
   { id: 'trucknow', x: -300, z: 300 },
@@ -151,7 +161,8 @@ function hamlet(sampler: TerrainSampler, x: number, z: number): THREE.Group {
   b.cyl(0, -0.2, 0, 0.18, 3.4, 'WOOD_DK');
   b.box(0, 3.2, 0, 1.1, 0.16, 1.1, 'WOOD_DK', 'SNOW_LT');
   b.glow();
-  b.add(GEO.octa, propMatrix(0, 2.85, 0, 0.3, 0.34, 0.3), 'LANTERN');
+  // Hung from the crossbar, its middle at the throw target's height (activities/throwSetups.ts BELL).
+  b.add(BELL_SHAPE, propMatrix(0, 2.5, 0, 1.3, 1.3, 1.3), 'AMBER');
   b.glow(false);
   const bell = b.finish('hamlet-bell');
   bell.position.set(x, sampler.heightAt(x, z), z);

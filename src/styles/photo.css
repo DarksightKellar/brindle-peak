@@ -37,16 +37,20 @@
 #ui:has(.ui-finder:not([hidden])) .ui-hud__next { visibility: hidden; }
 
 /* The activity panel leaves the frame too: at the top right it covered the subject's arrow whenever the
-   subject stood up and to the right (director, round 6 look). Under the frame's bottom-right corner it
-   keeps only the running line; the name is on the prompt you pressed, and Esc joins the keys. */
+   subject stood up and to the right (director, round 6 look). It joins the keys bar on the same row,
+   same height, starting just right of it (the bar is ~310px wide), and keeps only the running line;
+   the name is on the prompt you pressed, Esc is on the keys, and the timer runs along its bottom edge.
+   Every photo line fits on one row beside the bar at 960 wide. */
 #ui:has(.ui-finder:not([hidden])) .ui-activity {
-  top: auto; right: 9%; bottom: 6px; min-width: 0; max-width: 210px; padding: 4px 10px 5px;
+  top: auto; right: auto; left: calc(50% + 166px); bottom: calc(11% - 22px);
+  min-width: 0; max-width: none; padding: 2px 8px; border: 0; text-align: left;
 }
 #ui:has(.ui-finder:not([hidden])) .ui-activity__kicker,
 #ui:has(.ui-finder:not([hidden])) .ui-activity__name,
 #ui:has(.ui-finder:not([hidden])) .ui-activity__hint,
 #ui:has(.ui-finder:not([hidden])) .ui-activity__foot { display: none; }
-#ui:has(.ui-finder:not([hidden])) .ui-activity__label { margin-top: 4px; font-size: 10px; line-height: 1.3; }
+#ui:has(.ui-finder:not([hidden])) .ui-activity__label { margin: 0; font-size: 10px; line-height: 1.55; letter-spacing: 0; white-space: nowrap; }
+#ui:has(.ui-finder:not([hidden])) .ui-activity__track { position: absolute; left: 0; right: 0; bottom: 0; height: 2px; }
 
 /* Under the frame's bottom edge: over its top edge, the keys sat on the compass (critic round 6). */
 .ui-finder__keys {

@@ -181,6 +181,12 @@ export class TargetActivity implements ActivityInstance {
         });
       });
     }
+    // While aiming at the bell, a lit ring round it says which thing on the post is the target: from the
+    // throwing spot the bell is a small shape under a crossbar (critic round 7; the director chose this).
+    if (this.bell && this.stage === 'throwing' && this.rang < 0) {
+      const b = this.bell.pos;
+      out.push({ shape: 'ring', look: 'pulse', x: b.x, y: b.y - 0.1, z: b.z, yaw: Math.atan2(this.feet.x - b.x, this.feet.z - b.z), size: 0.95 });
+    }
     if (this.bell && this.rang >= 0 && this.rang < 1.2) {
       const b = this.bell.pos;
       const toward = Math.atan2(this.feet.x - b.x, this.feet.z - b.z);

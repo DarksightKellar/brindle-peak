@@ -172,7 +172,7 @@ export class PhotoActivity implements ActivityInstance {
       ? 'Centred — press E'
       : this.hint === 'tooClose' ? 'Too close. Step back, then press E'
         : this.hint === 'tooFar' ? 'Too far. Step closer, then press E'
-          : 'Turn until it is in the middle of the frame';
+          : 'Turn until it is centred';
     return { label, fraction: null, urgent: this.hint === 'aim' };
   }
 

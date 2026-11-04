@@ -84,7 +84,8 @@ export function catchMarkers(fish: FishDef, float: Vec3, stand: Vec3, age: numbe
   const pitch = k < 1 ? -1.1 * (1 - k) : -0.2;
   const back = { x: -Math.sin(yaw) * Math.cos(pitch), y: Math.sin(pitch), z: -Math.cos(yaw) * Math.cos(pitch) };
   const s = 1.9;
-  const eye = 0.3 * s;
+  // Just behind the nose of the fish shape (activityMarkers.ts), which ends 0.36 s forward.
+  const eye = 0.24 * s;
   // Not every catch is a fish: Hollis's mitten hangs off the hook by its cuff, dripping.
   if (fish.id === 'mitten') {
     return [

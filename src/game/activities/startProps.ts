@@ -52,7 +52,8 @@ const BY_ID: Readonly<Record<string, StartProp>> = {
   'kettles-steam-photo': { look: 'start-frame', out: 1.8, side: -1, alongAim: true },
   'kettles-dam-build': { look: 'pennant', out: 2.4, side: 1 },
   'hamlet-snowman': { look: 'start-shovel', out: 4, side: -1 },
-  'hamlet-bell-throw': { look: 'start-snowballs', out: 2.6, side: -1 },
+  // Right of the line to the bell: on the left its pole stood between the camera and the bell.
+  'hamlet-bell-throw': { look: 'start-snowballs', out: 2.6, side: 1 },
   'hamlet-market-photo': { look: 'start-frame', out: 1.8, side: 1, alongAim: true },
   'ridge-kite': { look: 'start-kite', out: 3.6, side: -1 },
   'ridge-lantern-ascent': { look: 'pennant', out: 2.2, side: -1 },

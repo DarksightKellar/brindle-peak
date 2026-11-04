@@ -66,6 +66,44 @@ function mittenGeometry(): THREE.BufferGeometry {
   return new THREE.ExtrudeGeometry(s, { depth: 0.16, bevelEnabled: false }).translate(0, 0, -0.08);
 }
 
+/**
+ * The catch's size against its 1.9 marker scale: about one and a half units nose to tail, smaller than
+ * Pip. A diamond and a cone used to stand in for it and read as two loose shapes (director, round 6 look).
+ */
+const FISH_K = 0.75;
+
+/** A fish side-on: rounded body, narrow wrist, forked tail. Nose along +Z, flanks facing +-X. */
+function fishGeometry(): THREE.BufferGeometry {
+  const s = new THREE.Shape();
+  s.moveTo(0.5, 0);
+  s.quadraticCurveTo(0.44, 0.17, 0.15, 0.2);
+  s.quadraticCurveTo(-0.14, 0.2, -0.32, 0.06);
+  s.lineTo(-0.52, 0.22);
+  s.lineTo(-0.45, 0);
+  s.lineTo(-0.52, -0.2);
+  s.lineTo(-0.32, -0.05);
+  s.quadraticCurveTo(-0.1, -0.17, 0.15, -0.16);
+  s.quadraticCurveTo(0.42, -0.13, 0.5, 0);
+  return new THREE.ExtrudeGeometry(s, {
+    depth: 0.06, bevelEnabled: true, bevelThickness: 0.05, bevelSize: 0.025, bevelSegments: 2, curveSegments: 6,
+  }).translate(0, 0, -0.03).scale(FISH_K, FISH_K, FISH_K).rotateY(-Math.PI / 2);
+}
+
+/**
+ * The tall back fin, in the fish's accent colour. catchMarkers places it 0.55 behind the body's middle
+ * (where the old tail cone hung), so it is drawn 0.55 forward of its own origin to sit on the back.
+ */
+function finGeometry(): THREE.BufferGeometry {
+  const s = new THREE.Shape();
+  s.moveTo(0.2, 0.15);
+  s.lineTo(0.1, 0.44);
+  s.lineTo(-0.14, 0.38);
+  s.lineTo(-0.2, 0.14);
+  s.closePath();
+  return new THREE.ExtrudeGeometry(s, { depth: 0.03, bevelEnabled: false })
+    .translate(0, 0, -0.015).scale(FISH_K, FISH_K, FISH_K).rotateY(-Math.PI / 2).translate(0, 0, 0.55);
+}
+
 interface Prototype {
   geometry: THREE.BufferGeometry;
   color: string;
@@ -92,8 +130,8 @@ const PROTOTYPES: Readonly<Record<MarkerShape | TransientLook, Prototype>> = {
   // A crest light for the kite: big enough to read at twenty metres, a cold blue until it is cleared.
   beacon: { geometry: new THREE.OctahedronGeometry(0.42, 0), color: PALETTE.LANTERN, dim: PALETTE.SNOW_NIGHT, lift: 0 },
   // A caught fish, nose along +Z; its colours come from the journal's own table (spec.color).
-  fish: { geometry: new THREE.OctahedronGeometry(1, 0).scale(0.12, 0.26, 0.5), color: PALETTE.ROCK_LT, lift: 0 },
-  fin: { geometry: new THREE.ConeGeometry(0.24, 0.32, 3).rotateX(-Math.PI / 2).scale(0.3, 1, 1), color: PALETTE.ROCK_MID, lift: 0 },
+  fish: { geometry: fishGeometry(), color: PALETTE.ROCK_LT, lift: 0 },
+  fin: { geometry: finGeometry(), color: PALETTE.ROCK_MID, lift: 0 },
   // A wind line rising in the kite's lift: thin and upright, a blue that reads on snow and on sky.
   streak: { geometry: new THREE.BoxGeometry(0.1, 1.3, 0.1), color: PALETTE.SNOW_NIGHT, dim: PALETTE.SNOW_SH, lift: 0 },
   // A ring laid flat on the snow round a photo's subject, so "it" is the thing standing in it.
