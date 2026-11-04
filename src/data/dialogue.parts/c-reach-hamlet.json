@@ -10,7 +10,8 @@
     "choices": [
       {
         "text": "i'll ride it.",
-        "next": "skiff-errand"
+        "next": "skiff-errand",
+        "takes": true
       },
       {
         "text": "what's a captain without water?",
@@ -110,7 +111,8 @@
     "choices": [
       {
         "text": "i'll fish.",
-        "next": "margit-errand"
+        "next": "margit-errand",
+        "takes": true
       },
       {
         "text": "why count the ice?",
@@ -191,7 +193,8 @@
     "choices": [
       {
         "text": "i'll ask skiff.",
-        "next": "orla-errand"
+        "next": "orla-errand",
+        "takes": true
       },
       {
         "text": "why is flour on a boat?",
@@ -272,7 +275,8 @@
     "choices": [
       {
         "text": "i'll photograph the lamps.",
-        "next": "orla-berrand"
+        "next": "orla-berrand",
+        "takes": true
       },
       {
         "text": "why gus?",
@@ -341,7 +345,8 @@
     "choices": [
       {
         "text": "i'll take the letter.",
-        "next": "pell-errand"
+        "next": "pell-errand",
+        "takes": true
       },
       {
         "text": "why four blue houses?",
@@ -425,7 +430,8 @@
     "choices": [
       {
         "text": "i'll ask orla.",
-        "next": "pell-berrand"
+        "next": "pell-berrand",
+        "takes": true
       },
       {
         "text": "why ivy?",
@@ -496,7 +502,8 @@
     "choices": [
       {
         "text": "i'll ring it.",
-        "next": "gus-errand"
+        "next": "gus-errand",
+        "takes": true
       },
       {
         "text": "why not ring the big bell?",

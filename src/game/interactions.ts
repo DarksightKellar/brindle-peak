@@ -38,6 +38,12 @@ const TIE = 1e-4;
  */
 const NPC_EDGE = 1.5;
 
+/**
+ * Extra reach (metres) for what a quest is waiting on. Critic round 13 stood by the loose logs and the
+ * woodpile's ring, 6 m from its post, and got TALK for Bram, who stood nearer, instead of STACK.
+ */
+const WANTED_REACH = 2;
+
 /** Distance as `priority` sees it: a person reads as standing a little nearer than they are. */
 const reach = (it: Interactable, d2: number): number => {
   if (it.kind !== 'npc') return d2;
@@ -66,9 +72,10 @@ export function createInteractionSystem(
         const dx = it.pos.x - playerPos.x;
         const dz = it.pos.z - playerPos.z;
         const raw = dx * dx + dz * dz;
-        if (raw > it.radius * it.radius || !usable(it)) continue;
-        const d2 = reach(it, raw);
         const w = wanted(it);
+        const r = it.radius + (w ? WANTED_REACH : 0);
+        if (raw > r * r || !usable(it)) continue;
+        const d2 = reach(it, raw);
         if (bestWanted && !w) continue;
         if (best === null || (w && !bestWanted) || d2 < bestD - TIE) {
           best = it;

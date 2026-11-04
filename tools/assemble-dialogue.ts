@@ -17,7 +17,7 @@ const ROOT = process.cwd();
 const PARTS = join(ROOT, 'src/data/dialogue.parts');
 const OUT = join(ROOT, 'src/data/dialogue.ts');
 
-type Choice = { text: string; next: string };
+type Choice = { text: string; next: string; takes?: boolean };
 type Node = { id: string; speaker: string; lines: string[]; choices?: Choice[]; next?: string; fill?: string };
 
 /*
@@ -126,7 +126,7 @@ const body = [...nodes.values()]
     const lines = JSON.stringify(n.lines);
     const fill = n.fill ? `, fill: ${sq(n.fill)}` : '';
     if (n.choices) {
-      const ch = n.choices.map((c) => `c(${JSON.stringify(c.text)}, ${sq(c.next)})`).join(', ');
+      const ch = n.choices.map((c) => `c(${JSON.stringify(c.text)}, ${sq(c.next)}${c.takes ? ', true' : ''})`).join(', ');
       return `  ${sq(n.id)}: n(${sq(n.id)}, ${sq(n.speaker)}, ${lines}, { choices: [${ch}]${fill} }),`;
     }
     if (n.next) return `  ${sq(n.id)}: n(${sq(n.id)}, ${sq(n.speaker)}, ${lines}, { next: ${sq(n.next)}${fill} }),`;
@@ -149,7 +149,7 @@ writeFileSync(
 
 import type { DialogueChoice, DialogueNode } from '../core/contracts';
 
-const c = (text: string, next: string): DialogueChoice => ({ text, next });
+const c = (text: string, next: string, takes?: boolean): DialogueChoice => (takes ? { text, next, takes } : { text, next });
 type Opt = { next?: string; choices?: DialogueChoice[]; fill?: string };
 const n = (id: string, speaker: string, lines: string[], o: Opt = {}): DialogueNode => ({
   id,

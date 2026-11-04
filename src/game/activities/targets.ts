@@ -38,6 +38,9 @@ export const THROW = {
 
 interface Puff { pos: Vec3; age: number }
 
+/** Which way a missed throw went wide, or null when it was close or there was nothing to miss. */
+type Side = 'left' | 'right' | null;
+
 export class TargetActivity implements ActivityInstance {
   readonly def: ActivityDef;
   readonly setup: ThrowSetup;
@@ -61,7 +64,7 @@ export class TargetActivity implements ActivityInstance {
   private paid = false;
   private swallowPress = false;
   /** The last throw's outcome and when it landed (`elapsed`), for the panel and the hit ring. */
-  private call: { hit: boolean; at: number; pos: Vec3 } | null = null;
+  private call: { hit: boolean; at: number; pos: Vec3; side: Side } | null = null;
 
   constructor(def: ActivityDef) {
     this.def = def;
@@ -140,7 +143,7 @@ export class TargetActivity implements ActivityInstance {
       if (hit >= 0) this.strike(hit);
       if (!was && shot.done) {
         this.puffs.push({ pos: { ...shot.pos }, age: 0 });
-        this.call = { hit: hit >= 0, at: this.elapsed, pos: { ...shot.pos } };
+        this.call = { hit: hit >= 0, at: this.elapsed, pos: { ...shot.pos }, side: hit >= 0 ? null : this.sideOf(shot.pos) };
       }
     }
     this.shots = this.shots.filter((s) => !s.done);
@@ -148,6 +151,35 @@ export class TargetActivity implements ActivityInstance {
     const decided = this.hits >= this.setup.need || (this.throwsLeft <= 0 && this.shots.length === 0);
     if (decided && this.decidedAt < 0) this.decidedAt = this.elapsed;
     if (this.decidedAt >= 0 && this.elapsed - this.decidedAt >= THROW.linger) this.finish(host);
+  }
+
+  /** The standing target nearest the aim, by bearing from Pip's feet. */
+  private nearestToAim(): { bearing: number; pos: Vec3 } | null {
+    let best: { bearing: number; pos: Vec3 } | null = null;
+    let err = Infinity;
+    for (const t of this.strikeables()) {
+      if (!t) continue;
+      const bearing = Math.atan2(t.pos.x - this.feet.x, t.pos.z - this.feet.z);
+      const e = Math.abs(angleDelta(this.aim, bearing));
+      if (e < err) {
+        err = e;
+        best = { bearing, pos: t.pos };
+      }
+    }
+    return best;
+  }
+
+  /**
+   * Which side of the nearest target a missed throw landed on. Critic round 13 missed eight times and
+   * never knew why: the loft is solved for the player, so a miss is always wide, and saying which way
+   * says how to fix it.
+   */
+  private sideOf(at: Vec3): Side {
+    const t = this.nearestToAim();
+    if (!t) return null;
+    // A raises the aim yaw, which turns it left; left of the line to the target is +(cos, -sin).
+    const lateral = (at.x - t.pos.x) * Math.cos(t.bearing) - (at.z - t.pos.z) * Math.sin(t.bearing);
+    return Math.abs(lateral) < 0.3 ? null : lateral > 0 ? 'left' : 'right';
   }
 
   /**
@@ -251,10 +283,21 @@ export class TargetActivity implements ActivityInstance {
   progress(): ActivityReadout | null {
     const need = this.setup.need;
     const fresh = this.call !== null && this.elapsed - this.call.at < THROW.call;
-    const said = fresh && this.call ? `${this.call.hit ? WORDS.throwHit : WORDS.throwMiss} · ` : '';
+    const said = fresh && this.call ? `${this.call.hit ? WORDS.throwHit : WORDS.throwWide(this.call.side)} · ` : '';
+    // While the aim line is up, it says which way to turn, then that it will hit: critic round 13 could
+    // not see the line "turn bold" and threw blind.
+    const aiming = this.stage === 'throwing' && this.decidedAt < 0 && this.throwsLeft > 0 && this.shots.length === 0;
+    let cue = '';
+    let on = false;
+    if (aiming && !fresh) {
+      on = this.predict() >= 0;
+      const t = on ? null : this.nearestToAim();
+      cue = on ? `${WORDS.throwOn} · ` : t ? `${WORDS.throwTurn(angleDelta(this.aim, t.bearing) > 0 ? 'left' : 'right')} · ` : '';
+    }
     return {
-      label: `${said}Hits ${Math.min(this.hits, need)} / ${need} · ${this.throwsLeft} left`,
+      label: `${said}${cue}Hits ${Math.min(this.hits, need)} / ${need} · ${this.throwsLeft} left`,
       fraction: need === 0 ? 0 : Math.min(1, this.hits / need),
+      urgent: on,
     };
   }
 

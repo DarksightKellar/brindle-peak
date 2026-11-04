@@ -188,7 +188,8 @@
     "choices": [
       {
         "text": "i could go first.",
-        "next": "jory-errand"
+        "next": "jory-errand",
+        "takes": true
       },
       {
         "text": "why the pines?",
@@ -326,7 +327,8 @@
       },
       {
         "text": "i'll get your readings.",
-        "next": "sable-errand"
+        "next": "sable-errand",
+        "takes": true
       }
     ]
   },

@@ -14,6 +14,7 @@
  */
 
 import { angleDelta } from '../../core/contracts';
+import { PALETTE } from '../../core/palette';
 import type {
   ActivityDef, ActivityHost, ActivityInstance, ActivityReadout, ActivityResult, MarkerSpec, Vec2, Vec3,
 } from '../../core/contracts';
@@ -173,9 +174,12 @@ export class SnowmanActivity implements ActivityInstance {
     // Critic round 10 lost the ball itself, pale on blue night snow, and was not sure which round thing
     // was theirs. The ball being pushed stands in its own light, and once it is full a line of lights
     // runs from it to the spot.
+    // Critic round 13 then saw two gold rings and could not tell which was the target: the ball's own
+    // ring is mint now, gold is only ever where it goes, and a full ball raises a beam over the spot.
     if (b) {
       const by = this.groundAt(b.x, b.z);
-      out.push({ shape: 'ring', look: 'halo', x: b.x, y: by, z: b.z, size: b.r + 0.35, strength: full ? 0.9 : 0.5 });
+      out.push({ shape: 'ring', look: 'halo', x: b.x, y: by, z: b.z, size: b.r + 0.35, strength: full ? 0.9 : 0.6, color: PALETTE.AURORA_G });
+      if (full) out.push({ shape: 'ring', look: 'beam', x: at.x, y: this.ground, z: at.z, yaw: 0, size: 1 });
       const dx = at.x - b.x, dz = at.z - b.z;
       const gap = Math.hypot(dx, dz) - b.r - 1.3;
       if (full && gap > 1) {

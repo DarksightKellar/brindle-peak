@@ -406,6 +406,8 @@ export interface DialogueChoice {
   text: string;
   next: string;
   showIf?: Condition;
+  /** Picking this answer takes on the errand on offer: Pip has said yes, so it is not asked again. */
+  takes?: boolean;
 }
 
 export interface DialogueNode {

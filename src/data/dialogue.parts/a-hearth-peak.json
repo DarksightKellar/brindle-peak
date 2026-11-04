@@ -12,7 +12,8 @@
     "choices": [
       {
         "text": "i'll get them from bram.",
-        "next": "nana-errand"
+        "next": "nana-errand",
+        "takes": true
       },
       {
         "text": "why can't the radio wait?",
@@ -184,7 +185,8 @@
     "choices": [
       {
         "text": "i'll ask fen.",
-        "next": "hollis-wait"
+        "next": "hollis-wait",
+        "takes": true
       },
       {
         "text": "why would fen take a mitten?",

@@ -7,7 +7,9 @@
  * not restart the chirp.
  *
  * An errand offer ends on Pip's answer. When the offer's last line closes, Pip is asked "take it on?"
- * with "i'll do it." and "not now."; only the first takes the errand. Escape is "not now". Declined,
+ * with "i'll do it." and "not now."; only the first takes the errand. An answer that already says yes
+ * ("i'll ask skiff.", a choice marked `takes`) takes it when the talk closes, without the question:
+ * critic round 13 said yes to Orla and was then asked again. Escape is "not now". Declined,
  * the errand stays on offer, and talking to the villager again goes straight to Pip's answer: critic
  * round 5 had to sit through a whole pitch again to say yes to something it had already heard.
  */
@@ -79,6 +81,8 @@ export function createDialogueFlow(d: DialogueFlowDeps): DialogueFlow {
   let speechNode: string | null = null;
   let speakerId: string | null = null;
   let offer: PendingOffer | null = null;
+  /** Pip has already said yes to the offer in this talk. */
+  let agreed = false;
   /** Offers heard through to the question this run, by title: the next time, only the question is asked. */
   const heard = new Set<string>();
 
@@ -93,6 +97,7 @@ export function createDialogueFlow(d: DialogueFlowDeps): DialogueFlow {
     speechNode = null;
     speakerId = null;
     offer = null;
+    agreed = false;
   };
 
   const open = (npcId: string, nodeId: string): void => {
@@ -110,6 +115,7 @@ export function createDialogueFlow(d: DialogueFlowDeps): DialogueFlow {
   return {
     open(npcId, nodeId, pending): void {
       offer = pending ?? null;
+      agreed = false;
       if (offer && heard.has(offer.title)) {
         speakerId = npcId;
         ask(offer.title);
@@ -121,6 +127,12 @@ export function createDialogueFlow(d: DialogueFlowDeps): DialogueFlow {
       if (!d.dialogue.isOpen()) return;
       const next = d.dialogue.advance();
       if (next === 'close') {
+        if (offer && agreed) {
+          const took = offer;
+          shut();
+          took.accept();
+          return;
+        }
         if (offer && speechNode !== ASK) {
           ask(offer.title);
           return;
@@ -134,6 +146,7 @@ export function createDialogueFlow(d: DialogueFlowDeps): DialogueFlow {
         took?.accept();
         return;
       }
+      if (d.nodes[speechNode ?? '']?.choices?.some((c) => c.takes === true && c.next === next.id)) agreed = true;
       // The view only knows the node it just finished, so the speaker comes from the node being
       // opened. Taking it from `next` labelled every hand-off with the previous voice: the radio
       // finale put Bram's name on the baker and Ivy's on Nana.

@@ -104,18 +104,38 @@ describe('throw', () => {
     expect(r.awards[0]).toMatchObject({ score: r.hits, bonus: 'clean' });
   });
 
+  it('says which side a miss went wide on', () => {
+    for (const way of ['left', 'right'] as const) {
+      const game = createTargetActivity(def('throw', 'hamlet-bell-throw', { x: 274, z: 128 }));
+      const h = host({ x: 274, y: 0, z: 128 });
+      game.start(h);
+      step(game, h);
+      const bell = game.hitVolumes[0]!;
+      // A raises the aim yaw (turns left), so "left of the bell" is the bell's bearing plus a little.
+      const want = Math.atan2(bell.pos.x - 274, bell.pos.z - 128) + (way === 'left' ? 0.25 : -0.25);
+      const err = (): number => Math.atan2(Math.sin(want - game.aimYaw), Math.cos(want - game.aimYaw));
+      for (let i = 0; i < 400 && Math.abs(err()) > 0.01; i++) step(game, h, { moveX: -Math.sign(err()) * Math.min(1, Math.abs(err()) * 20) });
+      step(game, h, { interactPressed: true });
+      let f = 0;
+      while (game.inFlight > 0 && f++ < 300) step(game, h);
+      expect(game.hitCount).toBe(0);
+      expect(game.progress()?.label).toMatch(new RegExp(`^Missed, wide ${way} · `));
+    }
+  });
+
   it('reports hits and throws left, and waits for the hit to be seen before closing', () => {
     const game = createTargetActivity(def('throw', 'hamlet-bell-throw', { x: 274, z: 128 }));
     const h = host({ x: 274, y: 0, z: 128 });
     game.start(h);
-    expect(game.progress()?.label).toBe('Hits 0 / 1 · 8 left');
     step(game, h);
-    // The aim opens off the bell: line it up with A / D first.
+    // The aim opens off the bell: line it up with A / D first, the way the cue says.
     const bell = game.hitVolumes[0]!;
     const want = Math.atan2(bell.pos.x - 274, bell.pos.z - 128);
     const err = (): number => Math.atan2(Math.sin(want - game.aimYaw), Math.cos(want - game.aimYaw));
     expect(Math.abs(err())).toBeGreaterThan(0.2);
+    expect(game.progress()?.label).toBe(`${err() > 0 ? 'Aim left (A)' : 'Aim right (D)'} · Hits 0 / 1 · 8 left`);
     for (let i = 0; i < 400 && Math.abs(err()) > 0.01; i++) step(game, h, { moveX: -Math.sign(err()) * Math.min(1, Math.abs(err()) * 20) });
+    expect(game.progress()).toMatchObject({ label: 'Lined up: press E · Hits 0 / 1 · 8 left', urgent: true });
     step(game, h, { interactPressed: true });
     expect(game.inFlight).toBe(1);
     let f = 0;

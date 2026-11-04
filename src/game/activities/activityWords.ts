@@ -60,7 +60,10 @@ export const WORDS = {
   bellSilent: 'The bell never rang. Press E at the snowballs for another go.',
   // Called for a moment as each throw lands.
   throwHit: 'Hit!',
-  throwMiss: 'Missed',
+  throwWide: (side: 'left' | 'right' | null): string => (side ? `Missed, wide ${side}` : 'Missed, by a whisker'),
+  // The aim line's cue, until the throw is lined up; A turns the aim left, D right.
+  throwTurn: (way: 'left' | 'right'): string => `Aim ${way} (${way === 'left' ? 'A' : 'D'})`,
+  throwOn: 'Lined up: press E',
   // Skate result
   skateResult: (seconds: number): string => `Down on the ice after ${seconds.toFixed(1)}s. Up again whenever.`,
   skateLap: 'Round the Reach and upright the whole way.',

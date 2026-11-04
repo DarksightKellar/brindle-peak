@@ -106,4 +106,12 @@ describe('interactions', () => {
     expect(sys.update({ x: 1, y: 0, z: 0 })?.id).toBe('gus'); // ring 1 m, Gus 2 m
     expect(sys.update({ x: -0.5, y: 0, z: 0 })?.id).toBe('ring'); // ring 0.5 m, Gus 3.5 m
   });
+
+  it('what a quest waits on reaches a little further, past a nearer person', () => {
+    const sys = createInteractionSystem(() => true, (i) => i.id === 'pile');
+    sys.register({ kind: 'activity', id: 'pile', pos: { x: 0, y: 0, z: 0 }, radius: 4.6, prompt: 'Stack' });
+    sys.register({ kind: 'npc', id: 'bram', pos: { x: 0, y: 0, z: 10 }, radius: 5.5, prompt: 'Talk' });
+    expect(sys.update({ x: 0, y: 0, z: 5.9 })?.id).toBe('pile');
+    expect(sys.update({ x: 0, y: 0, z: 7 })?.id).toBe('bram');
+  });
 });

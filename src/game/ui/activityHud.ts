@@ -39,7 +39,7 @@ const HINTS: Readonly<Record<ActivityKind, string>> = {
   // The viewfinder overlay already lists the keys, so this line only states the goal.
   photo: 'Centre it in the frame, then press E.',
   // Round 8's critic could not tell what "brightens": the arc grows bold and reaches the target.
-  throw: 'A / D aims. When the arc turns bold and reaches the target, press E.',
+  throw: 'A / D aims, the way the line below says. When it says Lined up, press E.',
   // The race is the one activity that leaves the controls with the player; the next gate is the bright one.
   race: 'Run for the bright gate; A / D to steer.',
   skate: 'Skate a lap. Tipping one way? Press the other: A or D.',

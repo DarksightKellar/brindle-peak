@@ -105,7 +105,7 @@ describe('a conversation that hands between speakers', () => {
 
   it('ends an errand offer on Pip choosing: only "i\'ll do it" takes it on', () => {
     // A view that plays each node in one press and takes the highlighted (first, or second) choice.
-    const run = (pick: 0 | 1): { took: number; asked: string[] } => {
+    const run = (pick: 0 | 1, npc = 'fen', root = 'fen-root'): { took: number; asked: string[] } => {
       let node: { id: string; speaker: string; lines: string[]; next?: string; choices?: { next: string }[] } | null = null;
       const asked: string[] = [];
       const view = {
@@ -124,7 +124,7 @@ describe('a conversation that hands between speakers', () => {
         dialogue: view as never, audio: { chirp: () => undefined } as unknown as AudioKit, npcs: NPCS, nodes: DIALOGUE,
       });
       let took = 0;
-      flow.open('fen', 'fen-root', { title: 'Something on the Trail', accept: () => { took++; } });
+      flow.open(npc, root, { title: 'Something on the Trail', accept: () => { took++; } });
       for (let i = 0; i < 20 && flow.isOpen(); i++) flow.advance();
       return { took, asked };
     };
@@ -132,6 +132,9 @@ describe('a conversation that hands between speakers', () => {
     expect(yes.asked).toEqual(['(take on "Something on the Trail"?)']);
     expect(yes.took).toBe(1);
     expect(run(1).took).toBe(0); // "why keep a tally?", then "not now."
+    // An answer that already says yes takes it, with no second question; the other answer still asks.
+    expect(run(0, 'orla', 'orla-root')).toEqual({ took: 1, asked: [] }); // "i'll ask skiff."
+    expect(run(1, 'orla', 'orla-root')).toEqual({ took: 0, asked: ['(take on "Something on the Trail"?)'] });
   });
 
   it('names whoever is speaking on every node of the radio finale', () => {
