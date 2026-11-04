@@ -68,7 +68,9 @@ const clampDt = (dt: unknown): number => Math.min(Math.max(num(dt), 0), MAX_DT);
 function isSatisfied(beat: TutorialBeat, snap: Snapshot): boolean {
   switch (beat.id) {
     case 'walk':
-      return snap.travelled >= WALK_DISTANCE - 1e-6;
+      // Reaching someone to talk to is the walk done, however short it was: critic round 14 talked to
+      // Nana and still had "walk toward the cabin" under the conversation.
+      return snap.travelled >= WALK_DISTANCE - 1e-6 || snap.dialogueOpenedEver;
     case 'talk':
       return snap.dialogueOpenedEver;
     case 'map':

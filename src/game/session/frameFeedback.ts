@@ -44,7 +44,7 @@ export function pushFrame(d: FeedbackDeps, dt: number): void {
   state.player.facing = player.facing;
   state.player.stamina = player.stamina;
 
-  for (const e of d.mech.flush()) routeEvent(e, ui.router);
+  for (const e of d.mech.flush()) routeEvent(e, ui.router, state);
 
   ui.hud.update(state, player);
   ui.dialogue.update(dt);

@@ -40,6 +40,9 @@ const FRAYED = 2;
 const LIP = 5.9;
 /** Fence near the bridge, snowbank beyond: within this many units of the deck, along the gully. */
 const FENCE_REACH = 16;
+/** The lip fence's funnel beside the bridge: how far out past the bridge posts, and how far along. */
+const FUNNEL_OUT = 4;
+const FUNNEL_ALONG = 6;
 /** A walking bird is held back; a bird this far above the ground is over it. */
 const LIP_TOP = 0.9;
 
@@ -151,27 +154,41 @@ export function buildTuckBridge(valley: TerrainSampler): TuckBridge {
   b.strut([cx - 0.1, cy + 0.3, cz], [cx + 0.6, cy + 0.12, cz + 0.4], 0.03, 'WOOD_LT');
   b.box(cx - 0.18, cy + 0.2, cz - 0.04, 0.26, 0.16, 0.16, 'WOOD_DK');
 
-  // The lips: both sides of the gully, head to foot, open only where the bridge crosses.
+  // The lips: both sides of the gully, head to foot, open only where the bridge crosses. Beside the
+  // bridge each fence swings out from the lip and back in to the bridge's outer post, a funnel: two
+  // critics walked at the bridge from a few metres to one side, met a fence square across their way,
+  // and stood pushing it. Slanted, the fence slides a walker along it onto the deck. It meets the post
+  // itself, not the lip: the lip runs inside the bridge's ends, and a fence ending there left a pocket
+  // against the entry rope that held Pip fast.
   const lipColliders: Collider[] = [];
   const [[gx, z0], [, z1]] = GULLY_LINE;
   const gapN = zc + POST_OUT + 0.15, gapS = zc - POST_OUT - 0.15;
   for (const side of [-1, 1]) {
     const x = gx + side * LIP;
-    for (const [from, to] of [[z0, gapN], [gapS, z1]] as const) {
-      lipColliders.push({ kind: 'segment', ax: x, az: from, bx: x, bz: to, r: 0.12, top: LIP_TOP });
-      const steps = Math.max(1, Math.round(Math.abs(to - from) / 2.2));
-      for (let i = 0; i <= steps; i++) {
-        const z = from + ((to - from) * i) / steps;
-        const y = at(x, z);
-        const nearDeck = Math.abs(z - zc) < FENCE_REACH;
-        if (nearDeck) {
-          b.cyl(x, y - 0.2, z, 0.07, 1.15, 'WOOD_DK');
-          if (i < steps) {
-            const z2 = from + ((to - from) * (i + 1)) / steps;
-            for (const h of [0.45, 0.85]) b.strut([x, y + h, z], [x, at(x, z2) + h, z2], 0.025, 'BRUSH');
+    const postX = xAt(side < 0 ? 0 : 1) + side * 0.45, wide = postX + side * FUNNEL_OUT;
+    for (const [end, gap] of [[z0, gapN], [z1, gapS]] as const) {
+      const away = Math.sign(end - gap);
+      const line: [number, number][] = [
+        [x, end], [x, gap + away * (FUNNEL_ALONG + 3)], [wide, gap + away * FUNNEL_ALONG], [postX, zc + away * POST_OUT],
+      ];
+      for (let k = 0; k + 1 < line.length; k++) {
+        const [ax, az] = line[k], [bx, bz] = line[k + 1];
+        lipColliders.push({ kind: 'segment', ax, az, bx, bz, r: 0.12, top: LIP_TOP, guide: true });
+        const steps = Math.max(1, Math.round(Math.hypot(bx - ax, bz - az) / 2.2));
+        for (let i = 0; i <= steps; i++) {
+          const t = i / steps;
+          const px = ax + (bx - ax) * t, pz = az + (bz - az) * t;
+          const y = at(px, pz);
+          if (Math.abs(pz - zc) < FENCE_REACH) {
+            b.cyl(px, y - 0.2, pz, 0.07, 1.15, 'WOOD_DK');
+            if (i < steps) {
+              const t2 = (i + 1) / steps;
+              const qx = ax + (bx - ax) * t2, qz = az + (bz - az) * t2;
+              for (const h of [0.45, 0.85]) b.strut([px, y + h, pz], [qx, at(qx, qz) + h, qz], 0.025, 'BRUSH');
+            }
+          } else {
+            b.add(GEO.ico, propMatrix(px, y + 0.05, pz, 1.2, 0.5, 1.7, i * 0.7), 'SNOW_LT', 'SNOW_HI', 0.2);
           }
-        } else {
-          b.add(GEO.ico, propMatrix(x, y + 0.05, z, 1.2, 0.5, 1.7, i * 0.7), 'SNOW_LT', 'SNOW_HI', 0.2);
         }
       }
     }

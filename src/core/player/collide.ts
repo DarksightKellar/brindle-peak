@@ -5,10 +5,14 @@
  * (game/world/colliders.ts); this file only pushes a point out of them.
  */
 
-/** Optional `top`: height above the ground, world units. A bird flying higher than it passes over. */
+/**
+ * Optional `top`: height above the ground, world units. A bird flying higher than it passes over.
+ * Optional `guide` on a segment: a fence meant to lead a walker somewhere, so Pip may step round a prop
+ * at its end (`resolveWithSlip`) instead of counting it as a wall that stops everything.
+ */
 export type Collider =
   | { kind: 'circle'; x: number; z: number; r: number; top?: number }
-  | { kind: 'segment'; ax: number; az: number; bx: number; bz: number; r: number; top?: number }
+  | { kind: 'segment'; ax: number; az: number; bx: number; bz: number; r: number; top?: number; guide?: boolean }
   | { kind: 'box'; x: number; z: number; hw: number; hd: number; yaw: number; top?: number };
 
 function closestOnSegment(p: { x: number; z: number }, s: Extract<Collider, { kind: 'segment' }>): { x: number; z: number } {
@@ -90,6 +94,7 @@ function touchesWall(p: { x: number; z: number }, radius: number, colliders: rea
     if (c.kind === 'circle') {
       if (c.r > SLIP_MAX_R && Math.hypot(p.x - c.x, p.z - c.z) < c.r + radius + 0.05) return true;
     } else if (c.kind === 'segment') {
+      if (c.guide) continue;
       const q = closestOnSegment(p, c);
       if (Math.hypot(p.x - q.x, p.z - q.z) < c.r + radius + 0.05) return true;
     } else {

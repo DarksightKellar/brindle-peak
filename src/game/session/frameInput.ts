@@ -41,6 +41,12 @@ export type FrameInput = (input: InputFrame, dt: number) => boolean;
  * got through with a slower double press.
  */
 export const TALK_REST = 1;
+/**
+ * Standing where the talk ended, E waits this long instead. Critic round 14 still reopened Bram, Jory and
+ * Edda by pressing on past the last line; a step away (TALK_STEP) shows the talk is over sooner.
+ */
+export const TALK_STAY = 2.5;
+export const TALK_STEP = 0.75;
 
 /** One per session, so the edge memory below belongs to this run rather than to the module. */
 export function createFrameInput(d: FrameInputDeps): FrameInput {
@@ -52,9 +58,14 @@ export function createFrameInput(d: FrameInputDeps): FrameInput {
    */
   let lastChoiceSign = 0;
   let sinceTalk = Number.POSITIVE_INFINITY;
+  /** Where Pip stood when the last talk was open. */
+  let talkedAt = { x: 0, z: 0 };
 
   return (input, dt) => {
     sinceTalk = ui.dialogue.isOpen() ? 0 : sinceTalk + dt;
+    if (ui.dialogue.isOpen()) talkedAt = { x: d.state.player.pos.x, z: d.state.player.pos.z };
+    const stepped = Math.hypot(d.state.player.pos.x - talkedAt.x, d.state.player.pos.z - talkedAt.z) >= TALK_STEP;
+    const rested = sinceTalk >= (stepped ? TALK_REST : TALK_STAY);
     const blocked = ui.dialogue.isOpen() || ui.journal.isOpen() || ui.menu.isOpen()
       || ui.ending.isOpen() || (d.runner.isRunning() && !d.runner.freeRoam());
 
@@ -90,7 +101,7 @@ export function createFrameInput(d: FrameInputDeps): FrameInput {
       if (input.interactPressed) d.flow.advance();
     } else {
       lastChoiceSign = 0;
-      if (!blocked && input.interactPressed && sinceTalk >= TALK_REST) d.interact();
+      if (!blocked && input.interactPressed && rested) d.interact();
     }
 
     // The goal line and the compass wait for the conversation to end (hud.ts `setHeld`). Set after the

@@ -89,13 +89,20 @@ describe('onboarding machine', () => {
   it('cannot complete a beat out of order', () => {
     const m = createOnboarding();
     step(m, IDLE);
-    // Everything but walking, the journal included: nothing happens, the script simply waits.
+    // Everything but walking and talking, the journal included: nothing happens, the script simply waits.
     const events = step(m, {
-      travelled: 0, mapOpenedEver: true, sprintHeld: true, dialogueOpenedEver: true,
+      travelled: 0, mapOpenedEver: true, sprintHeld: true, dialogueOpenedEver: false,
       leftGroundEver: true, flappedEver: true, journalOpenedEver: true,
     }, 0.3);
     expect(events).toEqual([]);
     expect(m.current()?.id).toBe('walk');
+  });
+
+  it('counts a talk as the walk done, however short the walk', () => {
+    const m = createOnboarding();
+    step(m, IDLE);
+    const events = step(m, snap({ travelled: 3, dialogueOpenedEver: true }));
+    expect(completed(events)).toEqual(['walk', 'talk']);
   });
 
   it('pays a beat that was already done before it became current', () => {

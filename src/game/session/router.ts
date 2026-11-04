@@ -7,7 +7,7 @@
  * each demanding attention is not charm, it is noise.
  */
 
-import type { GameEvent } from '../../core/contracts';
+import type { GameEvent, GameState } from '../../core/contracts';
 import type { RewardTier } from '../../core/contracts';
 import type { Toasts } from '../ui/toasts';
 import type { AudioKit, SfxName } from '../audio/audio';
@@ -28,7 +28,13 @@ export interface RouterDeps {
   lanternTotal: number;
 }
 
-export function routeEvent(e: GameEvent, d: RouterDeps): void {
+/**
+ * Said once, on the first walk into a second place: the map can take Pip back to walked places, and
+ * critic round 14 walked 730 u back to Bram asking for exactly that, never having been told.
+ */
+export const HOP_TIP = 'Walked places are on the map now. M, then ↑↓ and E, to go back to one.';
+
+export function routeEvent(e: GameEvent, d: RouterDeps, s?: Readonly<GameState>): void {
   switch (e.name) {
     case 'feather:collected':
       d.audio.sfx('feather');
@@ -40,10 +46,13 @@ export function routeEvent(e: GameEvent, d: RouterDeps): void {
       d.audio.sfx('bell');
       return;
 
-    case 'zone:entered':
+    case 'zone:entered': {
       d.audio.sfx('ui');
       push(d, d.naming.zone(e.data.id), 'mountain', 'milestone');
+      const walked = s ? Object.values(s.visited).filter(Boolean).length : 0;
+      if (walked === 2 && s?.counters[`visit:${e.data.id}`] === 1) push(d, HOP_TIP, 'book', 'discovery');
       return;
+    }
 
     case 'quest:started':
       d.audio.sfx('ui');
