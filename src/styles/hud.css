@@ -98,6 +98,9 @@
 /* The other live errands (round 7): the followed errand's mark, hollow, on the same row. */
 .ui-hud__compass-errand { position: absolute; top: 13px; width: 9px; height: 9px; margin-left: -5px; transform: rotate(45deg); background: var(--panel); border: 2px solid var(--amber); box-sizing: border-box; }
 .ui-hud__next::before { content: ''; display: inline-block; margin: 0 8px 1px 0; }
+/* An activity's panel owns the screen's words while it is up: round 9's skate lap carried Pip off the
+   post and the line called the activity under way "nearby", and errands talked over every round. */
+#ui:has(.ui-activity:not([hidden])) .ui-hud__next { visibility: hidden; }
 /* With no story step to point at, the errand is the goal: its mark is the goal's. */
 .ui-hud__next.is-goal::before { background: var(--lantern); border-color: #7E5334; }
 /* Which way round, when the goal is behind: two chevrons outside the edge the diamond is pinned to. */

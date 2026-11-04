@@ -17,8 +17,11 @@ export function clock(seconds: number): string {
 export const WORDS = {
   // Sled readout and result
   rings: (got: number, total: number): string => `Rings ${got} of ${total}`,
+  // "Your fastest yet" only beats an earlier run (critic round 8 was praised for a first run with one
+  // ring), and a run that missed most rings says where they are instead.
   sledResult: (seconds: number, got: number, total: number, best: boolean): string =>
-    `Down in ${clock(seconds)} · ${got} of ${total} rings${best ? ' · your fastest yet' : ''}`,
+    `Down in ${clock(seconds)} · ${got} of ${total} rings${best ? ' · your fastest yet' : ''}`
+    + (got * 2 < total ? '. The rings sit on the fast line: steer through them.' : ''),
   // Race results and the hoop readout
   raceResult: (seconds: number): string => `Over the line in ${clock(seconds)}`,
   lanternResult: (lit: number): string => `${lit} lanterns lit, all the way up the ridge`,
@@ -55,7 +58,12 @@ export const WORDS = {
   throwHit: 'Hit!',
   throwMiss: 'Missed',
   // Skate result
-  skateResult: (seconds: number): string => `Upright for ${seconds.toFixed(1)}s`,
+  skateResult: (seconds: number): string => `Down on the ice after ${seconds.toFixed(1)}s. Up again whenever.`,
+  skateLap: 'Round the Reach and upright the whole way.',
+  // The meter's side, said as the key that rights it: "Balance right" read as the way to press.
+  skateTipRight: 'Tipping right — press A',
+  skateTipLeft: 'Tipping left — press D',
+  skateSteady: 'Steady',
   // Kite readouts and result
   kiteLow: 'Keep it in the rising snow',
   // Out of the lift: which way it is, as the key to press.

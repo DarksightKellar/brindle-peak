@@ -11,6 +11,10 @@
  * reach. Once an activity has been done its gem never comes back; the map keeps its glyph for a rerun.
  * It draws over the hill in front of it, as a mark on the skyline would: the point is "over there".
  * Sized in screen pixels like the goal gem, so it reads the same at 20 units and at 90.
+ *
+ * Round 8's critic then lost the spot itself: the gem goes inside NEAR, the E pill comes only within
+ * the activity's reach, and between the two there was bare snow (the aurora photo spot worst of all).
+ * So inside RING_SEEN the gem lands as a green ring on the snow where Pip stands to play.
  */
 
 import * as THREE from 'three';
@@ -30,6 +34,9 @@ const NEAR = 6;
  * leads: it alone stands on a column of light.
  */
 const GEM_PX = 4.25;
+/** The ring on the snow: shown within this, and its radius. */
+const RING_SEEN = 16;
+const RING_R = 1.3;
 /** Above the start's ground, clear of a start post and a villager's head. */
 const LIFT = 2.8;
 const PX_PER_UNIT = (2 * Math.tan(((CAMERA.fov / 2) * Math.PI) / 180)) / 216;
@@ -44,6 +51,9 @@ export function createActivityGems(sampler: TerrainSampler, activities: readonly
   const group = new THREE.Group();
   group.name = 'activity-gems';
   const geo = new THREE.OctahedronGeometry(1, 0);
+  // Green on a dark rim: a thin pale ring alone was lost on sunlit snow seen almost edge-on.
+  const ringGeo = new THREE.TorusGeometry(RING_R, 0.13, 4, 32).rotateX(Math.PI / 2);
+  const rimGeo = new THREE.TorusGeometry(RING_R, 0.18, 4, 32).rotateX(Math.PI / 2);
   const gems = activities.map((a) => {
     const mat = new THREE.MeshLambertMaterial({
       color: PALETTE.AURORA_G, emissive: new THREE.Color(PALETTE.AURORA_G), emissiveIntensity: 1,
@@ -57,7 +67,20 @@ export function createActivityGems(sampler: TerrainSampler, activities: readonly
     mesh.frustumCulled = false;
     mesh.renderOrder = 4;
     group.add(mesh);
-    return { def: a, mesh, mat, ground: groundHeightAt(sampler, a.pos.x, a.pos.z), phase: a.pos.x * 0.37 };
+    const ringMat = new THREE.MeshBasicMaterial({ color: PALETTE.AURORA_G, transparent: true, fog: false });
+    const ring = new THREE.Mesh(ringGeo, ringMat);
+    const rimMat = new THREE.MeshBasicMaterial({ color: PALETTE.PINE_DK, transparent: true, fog: false });
+    ring.add(new THREE.Mesh(rimGeo, rimMat).translateY(-0.1));
+    // Level, and as high as the snow under its rim, so a slope does not bury half of it.
+    let top = groundHeightAt(sampler, a.pos.x, a.pos.z);
+    for (let k = 0; k < 8; k++) {
+      const t = (k / 8) * Math.PI * 2;
+      top = Math.max(top, groundHeightAt(sampler, a.pos.x + Math.sin(t) * RING_R, a.pos.z + Math.cos(t) * RING_R));
+    }
+    ring.position.set(a.pos.x, top + 0.08, a.pos.z);
+    ring.visible = false;
+    group.add(ring);
+    return { def: a, mesh, mat, ring, ringMat, rimMat, ground: groundHeightAt(sampler, a.pos.x, a.pos.z), phase: a.pos.x * 0.37 };
   });
   let time = 0;
   const cam = new THREE.Vector3();
@@ -72,6 +95,12 @@ export function createActivityGems(sampler: TerrainSampler, activities: readonly
       for (const g of gems) {
         const d = Math.hypot(g.def.pos.x - from.x, g.def.pos.z - from.z);
         const done = (state.counters[`activity:${g.def.id}`] ?? 0) > 0;
+        g.ring.visible = show && !done && d < RING_SEEN;
+        if (g.ring.visible) {
+          const fade = Math.min(1, (RING_SEEN - d) / 4);
+          g.ringMat.opacity = fade * (reduced ? 0.95 : 0.8 + 0.2 * Math.sin(time * 3 + g.phase));
+          g.rimMat.opacity = fade * 0.85;
+        }
         if (!show || done || d > SEEN || d < NEAR) {
           g.mesh.visible = false;
           continue;

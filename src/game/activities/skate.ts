@@ -5,10 +5,18 @@
  * hold it is small alternating corrections. Fall too far off centre for too long and the
  * run simply ends — you keep the seconds you skated, there is no scolding, no retry wall
  * (GDD pillar 1). Score is time held.
+ *
+ * Round 8's critic stood on the ice for twenty seconds while the clock ran, under a name that promised
+ * a race, and read "Balance right" as the way to press. Now Pip skates a lap of the Reach while the
+ * meter is held (the session carries the bird, as it does a sled); the panel names the key that
+ * rights you ("Tipping right — press A"); and a result card says how it went.
  */
 
 import { clamp } from '../../core/contracts';
-import type { ActivityDef, ActivityHost, ActivityInstance, ActivityReadout, ActivityResult } from '../../core/contracts';
+import type {
+  ActivityDef, ActivityHost, ActivityInstance, ActivityReadout, ActivityResult, TerrainSampler, Vec3,
+} from '../../core/contracts';
+import { WORDS } from './activityWords';
 
 export const SKATE = {
   /**
@@ -28,6 +36,10 @@ export const SKATE = {
   fallAfter: 1.6,
   /** Seconds of held balance that counts as crossing the pond. */
   goal: 20,
+  /** Radius of the lap Pip skates in that time, starting at the post and curving away east. */
+  lap: 11,
+  /** |balance| under this reads as steady in the panel. */
+  steady: 0.15,
 } as const;
 
 export interface BalanceState {
@@ -79,12 +91,14 @@ export class SkateActivity implements ActivityInstance {
   private stage: 'skate' | 'done' | 'aborted' = 'skate';
   private outcome: ActivityResult | null = null;
   private paid = false;
+  private terrain: TerrainSampler | null = null;
 
   constructor(def: ActivityDef) {
     this.def = def;
   }
 
-  start(_host: ActivityHost): void {
+  start(host: ActivityHost): void {
+    this.terrain = host.terrain;
     // You never step onto the ice perfectly centred: the seeded lean is the first thing to correct.
     const seed = seedOf(this.def);
     this.balanceState = newBalance(seed % 2 === 0 ? 0.24 : -0.24);
@@ -121,16 +135,35 @@ export class SkateActivity implements ActivityInstance {
     }
   }
 
+  /**
+   * Where the lap has carried Pip: a circle through the post, going round as the seconds are held. A
+   * fall stops the bird where it is.
+   */
+  ride(): (Vec3 & { yaw: number }) | null {
+    if (this.stage !== 'skate') return null;
+    const a = (this.elapsed / SKATE.goal) * Math.PI * 2;
+    const x = this.def.pos.x + SKATE.lap * (1 - Math.cos(a));
+    const z = this.def.pos.z + SKATE.lap * Math.sin(a);
+    // Heading along the circle, leaning into the meter a little so a tip shows on the bird.
+    return { x, y: this.terrain?.heightAt(x, z) ?? 0, z, yaw: a + this.balanceState.balance * 0.35 };
+  }
+
   progress(): ActivityReadout | null {
     const b = this.balanceState;
     const off = isOffCentre(b.balance);
-    const side = b.balance > 0.02 ? 'right' : b.balance < -0.02 ? 'left' : 'centred';
+    const tip = b.balance > SKATE.steady ? WORDS.skateTipRight : b.balance < -SKATE.steady ? WORDS.skateTipLeft : WORDS.skateSteady;
     const warn = off ? ` · falling in ${Math.max(0, SKATE.fallAfter - b.offCentreFor).toFixed(1)}s` : '';
     return {
-      label: `Balance ${side}${warn} — ${this.elapsed.toFixed(1)} / ${SKATE.goal}s`,
+      label: `${tip}${warn} · ${this.elapsed.toFixed(0)} / ${SKATE.goal}s`,
       fraction: Math.min(1, this.elapsed / SKATE.goal),
       urgent: off && b.offCentreFor > SKATE.fallAfter * 0.5,
     };
+  }
+
+  /** The result card. */
+  summary(): string | null {
+    if (this.stage !== 'done') return null;
+    return this.crossedPond ? WORDS.skateLap : WORDS.skateResult(this.elapsed);
   }
 
   isComplete(): boolean {

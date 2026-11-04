@@ -38,10 +38,11 @@ const HINTS: Readonly<Record<ActivityKind, string>> = {
   fish: 'Watch the float. Press E the moment it dips.',
   // The viewfinder overlay already lists the keys, so this line only states the goal.
   photo: 'Centre it in the frame, then press E.',
-  throw: 'A / D aims. E throws when the dots brighten.',
+  // Round 8's critic could not tell what "brightens": the arc grows bold and reaches the target.
+  throw: 'A / D aims. When the arc turns bold and reaches the target, press E.',
   // The race is the one activity that leaves the controls with the player; the next gate is the bright one.
   race: 'Run for the bright gate; A / D to steer.',
-  skate: 'Lean with A / D to keep your balance.',
+  skate: 'Skate a lap. Tipping one way? Press the other: A or D.',
   sled: 'Steer down the hill with A / D.',
 };
 

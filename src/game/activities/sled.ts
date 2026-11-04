@@ -222,7 +222,7 @@ export class SledActivity implements ActivityInstance {
   summary(): string | null {
     if (this.stage !== 'done') return null;
     const got = this.rings.filter((r) => r.got).length;
-    return WORDS.sledResult(this.finishedAt, got, this.rings.length, this.isPersonalBest);
+    return WORDS.sledResult(this.finishedAt, got, this.rings.length, this.isPersonalBest && this.bestBefore !== null);
   }
 
   isComplete(): boolean {

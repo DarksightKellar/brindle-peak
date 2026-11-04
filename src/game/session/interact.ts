@@ -14,8 +14,13 @@ import { startPropAt } from '../activities/startProps';
  */
 export const NPC_RADIUS = 5.5;
 export const ACTIVITY_RADIUS = 2.6;
+/**
+ * E reaches an activity from at least this far. Critic round 8 walked past the kite's prompt in half a
+ * second and pressed at the woodpile from just outside it; their ask was three to four units.
+ */
+export const ACTIVITY_REACH_MIN = 3.6;
 /** How close to an activity's start prop E reaches it. */
-export const PROP_REACH = 2.4;
+export const PROP_REACH = 3;
 export const LANTERN_RADIUS = 2.4;
 /** Carrying the lantern, Pip lights a post just by passing this close to it. */
 export const LANTERN_PASS = 6;
@@ -44,7 +49,7 @@ export function buildInteractables(
     const post = { x: a.pos.x, y: sampler.heightAt(a.pos.x, a.pos.z), z: a.pos.z };
     const at = startPropAt(a);
     const prop = { x: at.x, y: sampler.heightAt(at.x, at.z), z: at.z };
-    out.push({ kind: 'activity', id: a.id, pos: post, radius: a.radius || ACTIVITY_RADIUS, prompt: a.prompt, anchor: prop });
+    out.push({ kind: 'activity', id: a.id, pos: post, radius: Math.max(a.radius || ACTIVITY_RADIUS, ACTIVITY_REACH_MIN), prompt: a.prompt, anchor: prop });
     // Critic round 7 walked up to the toss's cones and the kite's post and got nothing: the reach was
     // the post beside them, up to 3.8 u off, and the pill hung over empty snow. The prop answers E too,
     // and the press steps Pip onto the post the activity is played from.

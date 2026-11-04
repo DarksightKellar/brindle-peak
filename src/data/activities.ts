@@ -29,7 +29,7 @@ export const ACTIVITIES: readonly ActivityDef[] = [
   { id: 'reach-sled-hill', name: 'Boathouse Hill', kind: 'sled', zone: 'reach', pos: { x: 104, z: 180 }, radius: 3.4, prompt: 'Sled' },
   { id: 'reach-ice-fish', name: 'Ice Hole', kind: 'fish', zone: 'reach', pos: { x: 110, z: 352 }, radius: 3.2, prompt: 'Fish' },
   // ⭐ set-piece: the skating race
-  { id: 'reach-skate-race', name: 'Reach Skate Race', kind: 'skate', zone: 'reach', pos: { x: 150, z: 398 }, radius: 4, prompt: 'Skate' },
+  { id: 'reach-skate-race', name: 'Reach Skating', kind: 'skate', zone: 'reach', pos: { x: 150, z: 398 }, radius: 4, prompt: 'Skate' },
   { id: 'reach-ice-photo', name: 'Pressure Ridges', kind: 'photo', zone: 'reach', pos: { x: 74, z: 362 }, radius: 3, prompt: 'Look' },
 
   // Kettle Springs — four.
