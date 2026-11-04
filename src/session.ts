@@ -151,7 +151,9 @@ export function createSession(opts: SessionOptions): Session {
       rig.turnToward(yaw);
     },
   });
-  const overlays = createOverlayRouter({ ui, state, isActivityRunning: () => runner.isRunning() });
+  const overlays = createOverlayRouter({
+    ui, state, isActivityRunning: () => runner.isRunning(), dismissActivityResult: () => runner.dismissResult(),
+  });
   // The map's hop back to walked ground (session/travel.ts). The journal closes and Pip stands there.
   ui.journal.setTravel({
     places: (s) => hopPlaces(s).map((zone) => ({ zone, name: ZONE_NAMES[zone] })),

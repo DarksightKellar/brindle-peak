@@ -43,7 +43,8 @@ export function createPromptAnchor(
   return (t) => {
     // The rig has just moved the camera this frame; the renderer would only refresh this on draw.
     camera.updateMatrixWorld();
-    v.set(t.pos.x, topOf(t), t.pos.z).project(camera);
+    const at = t.anchor ?? t.pos;
+    v.set(at.x, topOf(t) - t.pos.y + at.y, at.z).project(camera);
     if (v.z > 1) return null;
     const w = canvas.clientWidth, h = canvas.clientHeight;
     return {

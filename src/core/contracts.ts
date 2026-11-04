@@ -521,6 +521,10 @@ export interface Interactable {
   radius: number;
   /** e.g. "Talk", "Fish", "Light". */
   prompt: string;
+  /** Where the prompt pill stands, when that is not `pos`: an activity's start prop. */
+  anchor?: Vec3;
+  /** Where E puts Pip before acting, when the reach is not where the thing is done from. */
+  standAt?: Vec3;
 }
 
 export interface InteractionTarget {

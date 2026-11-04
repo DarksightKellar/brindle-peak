@@ -89,6 +89,11 @@ export class LogHand {
       shape: 'float', look: 'dot', size: square ? 2.3 : 1.5, strength: lit, color: slipping ? PALETTE.PIP_SCARF : undefined,
       x: rest.x + Math.cos(yaw) * end * LOG.length * 0.5, y: rest.y + LOG.radius * 2 + 0.15, z: rest.z - Math.sin(yaw) * end * LOG.length * 0.5,
     }));
-    return [log, ...ends];
+    // Square: a ring lights on the crib under the log as well. From the side the camera keeps, a log's
+    // swing is a change of length more than of angle, and critic round 8 could not time it by eye.
+    const ring: PlacedMarker[] = square
+      ? [{ shape: 'ring', look: 'halo', x: rest.x, y: rest.y + LOG.radius * 2 + 0.05, z: rest.z, size: LOG.length * 0.6, strength: 1 }]
+      : [];
+    return [log, ...ends, ...ring];
   }
 }

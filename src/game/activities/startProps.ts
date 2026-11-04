@@ -98,6 +98,12 @@ function placeOf(def: ActivityDef): { prop: StartProp; x: number; z: number; yaw
   return { prop, x, z, yaw: prop.alongAim ? aim : bearing({ x, z }, def.pos) };
 }
 
+/** Where an activity's start prop stands on the ground. */
+export function startPropAt(def: ActivityDef): Vec2 {
+  const { x, z } = placeOf(def);
+  return { x, z };
+}
+
 /** Each activity's start prop, as kept pieces for the marker layer to stand up at boot. */
 export function startPropMarkers(defs: readonly ActivityDef[], terrain: TerrainSampler): PlacedMarker[] {
   return defs.map((def) => {

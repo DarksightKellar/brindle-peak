@@ -45,7 +45,15 @@ export function interact(d: InteractVerbDeps): void {
 
   if (target.kind === 'activity') {
     const def = ACTIVITIES.find((a) => a.id === target.id);
-    if (def) d.runner.start(def);
+    if (!def) return;
+    if (target.standAt) {
+      const p = d.player;
+      p.pos.x = target.standAt.x;
+      p.pos.y = target.standAt.y;
+      p.pos.z = target.standAt.z;
+      p.vel.x = p.vel.y = p.vel.z = 0;
+    }
+    d.runner.start(def);
     return;
   }
 

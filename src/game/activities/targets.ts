@@ -17,7 +17,7 @@ import type {
   TerrainSampler, Vec3,
 } from '../../core/contracts';
 import type { PlacedMarker } from './markerLooks';
-import { launch, linedUp, previewArc, stepShot, turnAim, type Shot, type Strikeable } from './throwFlight';
+import { launch, previewArc, stepShot, turnAim, type Shot, type Strikeable } from './throwFlight';
 import { bellTarget, FAN, makeFan, setupFor, targetFoot, type ThrowSetup, type ThrowTarget } from './throwSetups';
 import { WORDS } from './activityWords';
 
@@ -32,6 +32,8 @@ export const THROW = {
   openOffset: 0.3,
   /** Seconds a puff of snow (a hit or a landing) stays visible. */
   puff: 0.35,
+  /** Seconds "Hit!" or "Missed" stays in the panel, and a struck snowman's ring spreads. */
+  call: 1.2,
 } as const;
 
 interface Puff { pos: Vec3; age: number }
@@ -58,6 +60,8 @@ export class TargetActivity implements ActivityInstance {
   private outcome: ActivityResult | null = null;
   private paid = false;
   private swallowPress = false;
+  /** The last throw's outcome and when it landed (`elapsed`), for the panel and the hit ring. */
+  private call: { hit: boolean; at: number; pos: Vec3 } | null = null;
 
   constructor(def: ActivityDef) {
     this.def = def;
@@ -83,6 +87,7 @@ export class TargetActivity implements ActivityInstance {
     this.paid = false;
     this.stage = 'throwing';
     this.swallowPress = true;
+    this.call = null;
     /*
      * Open aimed near the middle of what is to be hit, but not on it: pointed straight at the bell, the
      * first press rang it and the round was over before it began. The aim starts a little way off,
@@ -94,12 +99,12 @@ export class TargetActivity implements ActivityInstance {
     this.aim = bearing + side * THROW.openOffset;
   }
 
-  /** Hit volumes this instant, index-aligned with the fan (null once a post is down). */
-  private strikeables(): (Strikeable | null)[] {
+  /** Hit volumes this instant (or at `at`), index-aligned with the fan (null once a post is down). */
+  private strikeables(at = this.elapsed): (Strikeable | null)[] {
     if (this.bell) return [this.bell];
     return this.fan.map((t) => {
       if (t.down) return null;
-      const foot = targetFoot(this.def.pos, t, this.elapsed);
+      const foot = targetFoot(this.def.pos, t, at);
       return { pos: { x: foot.x, y: this.groundAt(foot.x, foot.z) + FAN.centre, z: foot.z }, radius: FAN.radius, half: FAN.half };
     });
   }
@@ -133,13 +138,31 @@ export class TargetActivity implements ActivityInstance {
       const was = shot.done;
       const hit = stepShot(shot, step, targets, this.groundAt);
       if (hit >= 0) this.strike(hit);
-      if (!was && shot.done) this.puffs.push({ pos: { ...shot.pos }, age: 0 });
+      if (!was && shot.done) {
+        this.puffs.push({ pos: { ...shot.pos }, age: 0 });
+        this.call = { hit: hit >= 0, at: this.elapsed, pos: { ...shot.pos } };
+      }
     }
     this.shots = this.shots.filter((s) => !s.done);
 
     const decided = this.hits >= this.setup.need || (this.throwsLeft <= 0 && this.shots.length === 0);
     if (decided && this.decidedAt < 0) this.decidedAt = this.elapsed;
     if (this.decidedAt >= 0 && this.elapsed - this.decidedAt >= THROW.linger) this.finish(host);
+  }
+
+  /**
+   * Which target a throw pressed now would strike, flying it against where the snowmen will have swung
+   * to, or -1. Round 8: "lined up" judged where they stood at the press, and a throw on the cue to the
+   * edge of a swinging snowman could land behind it. The cue now says what the throw will do.
+   */
+  private predict(): number {
+    const shot = launch(this.feet, this.aim, this.strikeables(), this.groundAt);
+    const h = 1 / 60;
+    for (let t = h; !shot.done; t += h) {
+      const hit = stepShot(shot, h, this.strikeables(this.elapsed + t), this.groundAt);
+      if (hit >= 0) return hit;
+    }
+    return -1;
   }
 
   private strike(index: number): void {
@@ -195,13 +218,24 @@ export class TargetActivity implements ActivityInstance {
         if (age > 0) out.push({ shape: 'ring', look: 'pulse', x: b.x, y: b.y, z: b.z, yaw: toward, size: 0.6 + age * 2.4, strength: 1 - age / 1.2 });
       }
     }
+    // A struck snowman throws off a ring, the way the bell does, so a hit is seen as well as counted.
+    const since = this.call ? this.elapsed - this.call.at : Infinity;
+    if (this.fan.length > 0 && this.call?.hit && since < THROW.call) {
+      const c = this.call.pos;
+      const toward = Math.atan2(this.feet.x - c.x, this.feet.z - c.z);
+      out.push({ shape: 'ring', look: 'pulse', x: c.x, y: c.y, z: c.z, yaw: toward, size: 0.6 + since * 2, strength: 1 - since / THROW.call });
+    }
     // The aim line steps aside while a throw is in the air, so the thing in flight is the thing you see.
+    // Round 8: the line was a faint blue until lined up, and lost on snow; it is amber throughout now,
+    // and a lined-up snowman gets a ring on the snow at its feet as well as a brighter, bigger line.
     if (this.stage === 'throwing' && this.decidedAt < 0 && this.throwsLeft > 0 && this.shots.length === 0) {
       const targets = this.strikeables();
-      const on = targets.some((t) => t !== null && linedUp(this.feet, this.aim, t));
+      const on = this.predict();
       for (const p of previewArc(this.feet, this.aim, targets, this.groundAt)) {
-        out.push({ shape: 'float', look: 'dot', x: p.x, y: p.y, z: p.z, strength: on ? 1 : 0.35, size: on ? 1.35 : 1 });
+        out.push({ shape: 'float', look: 'dot', x: p.x, y: p.y, z: p.z, strength: on >= 0 ? 1 : 0.8, size: on >= 0 ? 1.7 : 1.25 });
       }
+      const t = on >= 0 && this.fan.length > 0 ? targets[on] : null;
+      if (t) out.push({ shape: 'ring', look: 'halo', x: t.pos.x, y: this.groundAt(t.pos.x, t.pos.z), z: t.pos.z, size: 0.9, strength: 1 });
     }
     for (const s of this.shots) out.push({ shape: 'float', look: this.setup.missile, x: s.pos.x, y: s.pos.y, z: s.pos.z, yaw: s.age * 9, size: 1 });
     for (const p of this.puffs) {
@@ -213,8 +247,10 @@ export class TargetActivity implements ActivityInstance {
 
   progress(): ActivityReadout | null {
     const need = this.setup.need;
+    const fresh = this.call !== null && this.elapsed - this.call.at < THROW.call;
+    const said = fresh && this.call ? `${this.call.hit ? WORDS.throwHit : WORDS.throwMiss} · ` : '';
     return {
-      label: `Hits ${Math.min(this.hits, need)} / ${need} · ${this.throwsLeft} left`,
+      label: `${said}Hits ${Math.min(this.hits, need)} / ${need} · ${this.throwsLeft} left`,
       fraction: need === 0 ? 0 : Math.min(1, this.hits / need),
     };
   }

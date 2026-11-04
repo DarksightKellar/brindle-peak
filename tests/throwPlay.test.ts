@@ -66,6 +66,30 @@ describe('throw', () => {
     expect(r.awards[0]).toMatchObject({ score: 3, bonus: 'clean-sweep' });
   });
 
+  it('a throw made while a snowman wears the lined-up ring hits it (round 8)', () => {
+    const d = def('throw', 'pinewind-pinecone-throw', { x: -206, z: 160 });
+    const game = createTargetActivity(d);
+    const h = host({ x: d.pos.x, y: 0, z: d.pos.z });
+    game.start(h);
+    step(game, h);
+    const ringed = (): boolean => game.markers().some((m) => (m as { look?: string }).look === 'halo');
+    let thrown = 0;
+    let dir = 1;
+    for (let f = 0; f < 6000 && !game.isComplete() && thrown < 3; f++) {
+      if (f % 160 === 0) dir = -dir;
+      if (!ringed()) {
+        step(game, h, { moveX: dir });
+        continue;
+      }
+      const before = game.hitCount;
+      thrown++;
+      step(game, h, { interactPressed: true });
+      for (let k = 0; k < 90 && game.inFlight > 0; k++) step(game, h);
+      expect(game.hitCount).toBe(before + 1);
+    }
+    expect(thrown).toBeGreaterThan(0);
+  });
+
   it('a round of misses still ends and still counts, with no hits claimed', () => {
     const r = play(def('throw', 'pinewind-pinecone-throw', { x: -206, z: 160 }), false);
     expect(r.hits).toBe(0);

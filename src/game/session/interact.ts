@@ -5,6 +5,7 @@
 
 import type { ActivityDef, Interactable, NpcDef, TerrainSampler, Vec3 } from '../../core/contracts';
 import type { PickupDef } from '../../data/pickups';
+import { startPropAt } from '../activities/startProps';
 
 /**
  * How far E reaches a villager, at the least. Critic round 3 stood beside Hollis with no prompt until
@@ -13,6 +14,8 @@ import type { PickupDef } from '../../data/pickups';
  */
 export const NPC_RADIUS = 5.5;
 export const ACTIVITY_RADIUS = 2.6;
+/** How close to an activity's start prop E reaches it. */
+export const PROP_REACH = 2.4;
 export const LANTERN_RADIUS = 2.4;
 /** Carrying the lantern, Pip lights a post just by passing this close to it. */
 export const LANTERN_PASS = 6;
@@ -38,13 +41,16 @@ export function buildInteractables(
     });
   }
   for (const a of activities) {
-    out.push({
-      kind: 'activity',
-      id: a.id,
-      pos: { x: a.pos.x, y: sampler.heightAt(a.pos.x, a.pos.z), z: a.pos.z },
-      radius: a.radius || ACTIVITY_RADIUS,
-      prompt: a.prompt,
-    });
+    const post = { x: a.pos.x, y: sampler.heightAt(a.pos.x, a.pos.z), z: a.pos.z };
+    const at = startPropAt(a);
+    const prop = { x: at.x, y: sampler.heightAt(at.x, at.z), z: at.z };
+    out.push({ kind: 'activity', id: a.id, pos: post, radius: a.radius || ACTIVITY_RADIUS, prompt: a.prompt, anchor: prop });
+    // Critic round 7 walked up to the toss's cones and the kite's post and got nothing: the reach was
+    // the post beside them, up to 3.8 u off, and the pill hung over empty snow. The prop answers E too,
+    // and the press steps Pip onto the post the activity is played from.
+    if (Math.hypot(prop.x - post.x, prop.z - post.z) > 1) {
+      out.push({ kind: 'activity', id: a.id, pos: prop, radius: PROP_REACH, prompt: a.prompt, anchor: prop, standAt: post });
+    }
   }
   for (const p of pickups) {
     if (p.kind !== 'lantern') continue;

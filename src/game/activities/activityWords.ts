@@ -30,6 +30,8 @@ export const WORDS = {
   // Woodpile: a crooked press, before the log came square or after it swung past.
   woodEarly: 'Too soon. Let it swing square first',
   woodLate: 'Too late. Wait for it to swing back square',
+  // While the log hangs square: the moment in words, not only the panel turning amber (critic round 8).
+  woodNow: 'Square — press E',
   // Snowman, rolled: the ball is growing; it is big enough to push onto the spot; the face goes on with E.
   snowRoll: 'Keep rolling it bigger. It goes on the lit ring',
   snowPush: 'Big enough. Push it onto the lit ring',
@@ -49,10 +51,16 @@ export const WORDS = {
   exposeDrift: 'It drifted. Ease it back onto the star',
   // Throw result
   throwResult: (hits: number, need: number): string => `${Math.min(hits, need)} of ${need} hits`,
+  // Called for a moment as each throw lands.
+  throwHit: 'Hit!',
+  throwMiss: 'Missed',
   // Skate result
   skateResult: (seconds: number): string => `Upright for ${seconds.toFixed(1)}s`,
   // Kite readouts and result
   kiteLow: 'Keep it in the rising snow',
+  // Out of the lift: which way it is, as the key to press.
+  kiteLeft: 'Lift is left — hold A',
+  kiteRight: 'Lift is right — hold D',
   // Shown while the kite is inside the rising snow and climbing.
   kiteRising: 'In the lift. Up it goes',
   kiteHigh: 'Over the crest lights. Hold it there',

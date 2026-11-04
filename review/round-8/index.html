@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>First Snow — Round 8</title>
+<style>
+  :root { --bg: #f4f1ea; --card: #ffffff; --ink: #1d2230; --mute: #5d6474; --line: #ddd6c8; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --bg: #12151d; --card: #1b2030; --ink: #e8e6e1; --mute: #9aa1b2; --line: #2c3346; }
+  }
+  :root[data-theme="dark"] { --bg: #12151d; --card: #1b2030; --ink: #e8e6e1; --mute: #9aa1b2; --line: #2c3346; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 1500px; margin: 0 auto; padding: 24px 16px 64px; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  .lede { color: var(--mute); margin: 0 0 24px; max-width: 900px; }
+  section.item { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px; margin-bottom: 18px; }
+  .head h3 { margin: 0 0 4px; font-size: 17px; }
+  .what { margin: 4px 0 12px; max-width: 1000px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; }
+  figure { margin: 0; }
+  figure img { width: 100%; height: auto; display: block; border-radius: 6px; border: 1px solid var(--line); cursor: zoom-in; }
+  figcaption { font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--mute); margin: 6px 2px 0; }
+  figcaption span { font-weight: 400; letter-spacing: 0; text-transform: none; }
+  ul { margin: 4px 0 0; padding-left: 20px; }
+  li { margin-bottom: 6px; }
+  dialog { border: 0; padding: 0; background: transparent; max-width: 96vw; }
+  dialog img { max-width: 96vw; max-height: 92vh; display: block; }
+  dialog::backdrop { background: rgba(0,0,0,.85); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Round 8: activities you can read</h1>
+  <p class="lede">The round-7 critic gave Gameplay a 6. Their main complaints were the woodpile's timing, the pinecone toss and the kite, plus prompts that showed up away from the props. Each pair below is the same spot in the old build and the new one. Click any image to enlarge.</p>
+
+  <section class="item">
+    <div class="head"><h3>Woodpile: when to press</h3></div>
+    <p class="what">While the swinging log hangs square over the pile, an amber ring lights under it and the panel says "Square — press E". Before, the only cue was judging the log's angle by eye, and it was half hidden by the shed.</p>
+    <div class="grid">
+      <figure><img src="woodpile-before.jpg" alt=""><figcaption>Before</figcaption></figure>
+      <figure><img src="woodpile-after.jpg" alt=""><figcaption>After <span>— square: ring under the log, "Square — press E"</span></figcaption></figure>
+    </div>
+  </section>
+
+  <section class="item">
+    <div class="head"><h3>Prompts on the props</h3></div>
+    <p class="what">An activity used to answer E only near its hidden centre point, which is up to 3.8 u from the prop you can see. Standing at the toss's cones or the kite's post gave you nothing. Now the prop answers too, and the pill stands over the prop. Pressing E from the prop steps Pip onto the spot the activity is played from. The deer run's banner already stood on its spot, and its prompt is unchanged.</p>
+    <div class="grid">
+      <figure><img src="toss-prompt-before.jpg" alt=""><figcaption>Pinecone toss, before <span>— beside the cones, no prompt</span></figcaption></figure>
+      <figure><img src="toss-prompt-after.jpg" alt=""><figcaption>Pinecone toss, after</figcaption></figure>
+      <figure><img src="kite-prompt-before.jpg" alt=""><figcaption>Kite, before <span>— at the post, no prompt</span></figcaption></figure>
+      <figure><img src="kite-prompt-after.jpg" alt=""><figcaption>Kite, after</figcaption></figure>
+    </div>
+  </section>
+
+  <section class="item">
+    <div class="head"><h3>Pinecone toss: aim, hit, miss</h3></div>
+    <p class="what">The aim dots are amber all the time; they used to be a faint blue that vanished on snow. When a throw would hit, the dots grow, the arc reaches the snowman, and a ring lights at its feet. That cue now plays the throw forward against the snowman's swing, so a throw made on it lands. Before, a throw "on the cue" could still miss a moving snowman. A hit throws off an amber ring and the panel says "Hit!"; a miss says "Missed". The cones and their flag step away while you throw, so the pole no longer crosses the aim.</p>
+    <div class="grid">
+      <figure><img src="toss-before.jpg" alt=""><figcaption>Before <span>— faint dots, flagpole across the view</span></figcaption></figure>
+      <figure><img src="toss-aim-after.jpg" alt=""><figcaption>After, lined up <span>— bold arc, ring at the snowman's feet</span></figcaption></figure>
+      <figure><img src="toss-hit-after.jpg" alt=""><figcaption>After, a hit <span>— ring off the snowman, "Hit!"</span></figcaption></figure>
+    </div>
+  </section>
+
+  <section class="item">
+    <div class="head"><h3>Kite: see the lift, see your steering</h3></div>
+    <p class="what">The lift used to be a scatter of blue lines across the whole sky. Now it is a lane between two rails of rising wind lines that turn amber while the kite is inside. The kite banks into every press of A or D. When it slips out, an arrow beside it points back to the lane and the panel names the key ("Lift is left — hold A"). Following only those hints, I won the kite in 37 s in one run and 86 s in another.</p>
+    <div class="grid">
+      <figure><img src="kite-before.jpg" alt=""><figcaption>Before</figcaption></figure>
+      <figure><img src="kite-out-after.jpg" alt=""><figcaption>After, out of the lift <span>— arrow and "hold A"</span></figcaption></figure>
+      <figure><img src="kite-in-after.jpg" alt=""><figcaption>After, in the lift <span>— amber rails, kite banked into A</span></figcaption></figure>
+    </div>
+  </section>
+
+  <section class="item">
+    <div class="head"><h3>The critic's bugs</h3></div>
+    <ul>
+      <li><b>Esc as a round ends opened the pause menu.</b> Fixed. When an activity finishes on its own, its result card stays up for a few seconds. Esc now closes that card first, and only the next Esc opens the menu.</li>
+      <li><b>Holding S "reverses".</b> Not a bug in movement. While S is held, Pip keeps walking the same way and the camera swings round behind. A new press of S after that is "toward the camera" again, which is now the way you came. That's the camera you signed off, so I've left it; tell me if you want it changed.</li>
+      <li><b>View sunk into a steep slope near the ridge</b> (around 262, −245). That's camera territory, so I haven't touched it. The critic's shot is on the round-7 critic page.</li>
+    </ul>
+  </section>
+</main>
+<dialog id="big"><img alt=""></dialog>
+<script>
+  const d = document.getElementById('big');
+  document.querySelectorAll('figure img').forEach((img) => img.addEventListener('click', () => { d.querySelector('img').src = img.src; d.showModal(); }));
+  d.addEventListener('click', () => d.close());
+</script>
+</body>
+</html>

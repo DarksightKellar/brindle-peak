@@ -18,6 +18,7 @@ import type { Collider } from '../../core/player/collide';
 import { emptyInput } from '../../core/contracts';
 import { HINT_FOR_ID } from '../activities/activityWords';
 import { extras } from '../activities/hooks';
+import { KITE_IDS } from '../activities/kite';
 import { activityOffered } from '../activities/offered';
 import { standingSolids } from '../activities/startProps';
 import type { ActivityHud } from '../ui/activityHud';
@@ -59,14 +60,16 @@ export interface ActivityRunner {
   freeRoam(): boolean;
   /** Abandon the live activity (the player pressed cancel, or the session is shutting down). */
   cancel(): void;
+  /** Close the result card if it is up; true when it was. Escape uses it before the pause menu. */
+  dismissResult(): boolean;
   /** A point the live activity wants framed with Pip (activities/hooks.ts `focus`), or null. */
   focus(): (Vec3 & { facing?: number }) | null;
 }
 
 export function createActivityRunner(d: ActivityRunnerDeps): ActivityRunner {
   let active: ActivityInstance | null = null;
-  /** A photo's own start frame, hidden while the viewfinder is up: it stands beside the spot and
-   * crossed the aurora shot (critic round 7). */
+  /** The start prop, hidden while a photo or a throw is under way: it stands beside the spot, and
+   * crossed the aurora shot and the toss's aim (critic round 7). */
   let framed: string | null = null;
   let seconds = 0;
   let openingYaw: number | null = null;
@@ -126,7 +129,10 @@ export function createActivityRunner(d: ActivityRunnerDeps): ActivityRunner {
       resultLeft = 0;
       openingYaw = extras(active).startYaw?.() ?? null;
       openingLeft = openingYaw === null ? 0 : OPENING_TURN;
-      framed = def.kind === 'photo' ? `start:${def.id}` : null;
+      // The start prop steps out of a photo's frame and out of a throw's line (critic round 7 had the
+      // pinecone toss's flagpole across the aim). The kite keeps its post: Pip holds the line from it.
+      const hideProp = def.kind === 'photo' || (def.kind === 'throw' && !KITE_IDS.has(def.id));
+      framed = hideProp ? `start:${def.id}` : null;
       if (framed) d.markers.hide(framed, true);
       running = extras(active).solids?.() ?? [];
       d.solids?.push(...running);
@@ -163,6 +169,12 @@ export function createActivityRunner(d: ActivityRunnerDeps): ActivityRunner {
     isRunning: () => active !== null,
     freeRoam: () => active !== null && active.freeRoam === true,
     focus: () => (active ? extras(active).focus?.() ?? null : null),
+    dismissResult(): boolean {
+      if (active || resultLeft <= 0) return false;
+      resultLeft = 0;
+      d.ui.activity.hide();
+      return true;
+    },
     cancel(): void {
       if (!active) return;
       const a = active;

@@ -178,7 +178,9 @@ export class BuildActivity implements ActivityInstance {
     const placed = Math.min(this.stage, total);
     const miss = this.aligned ? this.hand.miss(this.elapsed) : null;
     const count = `${nounFor(this.site)} ${placed} / ${total}`;
-    const label = miss ? `${miss === 'early' ? WORDS.woodEarly : WORDS.woodLate} · ${count}` : count;
+    const label = miss
+      ? `${miss === 'early' ? WORDS.woodEarly : WORDS.woodLate} · ${count}`
+      : this.squareNow ? `${WORDS.woodNow} · ${count}` : count;
     return { label, fraction: placed / total, urgent: this.squareNow };
   }
 

@@ -31,6 +31,11 @@ export interface OverlayDeps {
   ui: Presentation;
   state: GameState;
   isActivityRunning(): boolean;
+  /**
+   * Close an activity's result card, true when one was up. Critic round 7 pressed Escape as a round
+   * ended on its own, to stop it or clear its card, and got the pause menu.
+   */
+  dismissActivityResult?(): boolean;
 }
 
 export function createOverlayRouter(d: OverlayDeps): OverlayRouter {
@@ -73,6 +78,7 @@ export function createOverlayRouter(d: OverlayDeps): OverlayRouter {
         return;
       }
       if (ui.dialogue.isOpen() || busy()) return;
+      if (d.dismissActivityResult?.()) return;
       ui.menu.toggle();
     },
   };
