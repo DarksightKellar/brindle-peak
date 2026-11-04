@@ -36,6 +36,8 @@ export interface JournalQuest {
   epilogue: string;
   /** A live errand: one the player can pick to follow (the story is always followed). */
   trackable: boolean;
+  /** Part of the main story: its step is the goal line at the top of the screen. */
+  main: boolean;
 }
 export interface JournalAch { id: string; name: string; desc: string; unlocked: boolean }
 export interface JournalSettingsView { pixelSize: number; master: number; music: number; reduceMotion: boolean }
@@ -124,6 +126,7 @@ export function formatJournal(s: GameState, content: JournalContent = {}): Journ
         nextText: now?.step.text ?? null,
         epilogue: def?.blurb ?? '',
         trackable: p.status === 'active' && def?.main !== true && now !== null,
+        main: def?.main === true,
       };
     })
     .sort((a, b) => QUEST_ORDER[a.status] - QUEST_ORDER[b.status]);

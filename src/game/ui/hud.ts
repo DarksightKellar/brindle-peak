@@ -48,6 +48,8 @@ export interface Hud {
    * script's prompt is the next action then.
    */
   setNextVisible(visible: boolean): void;
+  /** Point the compass strip at a running activity's own target (a race's next gate); null for the goal. */
+  setCourse(at: Vec2 | null): void;
   /** Hold the goal, the next line and the target where they are (a conversation is open). */
   setHeld(held: boolean): void;
   /**
@@ -115,6 +117,8 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
   let promptUp = false;
   /** What the HUD last pointed at, kept while held. */
   let heldTarget: Vec2 | null = null;
+  /** A running activity's own point (its next gate), which the strip shows instead of the goal. */
+  let course: Vec2 | null = null;
   let errandTarget: Vec2 | null = null;
   let otherErrands: ReturnType<ErrandLine['others']> = [];
   let lastState: GameState | null = null;
@@ -181,7 +185,8 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
       const errandMarks = nextAllowed && !held
         ? otherErrands.filter((o) => (o.distance ?? Infinity) < ERRAND_SEEN).map((o) => o.target as Vec2)
         : [];
-      compass.update({ from: lastFrom, viewYaw, goal: heldTarget, side, feather: feather.feather, todo, errands: errandMarks });
+      if (course) compass.update({ from: lastFrom, viewYaw, goal: course, side: null, feather: null, todo: [], errands: [] });
+      else compass.update({ from: lastFrom, viewYaw, goal: heldTarget, side, feather: feather.feather, todo, errands: errandMarks });
       for (const fn of frameListeners) fn(heldTarget, p.pos, held, side);
     },
 
@@ -219,6 +224,10 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
     setGoalVisible(visible: boolean): void {
       // The only writer: a per-frame write here was a layout write for a value that changes twice a run.
       goalEl.hidden = !visible;
+    },
+
+    setCourse(at: Vec2 | null): void {
+      course = at;
     },
 
     setNextVisible(visible: boolean): void {

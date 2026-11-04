@@ -57,6 +57,11 @@ export class RaceActivity implements ActivityInstance {
   /** The chase camera's heading this frame: the pointer faces it, like a sign held up to the lens. */
   private camYaw = 0;
 
+  compassTarget(): Vec2 | null {
+    const g = this.stage === 'run' ? this.course.gates[this.next] : undefined;
+    return g ? { x: g.x, z: g.z } : null;
+  }
+
   constructor(def: ActivityDef, course: RaceCourse = courseFor(def)) {
     this.def = def;
     this.course = course;

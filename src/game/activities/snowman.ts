@@ -170,6 +170,24 @@ export class SnowmanActivity implements ActivityInstance {
     const full = b !== null && b.r >= this.size(this.stage) - 1e-6;
     const at = this.site.at;
     out.push({ shape: 'ring', look: 'halo', x: at.x, y: this.ground, z: at.z, size: 1.3, strength: full || !b ? 1 : 0.65 });
+    // Critic round 10 lost the ball itself, pale on blue night snow, and was not sure which round thing
+    // was theirs. The ball being pushed stands in its own light, and once it is full a line of lights
+    // runs from it to the spot.
+    if (b) {
+      const by = this.groundAt(b.x, b.z);
+      out.push({ shape: 'ring', look: 'halo', x: b.x, y: by, z: b.z, size: b.r + 0.35, strength: full ? 0.9 : 0.5 });
+      const dx = at.x - b.x, dz = at.z - b.z;
+      const gap = Math.hypot(dx, dz) - b.r - 1.3;
+      if (full && gap > 1) {
+        const n = Math.min(5, Math.floor(gap / 1.2));
+        for (let i = 1; i <= n; i++) {
+          const t = (b.r + (gap * i) / (n + 1)) / Math.hypot(dx, dz);
+          const x = b.x + dx * t, z = b.z + dz * t;
+          const pulse = 0.55 + 0.45 * Math.max(0, Math.sin(this.elapsed * 5 - i * 0.9));
+          out.push({ shape: 'float', look: 'dot', x, y: this.groundAt(x, z) + 0.25, z, size: 0.7, strength: pulse });
+        }
+      }
+    }
     const lift = DOT_LIFT[this.stage] ?? 2.6;
     out.push({ shape: 'float', look: 'dot', x: at.x, y: this.ground + lift + 0.12 * Math.sin(this.elapsed * 4), z: at.z, size: full || !b ? 1.6 : 1.2, strength: 1 });
     return out;

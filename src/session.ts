@@ -284,6 +284,7 @@ export function createSession(opts: SessionOptions): Session {
 
     // State first, then feedback, then the save decision — the ordering rule lives in frameFeedback.ts.
     ui.hud.setViewYaw(view ? view.yaw : rig.yaw());
+    ui.hud.setCourse(runner.isRunning() ? live?.compassTarget?.() ?? null : null);
     pushFrame({ state, player, ui, mech, audio, store, persist, blocked, weather }, dt);
     const look = dusk.update(dt, state, elapsed);
     glow.update(player.pos, look.dusk, state.abilities.lantern);

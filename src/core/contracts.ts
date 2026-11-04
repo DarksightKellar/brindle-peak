@@ -629,6 +629,11 @@ export interface ActivityInstance {
    * `centred` lets the frame overlay light its centre mark without re-deriving the subject.
    */
   view?(): { yaw: number; pitch: number; centred?: boolean } | null;
+  /**
+   * Where the compass strip should point while this runs, or null to leave it on the goal. Critic round
+   * 10 lost the race's next gate behind the pines; the strip now points at it, with its distance.
+   */
+  compassTarget?(): Vec2 | null;
 }
 
 // ---------------------------------------------------------------------------
