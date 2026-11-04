@@ -5,7 +5,8 @@
  * ridge top 35 to 40 units off the trail, above the chase camera's view, so nothing on screen, gem or
  * start post, could show them. The line under the goal can: the first time a thing not yet done comes
  * within NOTICE_RANGE, it is named there for a few seconds with its bearing, the way the first feather
- * is (hudFeather.ts). Each is named once a run; the map keeps the rest.
+ * is (hudFeather.ts). Each is named once per visit; the map keeps the rest. Since round 7 the other live
+ * errands are named the same way, so the five a critic carried were not all hidden behind the one followed.
  */
 
 import type { ActivityDef, GameState, Vec2 } from '../../core/contracts';
@@ -30,29 +31,51 @@ export function nearbyTodo(activities: readonly ActivityDef[], s: GameState, fro
     .map((e) => e.a.pos);
 }
 
-export function createNearbyNotice(activities: readonly ActivityDef[]): { update(s: GameState, from: Vec2, nowMs: number): string } {
-  const named = new Set<string>();
-  let current: ActivityDef | null = null;
+/** A thing the line can name: an activity, or another errand's next place (errandLine.ts `others`). */
+export interface Notable {
+  id: string;
+  /** What the line says before the bearing, e.g. "Snowman nearby" or "Errand nearby: Four Loaves". */
+  label: string;
+  pos: Vec2;
+}
+
+/**
+ * Further than this from a named thing and it is forgotten, so coming back names it again. Named once a
+ * run, a thing passed on the way somewhere else was never named again when Pip came back for it.
+ */
+const FORGET_RANGE = NOTICE_RANGE * 2;
+
+export function createNearbyNotice(activities: readonly ActivityDef[]): {
+  update(s: GameState, from: Vec2, nowMs: number, extra?: readonly Notable[]): string;
+} {
+  const named = new Map<string, Vec2>();
+  let current: Notable | null = null;
   let until = -1;
 
+  const line = (n: Notable, from: Vec2, d: number): string =>
+    `${n.label} — ${compassWord(n.pos.x - from.x, n.pos.z - from.z)}, ${formatDistance(d)}`;
+
   return {
-    update(s, from, nowMs): string {
+    update(s, from, nowMs, extra = []): string {
+      for (const [id, at] of named) if (Math.hypot(at.x - from.x, at.z - from.z) > FORGET_RANGE) named.delete(id);
       if (current && nowMs < until) {
         const d = Math.hypot(current.pos.x - from.x, current.pos.z - from.z);
         if (d < 4) return '';
         // A map hop carries Pip hundreds of units inside the line's few seconds: "nearby, 773 u".
-        if (d <= NOTICE_RANGE) {
-          return `${current.name} nearby — ${compassWord(current.pos.x - from.x, current.pos.z - from.z)}, ${formatDistance(d)}`;
-        }
+        if (d <= NOTICE_RANGE) return line(current, from, d);
       }
       current = null;
-      for (const a of activities) {
-        if (named.has(a.id) || (s.counters[`activity:${a.id}`] ?? 0) > 0) continue;
-        if (Math.hypot(a.pos.x - from.x, a.pos.z - from.z) < NOTICE_RANGE) {
-          named.add(a.id);
-          current = a;
+      const things: Notable[] = activities
+        .filter((a) => (s.counters[`activity:${a.id}`] ?? 0) === 0)
+        .map((a) => ({ id: `activity:${a.id}`, label: `${a.name} nearby`, pos: a.pos }));
+      for (const n of [...things, ...extra]) {
+        if (named.has(n.id)) continue;
+        const d = Math.hypot(n.pos.x - from.x, n.pos.z - from.z);
+        if (d < NOTICE_RANGE && d >= 4) {
+          named.set(n.id, n.pos);
+          current = n;
           until = nowMs + NOTICE_MS;
-          return this.update(s, from, nowMs);
+          return line(n, from, d);
         }
       }
       return '';

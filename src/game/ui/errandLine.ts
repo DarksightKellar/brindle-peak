@@ -35,6 +35,14 @@ export interface ErrandLine {
   current(): GuideStep | null;
   /** The errand being followed, picked or not; null when none is. */
   trackedId(): string | null;
+  /**
+   * Every other live errand's next step that has a place, nearest first. Critic round 7 carried five
+   * errands and could only see the one being followed: these are the marks and the "nearby" lines for
+   * the rest. Reading them moves nothing.
+   */
+  others(s: GameState, from: Vec2): GuideStep[];
+  /** One errand's next step from `from`, tracked or not; null when it has none. For the journal. */
+  stepFor(id: string, s: GameState, from: Vec2): GuideStep | null;
   /** The player picks `id` to follow. Picking the one already picked lets it go. */
   track(s: GameState, id: string): void;
 }
@@ -125,6 +133,16 @@ export function createErrandLine(guide: GuideContent): ErrandLine {
     },
     current: () => last,
     trackedId: () => tracked,
+    others(s, from): GuideStep[] {
+      const out: GuideStep[] = [];
+      for (const def of guide.quests) {
+        if (def.main === true || def.id === tracked) continue;
+        const step = stepOf(def.id, s, from);
+        if (step?.target && step.distance !== null) out.push(step);
+      }
+      return out.sort((a, b) => (a.distance ?? 0) - (b.distance ?? 0));
+    },
+    stepFor: (id, s, from) => stepOf(id, s, from),
     track(s, id): void {
       if (!live(id, s)) return;
       unpin(s);

@@ -36,6 +36,11 @@ export interface CompassView {
    * colour. Shown only while in front of the view; they do not pin to the edges like the goal.
    */
   todo?: readonly Point[];
+  /**
+   * The other live errands' next places, nearest first (errandLine.ts `others`): a small hollow amber
+   * diamond each under the strip, beside the followed errand's filled one. In front of the view only.
+   */
+  errands?: readonly Point[];
 }
 
 export interface HudCompass {
@@ -70,6 +75,8 @@ const ASTERN = (Math.PI * 5) / 6;
 
 /** Most things-to-do marks the strip draws at once. */
 const TODO_MAX = 4;
+/** Most other-errand marks the strip draws at once. */
+const ERRAND_MAX = 3;
 
 /** Eight named points and a tick every 15 degrees between them. */
 const NAMES: Readonly<Record<number, string>> = { 0: 'N', 45: 'NE', 90: 'E', 135: 'SE', 180: 'S', 225: 'SW', 270: 'W', 315: 'NW' };
@@ -112,6 +119,24 @@ export function createHudCompass(layer: HTMLElement): HudCompass {
     el.insertBefore(t, mark);
     todo.push(t);
   }
+  const others: HTMLElement[] = [];
+  for (let i = 0; i < ERRAND_MAX; i++) {
+    const t = document.createElement('i');
+    t.className = 'ui-hud__compass-errand';
+    t.hidden = true;
+    el.insertBefore(t, side);
+    others.push(t);
+  }
+  /** Marks that ride in front of the view only, never pinned to an edge. */
+  const ahead = (nodes: readonly HTMLElement[], points: readonly Point[] | undefined, v: CompassView): void => {
+    for (const [i, node] of nodes.entries()) {
+      const at = points?.[i];
+      const rel = at ? bearing(at.x - v.from.x, at.z - v.from.z, v.viewYaw) : 0;
+      const shown = at !== undefined && Math.abs(rel) <= HALF;
+      if (shown) node.style.left = leftOf(rel);
+      if (node.hidden === shown) node.hidden = !shown;
+    }
+  };
   /** -1 turn left, 1 turn right, 0 the goal is in front. */
   let turnSide = 0;
 
@@ -150,13 +175,8 @@ export function createHudCompass(layer: HTMLElement): HudCompass {
       }
       place(side, v.side, v);
       place(feather, v.feather, v);
-      for (const [i, node] of todo.entries()) {
-        const at = v.todo?.[i];
-        const rel = at ? bearing(at.x - v.from.x, at.z - v.from.z, v.viewYaw) : 0;
-        const shown = at !== undefined && Math.abs(rel) <= HALF;
-        if (shown) node.style.left = leftOf(rel);
-        if (node.hidden === shown) node.hidden = !shown;
-      }
+      ahead(todo, v.todo, v);
+      ahead(others, v.errands, v);
       const rel = place(mark, v.goal, v);
       if (rel === null || v.goal === null) {
         dist.hidden = true;

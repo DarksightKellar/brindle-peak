@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>First Snow — Round 7</title>
+<style>
+  :root { --bg: #f4f1ea; --card: #ffffff; --ink: #1d2230; --mute: #5d6474; --line: #ddd6c8; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --bg: #12151d; --card: #1b2030; --ink: #e8e6e1; --mute: #9aa1b2; --line: #2c3346; }
+  }
+  :root[data-theme="dark"] { --bg: #12151d; --card: #1b2030; --ink: #e8e6e1; --mute: #9aa1b2; --line: #2c3346; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 1500px; margin: 0 auto; padding: 24px 16px 64px; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  .lede { color: var(--mute); margin: 0 0 24px; max-width: 900px; }
+  section.item { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px; margin-bottom: 18px; }
+  .head h3 { margin: 0 0 4px; font-size: 17px; }
+  .what { margin: 4px 0 12px; max-width: 1000px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; }
+  figure { margin: 0; }
+  figure img { width: 100%; height: auto; display: block; border-radius: 6px; border: 1px solid var(--line); cursor: zoom-in; }
+  figcaption { font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--mute); margin: 6px 2px 0; }
+  ul { margin: 4px 0 0; padding-left: 20px; }
+  dialog { border: 0; padding: 0; background: transparent; max-width: 96vw; }
+  dialog img { max-width: 96vw; max-height: 92vh; display: block; }
+  dialog::backdrop { background: rgba(0,0,0,.85); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Round 7: finding your errands</h1>
+  <p class="lede">The critics' top complaint: with several errands accepted, only the one you follow showed anywhere. The rest were invisible until you opened the journal. Same save in both builds (story finished, three errands open), same spot. Pink marks show where to look. Click to enlarge.</p>
+
+  <section class="item">
+    <div class="head"><h3>Out in the world</h3></div>
+    <p class="what">Every other open errand within 200 u gets a hollow amber diamond on the compass, beside the filled one for the errand you follow. When you come within 60 u of one, the line under the goal names it for a few seconds ("Errand nearby: Four Loaves — south, 56 u"), the same way nearby activities are named. Those lines now repeat when you leave and come back, instead of firing once per run.</p>
+    <div class="grid">
+      <figure><img src="reach-before-l.jpg" alt=""><figcaption>Before</figcaption></figure>
+      <figure><img src="reach-after-l.jpg" alt=""><figcaption>After</figcaption></figure>
+    </div>
+  </section>
+
+  <section class="item">
+    <div class="head"><h3>Journal, Quests page</h3></div>
+    <p class="what">Each open errand says how far its next stop is and which way, and the nearest is marked. You can pick the near one and follow it with E, as before.</p>
+    <div class="grid">
+      <figure><img src="quests-before.jpg" alt=""><figcaption>Before</figcaption></figure>
+      <figure><img src="quests-after-l.jpg" alt=""><figcaption>After</figcaption></figure>
+    </div>
+  </section>
+
+  <section class="item">
+    <div class="head"><h3>Not visual</h3></div>
+    <ul>
+      <li>After a conversation closes, E waits 1 s (was 0.6 s) before it can start another, so a slow double press no longer reopens it.</li>
+      <li>The "bolder errand marker" from the plan was dropped: after the story the errand you follow already wears the story's marker, and no critic asked for it.</li>
+    </ul>
+  </section>
+</main>
+<dialog id="big"><img alt=""></dialog>
+<script>
+  const d = document.getElementById('big');
+  document.querySelectorAll('figure img').forEach((img) => img.addEventListener('click', () => { d.querySelector('img').src = img.src; d.showModal(); }));
+  d.addEventListener('click', () => d.close());
+</script>
+</body>
+</html>

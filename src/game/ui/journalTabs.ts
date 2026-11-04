@@ -65,10 +65,23 @@ export function notesHTML(m: JournalModel, prints: readonly { src: string; capti
  * collapses to a tick and one authored line — its blurb — so the page reads as a record rather than
  * a list of unfinished business.
  */
-export function questsHTML(m: JournalModel, tracked: string | null = null, cursor: string | null = null): string {
+export function questsHTML(
+  m: JournalModel,
+  tracked: string | null = null,
+  cursor: string | null = null,
+  where?: (id: string) => { text: string; d: number } | null,
+): string {
   if (m.quests.length === 0) {
     return '<p class="ui-empty">No quests yet. Someone by a warm window is waiting.</p>';
   }
+  // Each errand that can be followed says how far its next place is, and the nearest says so.
+  const far = new Map<string, { text: string; d: number }>();
+  for (const q of m.quests) {
+    const at = q.trackable && q.status === 'active' ? where?.(q.id) ?? null : null;
+    if (at) far.set(q.id, at);
+  }
+  let nearest: string | null = null;
+  for (const [id, at] of far) if (nearest === null || at.d < (far.get(nearest)?.d ?? Infinity)) nearest = id;
   const rows = m.quests.map((q) => {
     const tick = q.status === 'complete' ? '✓ ' : '';
     const line =
@@ -84,6 +97,9 @@ export function questsHTML(m: JournalModel, tracked: string | null = null, curso
     return (
       `<li class="ui-quest is-${q.status}${pick}" data-quest="${esc(q.id)}"><div class="ui-quest__row"><span class="ui-quest__title">${tick}${esc(q.title)}</span>` +
       `<span class="ui-quest__status">${status}</span></div>` +
+      (far.has(q.id)
+        ? `<p class="ui-quest__where">${esc(far.get(q.id)?.text ?? '')}${q.id === nearest && far.size > 1 ? ' · nearest' : ''}</p>`
+        : '') +
       `<p class="ui-quest__step${cls}">${esc(line)}</p></li>`
     );
   });

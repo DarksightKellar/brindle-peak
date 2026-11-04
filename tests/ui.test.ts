@@ -14,6 +14,7 @@ import { CHARS_PER_SEC, Typewriter } from '../src/game/ui/dialogue';
 import { ICON_NAMES, icon } from '../src/game/ui/icons';
 import { FEATHERS_TOTAL, formatJournal, formatPlaytime } from '../src/game/ui/journal';
 import { ACHIEVEMENTS } from '../src/data/achievements';
+import { NOTICE_MS, createNearbyNotice } from '../src/game/ui/hudNearby';
 
 const state = (): GameState => createGameState({ x: 0, y: 1.5, z: 0 }, 6);
 
@@ -256,5 +257,31 @@ describe('the errand line', () => {
     expect(nextStepFor(s, { x: -300, z: 300 }, content, 'side')?.target).not.toBeNull();
     s.zone = 'pinewind';
     expect(nextStepFor(s, { x: -230, z: 150 }, content, 'side')?.target).toBeNull();
+  });
+});
+
+describe('nearby line (round 7)', () => {
+  // No activities, so only the errand passed in can be named.
+  const quiet = (): ReturnType<typeof createNearbyNotice> => createNearbyNotice([]);
+  const errand = { id: 'errand:orla-flour:0', label: 'Errand nearby: Four Loaves', pos: { x: 0, z: 50 } };
+
+  it('names another errand coming near, with its bearing', () => {
+    expect(quiet().update(state(), { x: 0, z: 0 }, 0, [errand])).toBe('Errand nearby: Four Loaves — south, 50 u');
+  });
+
+  it('names it again after Pip has gone well away and come back', () => {
+    const n = quiet();
+    const s = state();
+    n.update(s, { x: 0, z: 0 }, 0, [errand]);
+    expect(n.update(s, { x: 0, z: 0 }, NOTICE_MS + 1, [errand])).toBe('');
+    n.update(s, { x: 0, z: 400 }, NOTICE_MS + 2, [errand]);
+    expect(n.update(s, { x: 0, z: 0 }, NOTICE_MS + 3, [errand])).toBe('Errand nearby: Four Loaves — south, 50 u');
+  });
+
+  it('drops the line when a hop carries Pip out of range inside its few seconds', () => {
+    const n = quiet();
+    const s = state();
+    n.update(s, { x: 0, z: 0 }, 0, [errand]);
+    expect(n.update(s, { x: 700, z: 0 }, 100, [errand])).toBe('');
   });
 });

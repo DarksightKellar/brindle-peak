@@ -95,6 +95,8 @@
 /* A thing to do nearby (hudNearby.ts): the world gem's green, small, riding the strip's middle. */
 .ui-hud__compass-todo { position: absolute; top: 5px; width: 7px; height: 7px; margin-left: -4px; transform: rotate(45deg); background: #7FE3C0; border: 1px solid #2E6B5A; box-sizing: border-box; }
 .ui-hud__compass-side.is-behind { background: var(--panel); border-color: var(--amber); }
+/* The other live errands (round 7): the followed errand's mark, hollow, on the same row. */
+.ui-hud__compass-errand { position: absolute; top: 13px; width: 9px; height: 9px; margin-left: -5px; transform: rotate(45deg); background: var(--panel); border: 2px solid var(--amber); box-sizing: border-box; }
 .ui-hud__next::before { content: ''; display: inline-block; margin: 0 8px 1px 0; }
 /* With no story step to point at, the errand is the goal: its mark is the goal's. */
 .ui-hud__next.is-goal::before { background: var(--lantern); border-color: #7E5334; }

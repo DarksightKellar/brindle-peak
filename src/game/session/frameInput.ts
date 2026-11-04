@@ -37,9 +37,10 @@ export type FrameInput = (input: InputFrame, dt: number) => boolean;
 
 /**
  * Seconds after a conversation closes before E reaches the world again. Critic round 5 pressed E once too
- * often on a last line and the villager started over on their idle lines.
+ * often on a last line and the villager started over on their idle lines; at 0.6 s critic round 7 still
+ * got through with a slower double press.
  */
-export const TALK_REST = 0.6;
+export const TALK_REST = 1;
 
 /** One per session, so the edge memory below belongs to this run rather than to the module. */
 export function createFrameInput(d: FrameInputDeps): FrameInput {

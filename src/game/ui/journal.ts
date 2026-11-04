@@ -18,6 +18,7 @@ import { ACHIEVEMENTS } from '../../data/achievements';
 import { FISH } from '../../data/fish';
 import { QUESTS } from '../../data/quests';
 import { errandLineFor } from './errandLine';
+import { formatDistance } from '../../core/guide/compass';
 import { mapHTML, type MapHop } from './journalMap';
 import type { JournalContent, JournalModel } from './journalModel';
 import { formatJournal } from './journalModel';
@@ -60,6 +61,19 @@ export interface Journal {
   destroy(): void;
 }
 
+/**
+ * How far off each live errand's next place is, and which way: critic round 7 carried five errands with
+ * no sense of which was near, and the Quests page is where one is picked to follow.
+ */
+function errandWhere(s: GameState, map: NonNullable<JournalContent['map']>): (id: string) => { text: string; d: number } | null {
+  const line = errandLineFor(map);
+  return (id) => {
+    const step = line.stepFor(id, s, s.player.pos);
+    if (!step || step.distance === null) return null;
+    return { text: step.bearing === null ? 'here' : `${formatDistance(step.distance)} ${step.bearing}`, d: step.distance };
+  };
+}
+
 function tabHTML(
   tab: JournalTab,
   m: JournalModel,
@@ -77,7 +91,7 @@ function tabHTML(
         ? mapHTML(s, content.map, content.mapDecor?.(), hop)
         : '<p class="ui-empty">No map to draw: the valley content is not loaded.</p>';
     case 'Quests':
-      return questsHTML(m, tracked, cursor);
+      return questsHTML(m, tracked, cursor, content.map ? errandWhere(s, content.map) : undefined);
     case 'Fish':
       return fishHTML(m, s, content.fish);
     case 'Achievements':

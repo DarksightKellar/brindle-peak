@@ -21,11 +21,11 @@ import type { GameState, PlayerState, Vec2, Vec3 } from '../../core/contracts';
 import type { GuideContent } from '../../core/guide/nextStep';
 import { formatNextStep, nextStepFor } from '../../core/guide/nextStep';
 import { goalTarget } from '../../core/guide/goal';
-import { errandLineFor } from './errandLine';
+import { errandLineFor, type ErrandLine } from './errandLine';
 import { goalLine } from './hudText';
 import { createHudCompass } from './hudCompass';
 import { createHudStamina } from './hudStamina';
-import { createNearbyNotice, nearbyTodo } from './hudNearby';
+import { createNearbyNotice, NOTICE_RANGE, nearbyTodo } from './hudNearby';
 import { hopBlocked, hopPlaces } from '../session/travel';
 import { ACTIVITIES } from '../../data/activities';
 import { createFeatherNotice } from './hudFeather';
@@ -65,6 +65,9 @@ export interface Hud {
   pulseStamina(): void;
   destroy(): void;
 }
+
+/** Other errands' places nearer than this get a mark on the compass strip, in world units. */
+const ERRAND_SEEN = 200;
 
 /** Farther than this, an errand step in ground already walked is worth a hop rather than a walk. */
 const HOP_HINT = 150;
@@ -113,6 +116,7 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
   /** What the HUD last pointed at, kept while held. */
   let heldTarget: Vec2 | null = null;
   let errandTarget: Vec2 | null = null;
+  let otherErrands: ReturnType<ErrandLine['others']> = [];
   let lastState: GameState | null = null;
   let lastFrom: Vec2 = { x: 0, z: 0 };
   const errands = guide ? errandLineFor(guide) : null;
@@ -158,7 +162,14 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
         heldTarget = liveTarget();
         // The feather's one line outranks an errand for its few seconds; the errand is still in the journal.
         // So does a thing to do coming near for the first time (hudNearby.ts), for its few seconds.
-        const nearby = nextAllowed && feather.line === '' ? nearbyNotice?.update(s, lastFrom, performance.now()) ?? '' : '';
+        // The other live errands: named the same way when one comes near, and marked on the strip.
+        otherErrands = nextAllowed && errands ? errands.others(s, lastFrom) : [];
+        const notable = otherErrands
+          .filter((o) => o.questId !== null && o.target !== null && (o.distance ?? Infinity) < NOTICE_RANGE)
+          .map((o) => ({ id: `errand:${o.questId}:${o.stepIndex}`, label: `Errand nearby: ${o.questTitle}`, pos: o.target as Vec2 }));
+        const nearby = nextAllowed && feather.line === ''
+          ? nearbyNotice?.update(s, lastFrom, performance.now(), notable) ?? ''
+          : '';
         if (feather.line !== '') writeNext(feather.line, null);
         else if (nearby !== '') writeNext(nearby, null);
         else writeNext(`${formatNextStep(step)}${hopHint(s, step)}`, step);
@@ -167,7 +178,10 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
       // With no story point the errand is the goal, and its line wears the goal's mark, not its own.
       nextEl.classList.toggle('is-goal', errandTarget !== null && errandTarget === heldTarget);
       const todo = nextAllowed && !held ? nearbyTodo(ACTIVITIES, s, lastFrom) : [];
-      compass.update({ from: lastFrom, viewYaw, goal: heldTarget, side, feather: feather.feather, todo });
+      const errandMarks = nextAllowed && !held
+        ? otherErrands.filter((o) => (o.distance ?? Infinity) < ERRAND_SEEN).map((o) => o.target as Vec2)
+        : [];
+      compass.update({ from: lastFrom, viewYaw, goal: heldTarget, side, feather: feather.feather, todo, errands: errandMarks });
       for (const fn of frameListeners) fn(heldTarget, p.pos, held, side);
     },
 
