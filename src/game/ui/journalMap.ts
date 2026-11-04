@@ -58,6 +58,22 @@ export interface MapDecor {
   goal: { x: number; z: number };
 }
 
+/** The hop line over the map (session/travel.ts): the places on offer, the one picked, and any reason not to. */
+export interface MapHop {
+  places: readonly { zone: string; name: string }[];
+  at: string | null;
+  blocked: string | null;
+}
+
+/** The line above the map that says a walked place can be gone back to, and how. */
+function hopLine(hop: MapHop | undefined): string {
+  if (!hop || hop.places.length === 0) return '';
+  const picked = hop.places.find((p) => p.zone === hop.at);
+  if (hop.blocked !== null) return `<p class="ui-map__hop is-blocked">${esc(hop.blocked)}</p>`;
+  if (!picked) return '<p class="ui-map__hop"><kbd>↑↓</kbd> pick a place you have walked to go back to it</p>';
+  return `<p class="ui-map__hop is-picked">Go to <b>${esc(picked.name)}</b> <kbd>E</kbd> · <kbd>↑↓</kbd> another place</p>`;
+}
+
 /** Monotonic build count. Diagnostic only: it makes "not per frame" measurable from outside. */
 let builds = 0;
 
@@ -123,7 +139,7 @@ function trailPaths(s: GameState, content: GuideContent, decor: MapDecor): strin
  * on the same spot. The zone shape itself is not drawn: the zones overlap, and their circles were the
  * "anonymous circles" the page was read as.
  */
-function placeNames(s: GameState, content: GuideContent, decor: MapDecor | undefined): string {
+function placeNames(s: GameState, content: GuideContent, decor: MapDecor | undefined, hopAt: string | null): string {
   // A name also steps up off the glyphs of things to do (mapMarks.ts), which sit near a zone's heart.
   const acts = content.activities.filter((a) => s.visited[a.zone] === true).map((a) => a.pos);
   const anchors = [...(decor ? [decor.home, decor.goal] : []), ...acts];
@@ -139,9 +155,10 @@ function placeNames(s: GameState, content: GuideContent, decor: MapDecor | undef
       y = Math.max(NAME_SIZE + 4, Math.min(VIEW_H - 6, y));
       const r = Math.round(z.radius * SCALE);
       // The zone itself stays in the DOM, unpainted, so a harness can still read which ground is walked.
-      return `<circle class="ui-map__zone ${seen ? 'is-visited' : 'is-ghost'}" data-zone="${esc(z.id)}" data-r="${one(r)}" ` +
+      const hop = z.id === hopAt;
+      return `<circle class="ui-map__zone ${seen ? 'is-visited' : 'is-ghost'}${hop ? ' is-hop' : ''}" data-zone="${esc(z.id)}" data-r="${one(r)}" ` +
         `cx="${px(z.centre.x)}" cy="${py(z.centre.z)}" r="${r}"/>` +
-        `<text class="ui-map__name${seen ? '' : ' is-unwalked'}" x="${one(x)}" y="${one(y)}">${esc(name)}</text>`;
+        `<text class="ui-map__name${seen ? '' : ' is-unwalked'}${hop ? ' is-hop' : ''}" x="${one(x)}" y="${one(y)}">${esc(name)}</text>`;
     })
     .join('');
 }
@@ -153,10 +170,10 @@ export const MAP_KEY_WORDS = {
 } as const;
 
 /** The key beside the map: each sentence of the authored caption next to the mark it describes. */
-function legend(): string {
+function legend(lead = ''): string {
   const mark = (body: string): string => `<svg class="ui-map__key-mark" viewBox="-12 -12 24 24" aria-hidden="true">${body}</svg>`;
   return (
-    '<figcaption class="ui-map__caption"><ul class="ui-map__key">' +
+    `<figcaption class="ui-map__caption">${lead}<ul class="ui-map__key">` +
     // Own classes, not `.ui-map__pip` / `.ui-map__pin`: harnesses find the real marks by those.
     `<li>${mark(`<path class="ui-map__key-pip" d="${PIP}"/>`)}<span>The arrow is you.</span></li>` +
     `<li>${mark(`<g class="ui-map__key-pin">${PIN}</g>`)}<span>The pin is your next step.</span></li>` +
@@ -168,7 +185,7 @@ function legend(): string {
   );
 }
 
-export function mapHTML(s: GameState, content: GuideContent, decor?: MapDecor): string {
+export function mapHTML(s: GameState, content: GuideContent, decor?: MapDecor, hop?: MapHop): string {
   builds += 1;
   const visited = content.zones.filter((z) => s.visited[z.id] === true).length;
 
@@ -202,9 +219,9 @@ export function mapHTML(s: GameState, content: GuideContent, decor?: MapDecor): 
     `<svg class="ui-map__svg" viewBox="0 0 ${VIEW_W} ${VIEW_H}" xmlns="http://www.w3.org/2000/svg">` +
     `<g class="ui-map__land">${land}</g>` +
     `${decor ? trailPaths(s, content, decor) : ''}${anchors}` +
-    `<g class="ui-map__zones">${placeNames(s, content, decor)}</g>` +
+    `<g class="ui-map__zones">${placeNames(s, content, decor, hop?.at ?? null)}</g>` +
     `<g class="ui-map__found-layer">${found}</g>` +
     `${sidePin(errandLineFor(content).current(), main?.target ?? null, px, py)}${pin(main)}${pip}` +
-    `</svg>${legend()}</figure>`
+    `</svg>${legend(hopLine(hop))}</figure>`
   );
 }

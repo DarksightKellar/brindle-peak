@@ -12,6 +12,7 @@
 .ui-hud__bar { width: 112px; height: 8px; background: rgba(30, 42, 68, 0.55); border: 1px solid var(--snow-deep); transition: width 300ms ease-out; }
 .ui-hud__bar i { display: block; height: 100%; background: var(--lantern); }
 .ui-hud__breath { font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; padding: 0 5px; background: var(--panel); }
+.ui-hud__stamina:not(.is-tired):not(.is-spent) .ui-hud__breath { color: var(--snow-mid); } /* just naming the bar while it is spent */
 .ui-hud__feathers, .ui-hud__bells { display: flex; align-items: center; gap: 5px; white-space: nowrap; padding: 1px 6px 1px 4px; font-size: 12px; color: var(--snow-lt); background: var(--panel); border: 1px solid var(--snow-sh); }
 .ui-hud__ficon { display: flex; color: var(--lantern); }
 .ui-hud__fnum { font-weight: 700; color: var(--snow-hi); }
@@ -91,6 +92,8 @@
    the two never sit on top of each other. The next-step line starts with the same mark. */
 .ui-hud__compass-side, .ui-hud__next::before { width: 8px; height: 8px; transform: rotate(45deg); background: var(--amber); border: 1px solid #5E3E27; box-sizing: border-box; }
 .ui-hud__compass-side { position: absolute; z-index: 1; top: 13px; margin-left: -4px; }
+/* A thing to do nearby (hudNearby.ts): the world gem's green, small, riding the strip's middle. */
+.ui-hud__compass-todo { position: absolute; top: 5px; width: 7px; height: 7px; margin-left: -4px; transform: rotate(45deg); background: #7FE3C0; border: 1px solid #2E6B5A; box-sizing: border-box; }
 .ui-hud__compass-side.is-behind { background: var(--panel); border-color: var(--amber); }
 .ui-hud__next::before { content: ''; display: inline-block; margin: 0 8px 1px 0; }
 /* With no story step to point at, the errand is the goal: its mark is the goal's. */

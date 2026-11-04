@@ -16,7 +16,42 @@ const NANA_HEARD_MAX = 2;
 /** Every trail post. `state.lanterns` holds only the ones Pip lit; the valley lights the rest. */
 const POSTS = PICKUPS.filter((p) => p.kind === 'lantern').length;
 
+/**
+ * The roll-call's voices, by node, and who speaks each. A voice is heard only from someone Pip has met:
+ * critic round 5 heard Orla, Skiff, Ivy, Wren and Gus answer as old friends on a run that had met none of
+ * them. Bram is not here: the story runs through his woodstore, so every run has met him.
+ */
+export const RADIO_VOICES: Readonly<Record<string, string>> = {
+  'edda-line-orla': 'orla',
+  'edda-line-skiff': 'skiff',
+  'edda-line-ivy': 'ivy',
+  'edda-line-wren': 'wren',
+  'edda-line-gus': 'gus',
+};
+
+/** How Edda names a voice that stayed off the air, and where to find them. */
+const RADIO_WHERE: Readonly<Record<string, string>> = {
+  orla: 'Orla at the hamlet bakery',
+  skiff: 'Skiff out on the Frozen Reach',
+  ivy: 'Ivy at the springs',
+  wren: 'Wren in the pines',
+  gus: 'Gus at the bell shop',
+};
+
+/** Nodes a run passes over, by id: a roll-call voice Pip has never met (see RADIO_VOICES). */
+export const DIALOGUE_SKIPS: Readonly<Record<string, (s: GameState) => boolean>> = Object.fromEntries(
+  Object.entries(RADIO_VOICES).map(([node, npc]) => [node, (s: GameState) => s.talked[npc] !== true]),
+);
+
 export const DIALOGUE_FILLS: Readonly<Record<string, (s: GameState) => string[]>> = {
+  // Edda signs off knowing who stayed quiet because Pip has not met them, and says where they are: the
+  // roll-call ends by pointing at the valley still to see.
+  'radio-unmet': (s) => {
+    const unmet = Object.values(RADIO_VOICES).filter((npc) => s.talked[npc] !== true).map((npc) => RADIO_WHERE[npc]);
+    if (unmet.length === 0) return [];
+    const list = unmet.length === 1 ? unmet[0] : `${unmet.slice(0, -1).join(', ')} and ${unmet[unmet.length - 1]}`;
+    return [`There's more of the valley than came on tonight. ${list[0].toUpperCase()}${list.slice(1)}, for a start.`, "Go and say hello. They'll want to meet the bird who fixed the line."];
+  },
   // In the card's order, so the threads between two people come first.
   'nana-heard': (s) =>
     VALLEY_LINES.map(([quest]) => quest)

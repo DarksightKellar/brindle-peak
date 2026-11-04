@@ -85,6 +85,14 @@ export function createMechanics(deps: MechanicsDeps): Mechanics {
         if (p.step.gives) {
           bus.emit('toast', { text: `Got: ${itemName(p.step.gives.item)}`, icon: 'quest', tier: 'discovery' });
         }
+        // An errand moved on by something Pip did out in the valley, not by a talk, says so and says
+        // what comes next. Critic round 5 missed seven pinecones of eight, saw the errand move on, and
+        // could not tell whether the toss had counted: Tamsin only asked for a go at it.
+        const def = QUESTS.find((q) => q.id === p.quest);
+        const next = def?.steps[p.index + 1];
+        if (def && def.main !== true && p.step.when.kind !== 'talked' && next) {
+          bus.emit('toast', { text: `${def.title} — ${next.text}`, icon: 'quest', tier: 'milestone' });
+        }
       }
       for (const id of outcome.completedQuests) {
         bus.emit('quest:completed', { id });

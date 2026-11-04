@@ -19,9 +19,14 @@ import { icon } from './icons';
 export const FEATHER_HOLD_MS = 2600;
 
 /**
- * The bar's one word: puffing when breath is low, winded when it has run out.
+ * The bar's one word: what the bar is while it is being spent, puffing when breath is low, winded when
+ * it has run out. Critic round 5 ran up the climb into "WINDED" with no warning and nothing on screen
+ * saying what the bar was.
  */
-export const BREATH_WORDS = { tired: 'Puffing', spent: 'Winded' } as const;
+export const BREATH_WORDS = { using: 'Breath', tired: 'Puffing', spent: 'Winded' } as const;
+
+/** Below this share of a full bar, Pip is puffing: a warning a few seconds of sprint before winded. */
+export const PUFFING = 0.35;
 
 /** Bar length in CSS px: the starting breath, plus a step per feather's worth. */
 const BAR_BASE_PX = 112;
@@ -114,13 +119,14 @@ export function createHudStamina(layer: HTMLElement): HudStamina {
       updateFeathers(s, performance.now());
       updateBells(s);
 
-      // Tiredness has to be visible before it stops you: the bar changes at the moment a jump or a
-      // flap would be refused, the only threshold that matters.
-      const tired = p.stamina < TUNING.drainJump;
+      // Tiredness has to be visible before it stops you. Winded is the moment a flap would be refused;
+      // puffing comes well before it. It used to sit below winded (half a jump's breath against a
+      // flap's), so it could never show and the bar went straight from full colour to winded.
       const spent = p.stamina < TUNING.drainFlap;
+      const tired = !spent && fill < PUFFING;
       stack.classList.toggle('is-spent', spent);
-      stack.classList.toggle('is-tired', tired && !spent);
-      const word = spent ? BREATH_WORDS.spent : tired ? BREATH_WORDS.tired : '';
+      stack.classList.toggle('is-tired', tired);
+      const word = spent ? BREATH_WORDS.spent : tired ? BREATH_WORDS.tired : fill < 0.995 ? BREATH_WORDS.using : '';
       if (word !== lastWord) {
         lastWord = word;
         breath.textContent = word;

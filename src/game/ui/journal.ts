@@ -18,7 +18,7 @@ import { ACHIEVEMENTS } from '../../data/achievements';
 import { FISH } from '../../data/fish';
 import { QUESTS } from '../../data/quests';
 import { errandLineFor } from './errandLine';
-import { mapHTML } from './journalMap';
+import { mapHTML, type MapHop } from './journalMap';
 import type { JournalContent, JournalModel } from './journalModel';
 import { formatJournal } from './journalModel';
 import { achHTML, fishHTML, notesHTML, questsHTML, settingsHTML } from './journalTabs';
@@ -31,6 +31,15 @@ export { FEATHERS_TOTAL, formatJournal, formatPlaytime } from './journalModel';
 export const TABS = ['Field Notes', 'Map', 'Quests', 'Fish', 'Achievements', 'Settings'] as const;
 export type JournalTab = (typeof TABS)[number];
 
+/** The map page's hop (session/travel.ts): where Pip can go, why not, and going. */
+export interface JournalTravel {
+  /** Walked places Pip can hop to now, in list order. */
+  places(s: GameState): readonly { zone: string; name: string }[];
+  /** Why no hop can be made right now, or null. */
+  blocked(s: GameState): string | null;
+  go(zone: string): void;
+}
+
 export interface Journal {
   /** Toggle. When opening, start on `on` if given, else on whichever page was last read. */
   toggle(s: GameState, on?: JournalTab): void;
@@ -39,10 +48,12 @@ export interface Journal {
   turnPage(dir: number): void;
   /** Up/down: scroll a long page by `px` (negative is up). */
   scroll(px: number): void;
-  /** Up/down on the Quests page: move the errand cursor. False when there is nothing to pick. */
+  /** Up/down on the Quests page (the errand cursor) or the Map (the place to hop to). False when there is nothing to pick. */
   select(dir: number): boolean;
-  /** E/Enter on the Quests page: follow the errand under the cursor. */
+  /** E/Enter: follow the errand under the cursor, or hop to the picked place. */
   activate(s: GameState): void;
+  /** Wire the map's hop; until then the map offers none. */
+  setTravel(t: JournalTravel): void;
   currentTab(): JournalTab;
   isOpen(): boolean;
   rerender(s: GameState): void;
@@ -56,13 +67,14 @@ function tabHTML(
   content: JournalContent,
   tracked: string | null,
   cursor: string | null,
+  hop: MapHop | undefined,
 ): string {
   switch (tab) {
     case 'Field Notes':
       return notesHTML(m, content.prints?.() ?? []);
     case 'Map':
       return content.map
-        ? mapHTML(s, content.map, content.mapDecor?.())
+        ? mapHTML(s, content.map, content.mapDecor?.(), hop)
         : '<p class="ui-empty">No map to draw: the valley content is not loaded.</p>';
     case 'Quests':
       return questsHTML(m, tracked, cursor);
@@ -79,7 +91,7 @@ function tabHTML(
  * Everything the six pages read, flattened. Cheap on purpose: a few dozen short strings, built only
  * while the journal is open.
  */
-function signature(tab: JournalTab, s: GameState, tracked: string | null): string {
+function signature(tab: JournalTab, s: GameState, tracked: string | null, hopAt: string | null): string {
   const quests = Object.entries(s.quests).map(([id, q]) => `${id}:${q.status}:${q.step}`);
   const counters = Object.entries(s.counters).map(([k, v]) => `${k}=${v}`);
   // Playtime is printed on Field Notes only. Carrying it in every page's signature repainted the map
@@ -88,6 +100,7 @@ function signature(tab: JournalTab, s: GameState, tracked: string | null): strin
   return [
     tab,
     tracked,
+    hopAt,
     clock,
     s.feathers,
     s.bells,
@@ -130,6 +143,16 @@ export function createJournal(root: HTMLElement, content: JournalContent = {}): 
   /** The errand under the Quests page's cursor; the tracked one when the page opens. */
   let cursor: string | null = null;
   let pickable: string[] = [];
+  let travel: JournalTravel | null = null;
+  /** The place under the Map page's cursor, by zone id; null until Up/Down picks one. */
+  let hopAt: string | null = null;
+
+  const hopFor = (s: GameState): MapHop | undefined => {
+    if (!travel) return undefined;
+    const places = travel.places(s);
+    if (hopAt !== null && !places.some((p) => p.zone === hopAt)) hopAt = null;
+    return { places, at: hopAt, blocked: travel.blocked(s) };
+  };
 
   const paint = (s: GameState): void => {
     state = s;
@@ -140,8 +163,8 @@ export function createJournal(root: HTMLElement, content: JournalContent = {}): 
       cursor = tracked !== null && pickable.includes(tracked) ? tracked : pickable[0] ?? null;
     }
     for (const [i, t] of TABS.entries()) tabButtons[i].classList.toggle('is-on', t === tab);
-    body.innerHTML = tabHTML(tab, m, s, src, errands?.trackedId() ?? null, cursor);
-    lastSig = signature(tab, s, errands?.trackedId() ?? null);
+    body.innerHTML = tabHTML(tab, m, s, src, errands?.trackedId() ?? null, cursor, tab === 'Map' ? hopFor(s) : undefined);
+    lastSig = signature(tab, s, errands?.trackedId() ?? null, hopAt);
     body.querySelector('.ui-quest.is-cursor')?.scrollIntoView?.({ block: 'nearest' });
   };
 
@@ -175,6 +198,10 @@ export function createJournal(root: HTMLElement, content: JournalContent = {}): 
       if (!opening) return;
       if (on !== undefined) tab = on;
       cursor = null;
+      // The map opens with the tracked errand's place picked, when it is one Pip can hop to: the HUD's
+      // " · M to go back" is then two keys, M and E.
+      const errandZone = errands?.current()?.zone ?? null;
+      hopAt = tab === 'Map' && travel && errandZone !== null && travel.places(s).some((p) => p.zone === errandZone) ? errandZone : null;
       paint(s);
       body.scrollTop = 0;
     },
@@ -191,6 +218,15 @@ export function createJournal(root: HTMLElement, content: JournalContent = {}): 
       body.scrollTop += px;
     },
     select(dir: number): boolean {
+      if (tab === 'Map' && travel && state) {
+        const places = travel.places(state);
+        if (places.length === 0) return false;
+        const at = hopAt === null ? -1 : places.findIndex((p) => p.zone === hopAt);
+        const next = at < 0 ? (dir > 0 ? 0 : places.length - 1) : Math.max(0, Math.min(places.length - 1, at + Math.sign(dir)));
+        hopAt = places[next].zone;
+        paint(state);
+        return true;
+      }
       if (tab !== 'Quests' || pickable.length === 0 || !state) return false;
       const at = cursor === null ? -1 : pickable.indexOf(cursor);
       const next = Math.max(0, Math.min(pickable.length - 1, at + Math.sign(dir)));
@@ -199,8 +235,18 @@ export function createJournal(root: HTMLElement, content: JournalContent = {}): 
       return true;
     },
     activate(s: GameState): void {
+      if (tab === 'Map') {
+        if (!travel || hopAt === null || travel.blocked(s) !== null) return;
+        const zone = hopAt;
+        hopAt = null;
+        travel.go(zone);
+        return;
+      }
       if (tab !== 'Quests' || cursor === null) return;
       follow(s, cursor);
+    },
+    setTravel(t: JournalTravel): void {
+      travel = t;
     },
     currentTab(): JournalTab {
       return tab;
@@ -210,7 +256,7 @@ export function createJournal(root: HTMLElement, content: JournalContent = {}): 
     },
     rerender(s: GameState): void {
       if (rootEl.hidden) return;
-      const sig = signature(tab, s, errands?.trackedId() ?? null);
+      const sig = signature(tab, s, errands?.trackedId() ?? null, hopAt);
       if (sig === lastSig) return;
       paint(s);
     },

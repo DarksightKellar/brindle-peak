@@ -31,6 +31,14 @@
   paint-order: stroke; stroke: var(--shadow); stroke-width: 3px; stroke-linejoin: round;
 }
 .ui-map__name.is-unwalked { fill: var(--snow-sh); font-weight: 400; }
+/* The place picked to go back to (session/travel.ts): lantern-lit name and a ring round its ground. */
+.ui-map__name.is-hop { fill: var(--lantern); }
+.ui-map__zone.is-hop { stroke: var(--lantern); stroke-width: 1.5; stroke-dasharray: 3 3; opacity: 0.8; }
+.ui-map__hop { margin: 0 0 12px; padding: 6px 8px; border: 1px solid var(--snow-sh); color: var(--snow-lt); font-size: 11px; line-height: 1.5; }
+.ui-map__hop.is-picked { border-color: var(--lantern); color: var(--snow-hi); }
+.ui-map__hop.is-picked b { color: var(--lantern); }
+.ui-map__hop.is-blocked { color: var(--snow-mid); }
+.ui-map__hop kbd { padding: 0 3px; border: 1px solid var(--snow-sh); font-family: var(--mono); font-size: 10px; }
 
 /* The whole path is there from the first look; where you have walked it, it is brighter. */
 .ui-map__trail {

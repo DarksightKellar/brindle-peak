@@ -163,15 +163,15 @@ export class SnowmanActivity implements ActivityInstance {
     }
     if (out.length === 0) out.push({ shape: 'lump', look: 'empty', keep: this.def.id, x: 0, y: 0, z: 0 });
     if (this.phase !== 'build') return out;
-    // Where the ball goes: a ring on the snow, which lights and gains a bobbing light once the ball
-    // in hand is big enough; for the face, the light hangs where the face goes.
+    // Where the ball goes: a lit ring on the snow with a light bobbing over it, from the first step.
+    // Critic round 5 rolled for twenty seconds before it knew where the ball was going: the ring was
+    // a faint white circle and the light only came on once the ball was full. Both are up from the
+    // start now; a full ball brightens them, and for the face the light hangs where the face goes.
     const full = b !== null && b.r >= this.size(this.stage) - 1e-6;
     const at = this.site.at;
-    out.push({ shape: 'ring', look: 'halo', x: at.x, y: this.ground, z: at.z, size: 1.3, strength: full ? 1 : 0.2 });
-    if (full || !b) {
-      const lift = DOT_LIFT[this.stage] ?? 2.6;
-      out.push({ shape: 'float', look: 'dot', x: at.x, y: this.ground + lift + 0.12 * Math.sin(this.elapsed * 4), z: at.z, size: 1.6, strength: 1 });
-    }
+    out.push({ shape: 'ring', look: 'halo', x: at.x, y: this.ground, z: at.z, size: 1.3, strength: full || !b ? 1 : 0.65 });
+    const lift = DOT_LIFT[this.stage] ?? 2.6;
+    out.push({ shape: 'float', look: 'dot', x: at.x, y: this.ground + lift + 0.12 * Math.sin(this.elapsed * 4), z: at.z, size: full || !b ? 1.6 : 1.2, strength: 1 });
     return out;
   }
 

@@ -35,6 +35,13 @@ export interface DialogueView {
 
 const stub = (node: DialogueNode, id: string): DialogueNode => ({ id, speaker: node.speaker, lines: [] });
 
+/**
+ * Seconds the choices are up before E takes one. Critic round 5 took on three errands it meant to read
+ * past: the E that finished the last line landed on "i'll do it." a beat later. A press this soon is the
+ * reader's, not a decision, and it starts the wait again.
+ */
+export const CHOICE_ARM = 0.45;
+
 /** The corner hint while choices are up: the pause menu's "↑↓ choose", and E to take one. */
 const CHOOSE_HINT = '<kbd>↑↓</kbd> choose <kbd>E</kbd>';
 
@@ -63,6 +70,8 @@ export function createDialogue(root: HTMLElement): DialogueView {
   let line = 0;
   let voiced = 0;
   let selected = 0;
+  /** Seconds the current choices have been on screen. */
+  let choiceAge = 0;
   let chirpFn: (syllables: number) => void = () => undefined;
 
   const lineText = (): string => (node && node.lines[line]) || '';
@@ -94,6 +103,7 @@ export function createDialogue(root: HTMLElement): DialogueView {
     }
     if (!show) {
       choiceEl.replaceChildren();
+      choiceAge = 0;
       return;
     }
     if (choiceEl.childElementCount > 0) return;
@@ -137,6 +147,8 @@ export function createDialogue(root: HTMLElement): DialogueView {
       if (!tw.complete) tw.update(Math.min(0.05, dt));
       paint();
       renderChoices();
+      if (choiceEl.childElementCount > 0) choiceAge += dt;
+      choiceEl.classList.toggle('is-arming', choiceEl.childElementCount > 0 && choiceAge < CHOICE_ARM);
     },
 
     selectChoice(delta: number): boolean {
@@ -166,6 +178,12 @@ export function createDialogue(root: HTMLElement): DialogueView {
         return node;
       }
       if ((node.choices?.length ?? 0) > 0) {
+        // A press while they are still arming starts the wait again: mashing through a conversation
+        // never lands on a choice, and a press after a breath does.
+        if (choiceAge < CHOICE_ARM) {
+          choiceAge = 0;
+          return node;
+        }
         // A/D move the highlight, E takes it. Taking choices[0] unconditionally made the second
         // option unreachable once the mouse was gone.
         const pick = node.choices?.[selected] ?? node.choices?.[0];

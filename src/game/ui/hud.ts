@@ -25,6 +25,9 @@ import { errandLineFor } from './errandLine';
 import { goalLine } from './hudText';
 import { createHudCompass } from './hudCompass';
 import { createHudStamina } from './hudStamina';
+import { createNearbyNotice, nearbyTodo } from './hudNearby';
+import { hopBlocked, hopPlaces } from '../session/travel';
+import { ACTIVITIES } from '../../data/activities';
 import { createFeatherNotice } from './hudFeather';
 
 export interface Hud {
@@ -63,6 +66,19 @@ export interface Hud {
   destroy(): void;
 }
 
+/** Farther than this, an errand step in ground already walked is worth a hop rather than a walk. */
+const HOP_HINT = 150;
+
+/**
+ * " · M, E to go back" on an errand step that lies far off in a place Pip has already walked. Critic round 6
+ * walked 180 units back to Ilsa and to Hollis with the map hop one key away and never thought of it.
+ */
+function hopHint(s: GameState, step: ReturnType<typeof nextStepFor>): string {
+  if (!step || step.zone === null || (step.distance ?? 0) < HOP_HINT) return '';
+  if (hopBlocked(s, false) !== null || !hopPlaces(s).includes(step.zone)) return '';
+  return ' · M, E to go back';
+}
+
 export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
   const layer = document.createElement('div');
   layer.className = 'ui-hud';
@@ -79,6 +95,7 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
   const stamina = createHudStamina(layer);
   const compass = createHudCompass(layer);
   const featherNotice = createFeatherNotice();
+  const nearbyNotice = guide ? createNearbyNotice(ACTIVITIES) : null;
 
   const goalEl = layer.querySelector('.ui-hud__goal') as HTMLElement;
   const nextEl = layer.querySelector('.ui-hud__next') as HTMLElement;
@@ -140,13 +157,17 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
         errandTarget = step?.target ?? null;
         heldTarget = liveTarget();
         // The feather's one line outranks an errand for its few seconds; the errand is still in the journal.
+        // So does a thing to do coming near for the first time (hudNearby.ts), for its few seconds.
+        const nearby = nextAllowed && feather.line === '' ? nearbyNotice?.update(s, lastFrom, performance.now()) ?? '' : '';
         if (feather.line !== '') writeNext(feather.line, null);
-        else writeNext(formatNextStep(step), step);
+        else if (nearby !== '') writeNext(nearby, null);
+        else writeNext(`${formatNextStep(step)}${hopHint(s, step)}`, step);
       }
       const side = nextAllowed && errandTarget && errandTarget !== heldTarget ? errandTarget : null;
       // With no story point the errand is the goal, and its line wears the goal's mark, not its own.
       nextEl.classList.toggle('is-goal', errandTarget !== null && errandTarget === heldTarget);
-      compass.update({ from: lastFrom, viewYaw, goal: heldTarget, side, feather: feather.feather });
+      const todo = nextAllowed && !held ? nearbyTodo(ACTIVITIES, s, lastFrom) : [];
+      compass.update({ from: lastFrom, viewYaw, goal: heldTarget, side, feather: feather.feather, todo });
       for (const fn of frameListeners) fn(heldTarget, p.pos, held, side);
     },
 

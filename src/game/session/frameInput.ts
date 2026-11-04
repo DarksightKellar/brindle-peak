@@ -33,7 +33,13 @@ export interface FrameInputDeps {
  * `blocked` means the player must not move, collect or interact this frame — an overlay is up, or an
  * activity that is not free-roam is running. It does not mean time stops: playtime advances either way.
  */
-export type FrameInput = (input: InputFrame) => boolean;
+export type FrameInput = (input: InputFrame, dt: number) => boolean;
+
+/**
+ * Seconds after a conversation closes before E reaches the world again. Critic round 5 pressed E once too
+ * often on a last line and the villager started over on their idle lines.
+ */
+export const TALK_REST = 0.6;
 
 /** One per session, so the edge memory below belongs to this run rather than to the module. */
 export function createFrameInput(d: FrameInputDeps): FrameInput {
@@ -44,8 +50,10 @@ export function createFrameInput(d: FrameInputDeps): FrameInput {
    * options at frame rate. Dialogue selection is an edge, not a level.
    */
   let lastChoiceSign = 0;
+  let sinceTalk = Number.POSITIVE_INFINITY;
 
-  return (input) => {
+  return (input, dt) => {
+    sinceTalk = ui.dialogue.isOpen() ? 0 : sinceTalk + dt;
     const blocked = ui.dialogue.isOpen() || ui.journal.isOpen() || ui.menu.isOpen()
       || ui.ending.isOpen() || (d.runner.isRunning() && !d.runner.freeRoam());
 
@@ -81,7 +89,7 @@ export function createFrameInput(d: FrameInputDeps): FrameInput {
       if (input.interactPressed) d.flow.advance();
     } else {
       lastChoiceSign = 0;
-      if (!blocked && input.interactPressed) d.interact();
+      if (!blocked && input.interactPressed && sinceTalk >= TALK_REST) d.interact();
     }
 
     // The goal line and the compass wait for the conversation to end (hud.ts `setHeld`). Set after the

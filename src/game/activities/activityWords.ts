@@ -31,8 +31,8 @@ export const WORDS = {
   woodEarly: 'Too soon. Let it swing square first',
   woodLate: 'Too late. Wait for it to swing back square',
   // Snowman, rolled: the ball is growing; it is big enough to push onto the spot; the face goes on with E.
-  snowRoll: 'Keep rolling. It grows as it goes',
-  snowPush: 'Big enough. Push it onto the spot',
+  snowRoll: 'Keep rolling it bigger. It goes on the lit ring',
+  snowPush: 'Big enough. Push it onto the lit ring',
   snowFace: 'Press E to give it a face',
   // Build results
   buildResult: { woodpile: 'Stacked straight. Countable at last.', snowman: 'One snowman, standing.', dam: 'The dam is whole again.' } as Record<string, string>,
@@ -66,5 +66,5 @@ export const HINT_FOR_ID: Readonly<Record<string, string>> = {
   'kettles-otter-slide': 'A / D steer. Keep off the edges, and ride through the rings for speed.',
   'reach-sled-hill': 'A / D steer. Keep off the edges, and ride through the rings for speed.',
   'hearth-kindling': 'Each log swings over the pile. Press E when it hangs square.',
-  'hamlet-snowman': 'Walk to roll a ball bigger, then push it onto the spot. Three balls, then E for the face.',
+  'hamlet-snowman': 'Walk to roll a ball bigger, then push it onto the lit ring. Three balls, then E for the face.',
 };

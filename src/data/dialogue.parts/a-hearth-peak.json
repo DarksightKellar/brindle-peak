@@ -475,11 +475,12 @@
     "id": "edda-line-end",
     "speaker": "edda",
     "lines": [
-      "That's the valley. Every voice of it, and the line holding.",
+      "That's the valley, and the line holding.",
       "Thirty winters I've kept this set. Never heard it so crowded.",
       "Go on home, Pip. Follow the lights down.",
       "I'll mind the set. Brindle Peak, over and out."
-    ]
+    ],
+    "fill": "radio-unmet"
   },
   {
     "id": "edda-idle",

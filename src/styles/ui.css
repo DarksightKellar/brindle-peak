@@ -81,6 +81,7 @@
 .ui-dlg__choice { padding: 5px 12px; background: transparent; border: 1px solid var(--snow-sh); color: var(--lantern); cursor: pointer; clip-path: var(--tag); }
 .ui-dlg__choice:hover, .ui-dlg__choice.is-picked { background: rgba(255, 196, 106, 0.16); border-color: var(--lantern); }
 .ui-dlg__choice.is-sel { background: rgba(255, 196, 106, 0.22); border-color: var(--lantern); color: var(--snow-hi); } /* ↑↓ move this; unseen, the keys are guesswork */
+.ui-dlg__choices.is-arming { opacity: 0.55; } /* just appeared: E is still the reader's (dialogue.ts CHOICE_ARM) */
 .ui-dlg__hint { position: absolute; right: 16px; bottom: 6px; padding: 0 4px; border: 1px solid var(--snow-sh); color: var(--snow-mid); font-size: 10px; }
 .ui-dlg__hint.is-choosing { display: flex; align-items: center; gap: 6px; padding: 2px 6px; border-color: var(--lantern); color: var(--snow-hi); font-size: 12px; } .ui-dlg__hint kbd { font: inherit; font-weight: 700; padding: 0 4px; background: var(--lantern); color: var(--night); }
 
@@ -162,9 +163,10 @@
    drew nothing, so there was no title, instruction, score or target. Text-first on purpose — the
    thing being communicated is timing and counting, and it must be legible at 384x216 upscaled. */
 /* Top right, clear of Pip and the path ahead: centred low, it sat over both (critic round 4). Once play
-   is under way it drops the kicker and the instruction and keeps only what changes. */
+   is under way it drops the kicker and the instruction and keeps only what changes. Below the goal,
+   compass and next lines: level with them, it covered the end of the goal line (critic round 6). */
 .ui-activity {
-  position: absolute; right: 16px; top: 16px;
+  position: absolute; right: 16px; top: 96px;
   min-width: 220px; max-width: 300px; padding: 10px 14px 8px;
   background: var(--panel); border: 1px solid var(--snow-sh);
   font-family: var(--mono); color: var(--snow-mid); text-align: center;

@@ -2,7 +2,7 @@
  * Toasts — four volumes, not one (GDD R5 / ART_BIBLE §9).
  *
  *   pickup    no toast at all; the caller owns the feedback. push() returns immediately.
- *   discovery one small line, no icon frame, no sound hook, 1.8 s.
+ *   discovery one small line, no icon frame, no sound hook, 3 s.
  *   milestone icon + name + one line, 2.4 s.
  *   finale    same as milestone, larger, 3.5 s.
  *
@@ -21,7 +21,8 @@ import { icon as svgIcon } from './icons';
 export const MAX_TOASTS = 3;
 export const TOAST_LIFE: Readonly<Record<RewardTier, number>> = {
   pickup: 0,
-  discovery: 1.8,
+  // 1.8 s was gone before it could be read: "Got: Nana's Camera" was fading out as the next toast arrived.
+  discovery: 3,
   milestone: 2.4,
   finale: 3.5,
 };

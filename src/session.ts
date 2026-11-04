@@ -21,7 +21,7 @@
  * function, and each module can now be read without the other systems in scope.
  */
 
-import type { ActivityInstance, GameState, InputFrame, PlayerState } from './core/contracts';
+import type { ActivityInstance, GameState, InputFrame, PlayerState, ZoneId } from './core/contracts';
 import { emptyInput, MAX_STEP_DT } from './core/contracts';
 import { PEAK, WORLD_SIZE } from './data/zones';
 import { NPCS } from './data/npcs';
@@ -45,7 +45,7 @@ import { advancePlayer } from './game/session/playerAdvance';
 import { pushFrame } from './game/session/frameFeedback';
 import { disposeSession } from './game/session/dispose';
 import { createDialogueFlow } from './game/session/dialogueFlow';
-import { DIALOGUE_FILLS } from './data/dialogueFills';
+import { DIALOGUE_FILLS, DIALOGUE_SKIPS } from './data/dialogueFills';
 import { createOverlayRouter } from './game/session/overlays';
 import { interact as interactVerb } from './game/session/interactVerb';
 import { inPickupRange, LANTERN_PASS } from './game/session/interact';
@@ -58,6 +58,11 @@ import { savesAllowed } from './game/session/saveGuard';
 import { createDuskStage } from './game/render/dusk';
 import { createViewfinder } from './game/ui/viewfinder';
 import { createPromptAnchor } from './game/ui/promptAnchor';
+import { hopBlocked, hopPlaces, hopTo } from './game/session/travel';
+import { ZONE_NAMES } from './data/zoneNames';
+import { ACTIVITIES } from './data/activities';
+import { createActivityGems } from './game/world/activityGems';
+import { createPipGlow } from './game/render/pipGlow';
 
 export interface Session {
   state: GameState;
@@ -124,6 +129,7 @@ export function createSession(opts: SessionOptions): Session {
   const flow = createDialogueFlow({
     dialogue: ui.dialogue, audio, npcs: NPCS, nodes: DIALOGUE_NODES,
     fill: (source) => DIALOGUE_FILLS[source]?.(state) ?? [],
+    skip: (id) => DIALOGUE_SKIPS[id]?.(state) === true,
   });
   // Two-shots, the radio finale's staged shot, and when the ending card may show (camera/director.ts).
   const director = createCameraDirector({ rig, flow, ending: ui.ending, player, npcs: NPCS, terrain: sampler, mast: PEAK,
@@ -146,6 +152,17 @@ export function createSession(opts: SessionOptions): Session {
     },
   });
   const overlays = createOverlayRouter({ ui, state, isActivityRunning: () => runner.isRunning() });
+  // The map's hop back to walked ground (session/travel.ts). The journal closes and Pip stands there.
+  ui.journal.setTravel({
+    places: (s) => hopPlaces(s).map((zone) => ({ zone, name: ZONE_NAMES[zone] })),
+    blocked: (s) => hopBlocked(s, runner.isRunning() || flow.isOpen()),
+    go: (zone) => {
+      ui.journal.toggle(state);
+      hopTo(zone as ZoneId, player, (x, z) => sampler.heightAt(x, z));
+      rig.settle(player.facing);
+      audio.sfx('ui');
+    },
+  });
   // Guarded: reset suppresses writes before it clears the key, or the pagehide save rewrites the run.
   const persist = (): void => {
     if (savesAllowed()) store.persist();
@@ -154,6 +171,11 @@ export function createSession(opts: SessionOptions): Session {
   const interact = (): void => interactVerb({ state, player, bus, mech, world, interactions, flow, runner });
   const routeInput = createFrameInput({ ui, flow, runner, interact, state });
   mountGoalMarker({ scene: kit.scene, sampler, camera: kit.camera, hud: ui.hud, busy: () => runner.isRunning() });
+  // Things to do nearby, not yet done: a small green gem over each (world/activityGems.ts).
+  const gems = createActivityGems(sampler, ACTIVITIES);
+  kit.scene.add(gems.object);
+  // Nana's lantern lights Pip and the snow round it after dark (render/pipGlow.ts).
+  const glow = createPipGlow(kit.scene);
 
   const update = (raw: number, input: InputFrame): void => {
     const dt = Math.min(raw, MAX_STEP_DT * 4);
@@ -162,7 +184,7 @@ export function createSession(opts: SessionOptions): Session {
 
     // Press routing lives in frameInput.ts: the order (ending, menu/journal, dialogue, world) is the
     // part that breaks when it is edited in the middle of a 115-line function.
-    const blocked = routeInput(input);
+    const blocked = routeInput(input, dt);
 
     const gusting = state.zone === 'ridge' && elapsed % 9 < 3;
     // Movement is emptied behind an overlay, but look is not: see the camera note further down.
@@ -239,6 +261,7 @@ export function createSession(opts: SessionOptions): Session {
     finder.update(rig.viewBlend(), view?.centred === true);
     // After the rig has placed the camera: fade whatever now stands between it and the bird.
     updateViewFade(kit.camera, player.pos);
+    gems.update(dt, state, player.pos, kit.camera, !overlayOpen && !runner.isRunning());
     // After the rig, pinned over its target's head (ui/promptAnchor.ts); hidden while an activity runs.
     const shown = runner.isRunning() ? null : nearest;
     ui.hud.setPrompt(shown ? shown.prompt : null, shown ? promptAt(shown) : null);
@@ -251,7 +274,8 @@ export function createSession(opts: SessionOptions): Session {
     // State first, then feedback, then the save decision — the ordering rule lives in frameFeedback.ts.
     ui.hud.setViewYaw(view ? view.yaw : rig.yaw());
     pushFrame({ state, player, ui, mech, audio, store, persist, blocked, weather }, dt);
-    dusk.update(dt, state, elapsed);
+    const look = dusk.update(dt, state, elapsed);
+    glow.update(player.pos, look.dusk, state.abilities.lantern);
     pipeline.render();
   };
 

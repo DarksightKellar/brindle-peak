@@ -47,8 +47,8 @@ export interface ActivityRunnerDeps {
 
 /** Seconds the opening turn is held, so the camera has swung round before the player takes over. */
 const OPENING_TURN = 0.7;
-/** Seconds the result stays in the panel after a finish. */
-const RESULT_HOLD = 3.2;
+/** Seconds the result stays in the panel after a finish. 3.2 was gone before critic round 5 looked down at it. */
+const RESULT_HOLD = 5;
 
 export interface ActivityRunner {
   start(def: ActivityDef): void;

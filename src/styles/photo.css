@@ -33,10 +33,14 @@
     linear-gradient(var(--lantern), var(--lantern)) 100% center / 7px 2px no-repeat;
 }
 
+/* The errand line sits in the same band as the keys, and a framed shot has no use for it. */
+#ui:has(.ui-finder:not([hidden])) .ui-hud__next { visibility: hidden; }
+
+/* Under the frame's bottom edge: over its top edge, the keys sat on the compass (critic round 6). */
 .ui-finder__keys {
-  position: absolute; left: 50%; top: calc(11% - 22px); transform: translateX(-50%); margin: 0;
-  font-size: 10px; letter-spacing: 0.12em; color: var(--snow-mid); white-space: nowrap;
-  text-shadow: 0 1px 0 var(--shadow);
+  position: absolute; left: 50%; bottom: calc(11% - 22px); transform: translateX(-50%); margin: 0;
+  font-size: 10px; letter-spacing: 0.12em; color: var(--snow-lt); white-space: nowrap;
+  padding: 2px 8px; background: var(--panel); /* over snow the bare grey letters washed out */
 }
 
 /* The print (game/ui/polaroid.ts): a white-bordered photo tipped a few degrees, under the goal line and

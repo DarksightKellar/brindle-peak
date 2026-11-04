@@ -31,6 +31,11 @@ export interface CompassView {
   side: Point | null;
   /** A feather worth noticing: a feather glyph on the strip. */
   feather: Point | null;
+  /**
+   * Things to do nearby and not yet done (hudNearby.ts): a small green diamond each, the world gem's
+   * colour. Shown only while in front of the view; they do not pin to the edges like the goal.
+   */
+  todo?: readonly Point[];
 }
 
 export interface HudCompass {
@@ -62,6 +67,9 @@ const wrap = (a: number): number => Math.atan2(Math.sin(a), Math.cos(a));
 const leftOf = (rel: number): string => `${(50 + (Math.max(-HALF, Math.min(HALF, rel)) / HALF) * REACH).toFixed(1)}%`;
 /** Within this of dead astern the turn cue keeps the side it already shows. */
 const ASTERN = (Math.PI * 5) / 6;
+
+/** Most things-to-do marks the strip draws at once. */
+const TODO_MAX = 4;
 
 /** Eight named points and a tick every 15 degrees between them. */
 const NAMES: Readonly<Record<number, string>> = { 0: 'N', 45: 'NE', 90: 'E', 135: 'SE', 180: 'S', 225: 'SW', 270: 'W', 315: 'NW' };
@@ -96,6 +104,14 @@ export function createHudCompass(layer: HTMLElement): HudCompass {
   const side = el.querySelector('.ui-hud__compass-side') as HTMLElement;
   const feather = el.querySelector('.ui-hud__compass-feather') as HTMLElement;
   const turn = el.querySelector('.ui-hud__compass-turn') as HTMLElement;
+  const todo: HTMLElement[] = [];
+  for (let i = 0; i < TODO_MAX; i++) {
+    const t = document.createElement('i');
+    t.className = 'ui-hud__compass-todo';
+    t.hidden = true;
+    el.insertBefore(t, mark);
+    todo.push(t);
+  }
   /** -1 turn left, 1 turn right, 0 the goal is in front. */
   let turnSide = 0;
 
@@ -134,6 +150,13 @@ export function createHudCompass(layer: HTMLElement): HudCompass {
       }
       place(side, v.side, v);
       place(feather, v.feather, v);
+      for (const [i, node] of todo.entries()) {
+        const at = v.todo?.[i];
+        const rel = at ? bearing(at.x - v.from.x, at.z - v.from.z, v.viewYaw) : 0;
+        const shown = at !== undefined && Math.abs(rel) <= HALF;
+        if (shown) node.style.left = leftOf(rel);
+        if (node.hidden === shown) node.hidden = !shown;
+      }
       const rel = place(mark, v.goal, v);
       if (rel === null || v.goal === null) {
         dist.hidden = true;
