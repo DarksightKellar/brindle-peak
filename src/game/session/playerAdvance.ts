@@ -50,8 +50,10 @@ export function advancePlayer(d: AdvanceDeps): void {
   clampToWorld(player, d.worldSize);
   applySolidWorld(player, d.colliders, sampler, from);
 
-  if (!player.grounded) return;
-  const speed = Math.hypot(player.vel.x, player.vel.z);
+  if (!player.grounded || dt <= 0) return;
+  // Ground actually covered, not the speed the legs want: pushing into a wall or a rock keeps the
+  // velocity up while Pip goes nowhere, and a walk that goes nowhere makes no sound.
+  const speed = Math.hypot(player.pos.x - from.x, player.pos.z - from.z) / dt;
   if (speed <= 1.2) return;
   // Fire on the half-beat boundary only, so a held walk produces a rhythm instead of a buzz per frame.
   const beat = Math.floor(d.elapsed * 2.4);
