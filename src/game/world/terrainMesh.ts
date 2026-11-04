@@ -81,7 +81,7 @@ export function buildTerrainMesh(valley: TerrainSampler): THREE.Mesh {
     }
   }
 
-  const face = (a: number, b: number, c: number): void => {
+  const face = (a: number, b: number, c: number, quadWall: [number, number] | null): void => {
     const ax = -half + (a % res) * cell, az = -half + Math.floor(a / res) * cell;
     const bx = -half + (b % res) * cell, bz = -half + Math.floor(b / res) * cell;
     const cx = -half + (c % res) * cell, cz = -half + Math.floor(c / res) * cell;
@@ -95,7 +95,7 @@ export function buildTerrainMesh(valley: TerrainSampler): THREE.Mesh {
     // The texel grid, in world space, so the pattern is continuous across faces. Seen from above on
     // the ground; on a rock wall, from the side, so the strata in the rock map lie level across the
     // face instead of being smeared top to bottom into streaks by a map laid on from overhead.
-    const wall = surface === 'rock' ? wallAxis(ax, heights[a], az, bx, heights[b], bz, cx, heights[c], cz) : null;
+    const wall = surface === 'rock' ? quadWall : null;
     for (const [x, y, z] of [[ax, heights[a], az], [bx, heights[b], bz], [cx, heights[c], cz]]) {
       if (wall) bucket.uv.push((x * wall[0] + z * wall[1]) / GROUND_TILE_WORLD, y / GROUND_TILE_WORLD);
       else bucket.uv.push(x / GROUND_TILE_WORLD, z / GROUND_TILE_WORLD);
@@ -108,14 +108,21 @@ export function buildTerrainMesh(valley: TerrainSampler): THREE.Mesh {
       const v10 = v00 + 1;
       const v01 = v00 + res;
       const v11 = v01 + 1;
+      // A rock face's map is laid on from the side, along the level direction across it. Decided per
+      // triangle, a square on a slope near the threshold had one half mapped from the side (strata) and
+      // the other from above, and the slope drew as a checkerboard (critic round 11, the Windscar ramp).
+      // Both halves now share the square's own.
+      const gx = (heights[v10] + heights[v11] - heights[v00] - heights[v01]) / (2 * cell);
+      const gz = (heights[v01] + heights[v11] - heights[v00] - heights[v10]) / (2 * cell);
+      const quadWall = wallAxisOf(-gx, 1, -gz);
       // Counter-clockwise seen from above, so the front face is the walkable one; split along the
       // lower diagonal (groundHeight.ts).
       if (splitsAntiDiagonal(heights[v00], heights[v10], heights[v01], heights[v11])) {
-        face(v00, v01, v10);
-        face(v10, v01, v11);
+        face(v00, v01, v10, quadWall);
+        face(v10, v01, v11, quadWall);
       } else {
-        face(v00, v01, v11);
-        face(v00, v11, v10);
+        face(v00, v01, v11, quadWall);
+        face(v00, v11, v10, quadWall);
       }
     }
   }
@@ -161,10 +168,8 @@ export function buildTerrainMesh(valley: TerrainSampler): THREE.Mesh {
   return mesh;
 }
 
-/** For a face steeper than about 50 degrees, the level direction across it; null for anything gentler. */
-function wallAxis(ax: number, ay: number, az: number, bx: number, by: number, bz: number, cx: number, cy: number, cz: number): [number, number] | null {
-  const ux = bx - ax, uy = by - ay, uz = bz - az, wx = cx - ax, wy = cy - ay, wz = cz - az;
-  const nx = uy * wz - uz * wy, ny = uz * wx - ux * wz, nz = ux * wy - uy * wx;
+/** For a surface steeper than about 50 degrees, given its normal, the level direction across it; null for anything gentler. */
+function wallAxisOf(nx: number, ny: number, nz: number): [number, number] | null {
   const flat = Math.hypot(nx, nz);
   if (Math.abs(ny) > flat * 0.85) return null;
   return [-nz / flat, nx / flat];

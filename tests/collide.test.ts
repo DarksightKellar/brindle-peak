@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { resolveCollisions, type Collider } from '../src/core/player/collide';
+import { resolveCollisions, resolveWithSlip, type Collider } from '../src/core/player/collide';
 
 const PLAYER = 0.42;
 
@@ -133,5 +133,37 @@ describe('flying over low obstacles', () => {
     const p = { x: 0.1, z: 0 };
     const moved = resolveCollisions(p, PLAYER, [{ kind: 'circle', x: 0, z: 0, r: 0.6 }], 30);
     expect(moved).toBe(true);
+  });
+});
+
+describe('slipping round small props (critic round 11)', () => {
+  /** Walk straight along +z for `frames` steps of `step` units; return where the body ends. */
+  const walk = (colliders: Collider[], frames = 120, step = 0.08): { x: number; z: number } => {
+    const p = { x: 0, z: -3 };
+    const slip = { side: 1, frames: 0 };
+    for (let i = 0; i < frames; i++) {
+      const from = { x: p.x, z: p.z };
+      p.z += step;
+      resolveWithSlip(from, p, PLAYER, colliders, -Infinity, slip);
+    }
+    return p;
+  };
+
+  it('gets past a sign post walked into dead centre', () => {
+    expect(walk([{ kind: 'circle', x: 0, z: 0, r: 0.39 }]).z).toBeGreaterThan(1);
+  });
+
+  it('gets out of the notch between two rocks side by side', () => {
+    const rocks: Collider[] = [
+      { kind: 'circle', x: -0.48, z: 0, r: 0.39 },
+      { kind: 'circle', x: 0.48, z: 0, r: 0.39 },
+    ];
+    expect(walk(rocks).z).toBeGreaterThan(1);
+  });
+
+  it('still stops at a wall walked into head-on', () => {
+    const p = walk([{ kind: 'box', x: 0, z: 0, hw: 4, hd: 0.5, yaw: 0 }]);
+    expect(Math.abs(p.x)).toBeLessThan(0.01);
+    expect(p.z).toBeLessThan(-0.5);
   });
 });

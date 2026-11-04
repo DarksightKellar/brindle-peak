@@ -23,7 +23,7 @@ import { formatNextStep, nextStepFor } from '../../core/guide/nextStep';
 import { goalTarget } from '../../core/guide/goal';
 import { errandLineFor, type ErrandLine } from './errandLine';
 import { goalLine } from './hudText';
-import { createHudCompass } from './hudCompass';
+import { bearing, createHudCompass } from './hudCompass';
 import { createHudStamina } from './hudStamina';
 import { createNearbyNotice, NOTICE_RANGE, nearbyTodo } from './hudNearby';
 import { hopBlocked, hopPlaces } from '../session/travel';
@@ -132,6 +132,19 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
     return story ?? (nextAllowed ? errandTarget : null);
   };
 
+  /**
+   * Where the errand lies when its mark is off the compass strip. Critic round 11 saw the errand's
+   * diamond pinned to the strip's edge, read no way to turn, and walked away from it. The goal's own
+   * distance says "behind you"; the errand's line now says the same, and which way to turn.
+   */
+  const offStrip = (at: Vec2 | null): string => {
+    if (!at) return '';
+    const rel = bearing(at.x - lastFrom.x, at.z - lastFrom.z, viewYaw);
+    // The strip's own rule (hudCompass.ts): off its half of the horizon is "behind you".
+    if (Math.abs(rel) <= Math.PI / 2) return '';
+    return rel > 0 ? ' · behind you, turn right' : ' · behind you, turn left';
+  };
+
   const writeNext = (text: string, step: ReturnType<typeof nextStepFor>): void => {
     if (text !== lastNext) {
       lastNext = text;
@@ -176,7 +189,7 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
           : '';
         if (feather.line !== '') writeNext(feather.line, null);
         else if (nearby !== '') writeNext(nearby, null);
-        else writeNext(`${formatNextStep(step)}${hopHint(s, step)}`, step);
+        else writeNext(`${formatNextStep(step)}${offStrip(step?.target ?? null)}${hopHint(s, step)}`, step);
       }
       const side = nextAllowed && errandTarget && errandTarget !== heldTarget ? errandTarget : null;
       // With no story point the errand is the goal, and its line wears the goal's mark, not its own.

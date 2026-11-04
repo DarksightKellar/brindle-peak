@@ -61,12 +61,16 @@ export const ITEMS: readonly ItemDef[] = [
     name: 'Spare Batteries',
     desc: "Two squat cells from behind Bram's woodpile. Heavier than they look.",
     icon: 'M3 3h6v7H3zM5 1h2v2M5 6h2',
+    // Edda takes them at the mast, which is what finishes the climb.
+    handedOver: { kind: 'quest', id: 'the-climb' },
   },
   {
     id: 'rope',
     name: 'The Good Rope',
     desc: "Forty feet, coiled, no splices. Bram checked. He'll measure it back.",
     icon: 'M3 3c4 0 4 3 0 3s-4 3 0 3h6',
+    // Tuck takes it and hands back his key in the same talk.
+    handedOver: { kind: 'hasItem', id: 'key' },
   },
   {
     // Handed over with Nana's first errand (data/quests.ts the-line `gives`), so the camera every

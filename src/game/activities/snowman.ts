@@ -15,7 +15,7 @@
 
 import { angleDelta } from '../../core/contracts';
 import type {
-  ActivityDef, ActivityHost, ActivityInstance, ActivityReadout, ActivityResult, MarkerSpec, Vec3,
+  ActivityDef, ActivityHost, ActivityInstance, ActivityReadout, ActivityResult, MarkerSpec, Vec2, Vec3,
 } from '../../core/contracts';
 import type { Collider } from '../../core/player/collide';
 import type { PlacedMarker } from './markerLooks';
@@ -191,6 +191,11 @@ export class SnowmanActivity implements ActivityInstance {
     const lift = DOT_LIFT[this.stage] ?? 2.6;
     out.push({ shape: 'float', look: 'dot', x: at.x, y: this.ground + lift + 0.12 * Math.sin(this.elapsed * 4), z: at.z, size: full || !b ? 1.6 : 1.2, strength: 1 });
     return out;
+  }
+
+  /** The lit ring, while a ball is being rolled: critic round 11 had a full ball and no idea which way. */
+  compassTarget(): Vec2 | null {
+    return this.phase === 'build' && this.ball ? { x: this.site.at.x, z: this.site.at.z } : null;
   }
 
   progress(): ActivityReadout | null {

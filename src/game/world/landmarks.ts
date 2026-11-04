@@ -187,6 +187,10 @@ function springs(sampler: TerrainSampler): THREE.Group {
     }
     const mesh = b.finish('spring-basin');
     mesh.position.set(pool.x, y, pool.z);
+    // Knee-high stones, stepped over. On a slope the ring's bounding box grew tall enough to be boxed
+    // as a building (colliders.ts), a solid square over the Warm Pool whose corners pinned critic
+    // round 11 against the rocks beside it.
+    mesh.userData.noCollide = true;
     group.add(mesh);
   }
   return group;

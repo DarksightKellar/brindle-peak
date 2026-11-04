@@ -14,7 +14,7 @@ import { PEAK } from '../../data/zones';
 import { ENDING_QUEST } from '../../data/quests';
 import { PLACES } from '../../data/places';
 import { SPRING_POOLS } from '../world/landmarks';
-import { resolveCollisions, type Collider } from '../../core/player/collide';
+import { resolveCollisions, resolveWithSlip, type Collider, type Slip } from '../../core/player/collide';
 
 /** How wide the player is, for the ground-plane collider solve. */
 export const PLAYER_RADIUS = 0.42;
@@ -26,12 +26,20 @@ export const PLAYER_RADIUS = 0.42;
  * leaving the previous height would sink or float them for a frame. Terrain height is only re-read
  * when something actually pushed, so walking in the open costs nothing extra.
  */
+/** Each body's slip round a prop in progress (core/player/collide.ts `resolveWithSlip`). */
+const slips = new WeakMap<PlayerState, Slip>();
+
 export function applySolidWorld(
   player: PlayerState,
   colliders: readonly Collider[],
   sampler: { heightAt(x: number, z: number): number },
+  /** Where the body stood before this frame's step: given, a body stopped dead on a small prop slips round it. */
+  from?: { x: number; z: number },
 ): boolean {
-  const hit = resolveCollisions(player.pos, PLAYER_RADIUS, colliders, player.pos.y - sampler.heightAt(player.pos.x, player.pos.z));
+  const height = player.pos.y - sampler.heightAt(player.pos.x, player.pos.z);
+  const hit = from
+    ? resolveWithSlip(from, player.pos, PLAYER_RADIUS, colliders, height, slipOf(player))
+    : resolveCollisions(player.pos, PLAYER_RADIUS, colliders, height);
   if (!hit) return false;
   /*
    * Only a grounded body gets placed back onto the terrain. Snapping Y on every hit is what turned a
@@ -40,6 +48,15 @@ export function applySolidWorld(
    */
   if (player.grounded) player.pos.y = sampler.heightAt(player.pos.x, player.pos.z);
   return true;
+}
+
+function slipOf(player: PlayerState): Slip {
+  let s = slips.get(player);
+  if (!s) {
+    s = { side: 1, frames: 0 };
+    slips.set(player, s);
+  }
+  return s;
 }
 
 /** How far inside the terrain grid the player is stopped. Terrain is flat-clamped past the edge. */

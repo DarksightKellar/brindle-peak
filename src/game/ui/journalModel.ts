@@ -10,10 +10,11 @@
  * wallet: quests pay bells too, so "bells / 60" used to read 120 / 60.
  */
 
-import type { AchievementDef, FishDef, GameState, QuestDef, QuestStatus, ZoneId } from '../../core/contracts';
+import type { AchievementDef, Condition, FishDef, GameState, QuestDef, QuestStatus, ZoneId } from '../../core/contracts';
 import { ZONE_IDS } from '../../core/contracts';
 import type { GuideContent } from '../../core/guide/nextStep';
 import { nextStepOf } from '../../core/guide/nextStep';
+import { evaluate } from '../../core/progress/conditions';
 import { ZONE_NAMES } from '../../data/zoneNames';
 import type { MapDecor } from './journalMap';
 
@@ -51,7 +52,7 @@ export interface JournalContent {
   pickups?: readonly { id: string; kind: string }[];
   photosTotal?: number;
   /** Item names, for the "carrying" line on Field Notes. */
-  items?: readonly { id: string; name: string }[];
+  items?: readonly { id: string; name: string; handedOver?: Condition }[];
   /** The photographs kept so far (ui/polaroid.ts), pinned on Field Notes. Read at paint time. */
   prints?: () => readonly { id: string; src: string; caption: string }[];
   /** Everything the map page needs: zones, people, activities and the names to print. */
@@ -163,7 +164,9 @@ export function formatJournal(s: GameState, content: JournalContent = {}): Journ
     quests,
     carrying: Object.keys(s.items)
       .filter((id) => (s.items[id] ?? 0) > 0)
-      .map((id) => content.items?.find((i) => i.id === id)?.name ?? id),
+      .map((id) => content.items?.find((i) => i.id === id) ?? { id, name: id })
+      .filter((it) => !(it.handedOver && evaluate(it.handedOver, s)))
+      .map((it) => it.name),
     achievementsList,
     playtime: formatPlaytime(s.playtime),
     sledBest: bests.length > 0 ? `${Math.min(...bests).toFixed(1)}s` : '—',

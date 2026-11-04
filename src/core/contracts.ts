@@ -452,6 +452,12 @@ export interface ItemDef {
   name: string;
   desc: string;
   icon: string;
+  /**
+   * Once this holds, the thing has been handed on and is no longer carried. Items stay in the save (a
+   * quest may still ask whether Pip ever had them); Field Notes stops listing them. Critic round 11 saw
+   * "Carrying: Spare Batteries" after Edda had them in her set.
+   */
+  handedOver?: Condition;
 }
 
 export type FishRarity = 'common' | 'uncommon' | 'rare';

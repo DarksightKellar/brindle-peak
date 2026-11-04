@@ -39,6 +39,7 @@ export interface AdvanceDeps {
 
 export function advancePlayer(d: AdvanceDeps): void {
   const { player, input, dt, sampler } = d;
+  const from = { x: player.pos.x, z: player.pos.z };
 
   stepPlayer(player, input, dt, TUNING, {
     terrain: sampler,
@@ -47,7 +48,7 @@ export function advancePlayer(d: AdvanceDeps): void {
   });
 
   clampToWorld(player, d.worldSize);
-  applySolidWorld(player, d.colliders, sampler);
+  applySolidWorld(player, d.colliders, sampler, from);
 
   if (!player.grounded) return;
   const speed = Math.hypot(player.vel.x, player.vel.z);
