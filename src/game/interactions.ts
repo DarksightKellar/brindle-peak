@@ -32,6 +32,18 @@ const priority = (kind: InteractableKind): number => {
 
 /** Squared distances within this of each other count as the same reach. */
 const TIE = 1e-4;
+/**
+ * A person this much nearer than the current pick (metres) still counts as level with it. Critic round 12
+ * walked up to Gus past an activity's ring, pressed E, and got the activity: the ring was a step closer.
+ */
+const NPC_EDGE = 1.5;
+
+/** Distance as `priority` sees it: a person reads as standing a little nearer than they are. */
+const reach = (it: Interactable, d2: number): number => {
+  if (it.kind !== 'npc') return d2;
+  const d = Math.max(0, Math.sqrt(d2) - NPC_EDGE);
+  return d * d;
+};
 
 export function createInteractionSystem(
   usable: (i: Interactable) => boolean = () => true,
@@ -53,8 +65,9 @@ export function createInteractionSystem(
         const it = items[k];
         const dx = it.pos.x - playerPos.x;
         const dz = it.pos.z - playerPos.z;
-        const d2 = dx * dx + dz * dz;
-        if (d2 > it.radius * it.radius || !usable(it)) continue;
+        const raw = dx * dx + dz * dz;
+        if (raw > it.radius * it.radius || !usable(it)) continue;
+        const d2 = reach(it, raw);
         const w = wanted(it);
         if (bestWanted && !w) continue;
         if (best === null || (w && !bestWanted) || d2 < bestD - TIE) {

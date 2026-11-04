@@ -20,14 +20,22 @@ export function createLoop(step: (dt: number) => void): Loop {
   let last = 0;
   let running = false;
   let count = 0;
+  /** Frames that threw; only the first few are logged. */
+  let failures = 0;
 
   const frame = (now: number): void => {
     if (!running) return;
     const dt = last === 0 ? 1 / 60 : Math.min((now - last) / 1000, MAX_DT);
     last = now;
-    step(dt);
-    count++;
+    // The next frame is asked for first: a frame that throws is logged and skipped, not the end of
+    // the game. Asked for after `step`, one throw stopped the loop for good.
     handle = requestAnimationFrame(frame);
+    try {
+      step(dt);
+    } catch (err) {
+      if (failures++ < 3) console.error('frame failed', err);
+    }
+    count++;
   };
 
   return {

@@ -69,10 +69,11 @@
    distance. Its mark is the diamond hanging under the strip, which is where the bearing went. */
 .ui-hud__next {
   position: fixed; left: 50%; transform: translateX(-50%); top: 62px;
-  max-width: min(720px, calc(100vw - 32px)); padding: 3px 12px 4px;
-  font-size: 12px; letter-spacing: 0.02em; color: var(--lantern);
+  width: max-content; max-width: min(560px, calc(100vw - 32px)); padding: 3px 12px 4px; box-sizing: border-box;
+  font-size: 13px; line-height: 1.35; letter-spacing: 0.02em; color: var(--lantern); text-align: center;
   background: rgba(51, 64, 107, 0.72); border: 1px solid rgba(226, 166, 79, 0.45);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none;
+  /* Wraps rather than cuts: critic round 12 read "Next: Ring Gus's shop bell cl…" and no more. */
+  white-space: normal; overflow-wrap: anywhere; pointer-events: none;
 }
 
 /* ── The compass strip ───────────────────────────────────────────────────────

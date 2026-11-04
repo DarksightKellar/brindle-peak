@@ -57,6 +57,7 @@ export const WORDS = {
   exposeDrift: 'It drifted. Ease it back onto the star',
   // Throw result
   throwResult: (hits: number, need: number): string => `${Math.min(hits, need)} of ${need} hits`,
+  bellSilent: 'The bell never rang. Press E at the snowballs for another go.',
   // Called for a moment as each throw lands.
   throwHit: 'Hit!',
   throwMiss: 'Missed',

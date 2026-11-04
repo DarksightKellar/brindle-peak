@@ -98,4 +98,12 @@ describe('interactions', () => {
     expect(sys.update({ x: 100, y: 0, z: 0 })).toBeNull();
     expect(sys.update({ x: 41, y: 0, z: 0 })?.id).toBe('nana');
   });
+
+  it('a person in reach beats an activity only a step nearer, not one right underfoot', () => {
+    const sys = createInteractionSystem();
+    sys.register({ kind: 'activity', id: 'ring', pos: { x: 0, y: 0, z: 0 }, radius: 3, prompt: 'Ring' });
+    sys.register({ kind: 'npc', id: 'gus', pos: { x: 3, y: 0, z: 0 }, radius: 4, prompt: 'Talk' });
+    expect(sys.update({ x: 1, y: 0, z: 0 })?.id).toBe('gus'); // ring 1 m, Gus 2 m
+    expect(sys.update({ x: -0.5, y: 0, z: 0 })?.id).toBe('ring'); // ring 0.5 m, Gus 3.5 m
+  });
 });

@@ -180,6 +180,9 @@ export class TargetActivity implements ActivityInstance {
     else if (this.fan.length > 0 && this.fan.every((t) => t.down)) outcome.bonus = 'clean-sweep';
     this.outcome = outcome;
     this.stage = 'done';
+    // A bell that never rang is not news to carry: critic round 12 missed all eight and Pell still
+    // heard it "clean". Any other round counts, misses and all.
+    if (this.bell && this.hits === 0) return;
     if (!this.paid) {
       this.paid = true;
       host.award(outcome);
@@ -257,7 +260,9 @@ export class TargetActivity implements ActivityInstance {
 
   /** The result card: critic round 4 used all eight throws and the panel just went away. */
   summary(): string | null {
-    return this.stage === 'done' ? WORDS.throwResult(this.hits, this.setup.need) : null;
+    if (this.stage !== 'done') return null;
+    if (this.bell && this.hits === 0) return WORDS.bellSilent;
+    return WORDS.throwResult(this.hits, this.setup.need);
   }
 
   isComplete(): boolean {

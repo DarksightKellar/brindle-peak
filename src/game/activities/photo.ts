@@ -22,6 +22,16 @@ import { Exposure, EXPOSURE } from './exposure';
 
 /** How far off the subject the viewfinder opens: inside the frame, outside the centring cone. */
 const OPEN_OFF = 0.3;
+/** Off the subject by more than this (radians) in yaw, the turn hint names the key; then pitch. */
+const TURN_SLACK = 0.12;
+/** The turn hint names the key that brings the subject in (critic round 12: "nothing told me which way"). */
+const TURN_WORDS = {
+  left: 'Turn left (A) until it is centred',
+  right: 'Turn right (D) until it is centred',
+  up: 'Tilt up (W) until it is centred',
+  down: 'Tilt down (S) until it is centred',
+  any: 'Turn until it is centred',
+} as const;
 /** During the aurora's exposure, the aim must stay this close (radians) to where the shutter opened. */
 const STEADY = 0.06;
 
@@ -37,6 +47,8 @@ export class PhotoActivity implements ActivityInstance {
   private aimPitch: number = PHOTO.startPitch;
   /** 'aim' | 'tooClose' | 'tooFar' | 'turn' — a nudge for the viewfinder, never a scold. */
   private hint: 'aim' | 'tooClose' | 'tooFar' | 'turn' = 'aim';
+  /** Which way the subject lies while the hint is 'turn'; null when the hint can't say. */
+  private turn: 'left' | 'right' | 'up' | 'down' | null = null;
   private lift: number = PHOTO.subjectHeight; // the aim point, above the subject's feet
   /** The aurora's long exposure (exposure.ts), and the aim the shutter opened on. */
   private readonly exposure = new Exposure();
@@ -58,8 +70,10 @@ export class PhotoActivity implements ActivityInstance {
     // Opened where the chase camera looked, it often stared at a wall and seemed to do nothing. It now
     // opens with the subject in frame but off to one side (OPEN_OFF), so there is still a turn to make.
     // The sky opens on the horizon below the curtains (it used to open already on them).
+    // The sky too, beside the curtains: opened where the camera looked, the critic (round 12) stared at
+    // empty southern sky with nothing saying which way north was.
     const t = this.target;
-    this.aimYaw = t.kind === 'sky' ? host.cameraYaw : bearingTo(host.playerPos, t.pos) + OPEN_OFF;
+    this.aimYaw = this.subjectAim(host.playerPos).yaw + OPEN_OFF;
     this.aimPitch = t.kind === 'sky' ? -0.06 : PHOTO.startPitch;
     this.exposure.reset();
     this.hint = 'aim';
@@ -93,6 +107,13 @@ export class PhotoActivity implements ActivityInstance {
     if (distance !== null && !inRange(distance)) this.hint = distance < PHOTO.minRange ? 'tooClose' : 'tooFar';
     else if (!inFrame(dot)) this.hint = 'turn';
     else this.hint = 'aim';
+    if (this.hint === 'turn') {
+      // Which key brings it in: A raises yaw, W raises pitch (see the aim lines above).
+      const want = this.subjectAim(host.playerPos);
+      const dyaw = angleDelta(this.aimYaw, want.yaw), dpitch = want.pitch - this.aimPitch;
+      this.turn = Math.abs(dyaw) > TURN_SLACK ? (dyaw > 0 ? 'left' : 'right')
+        : Math.abs(dpitch) > TURN_SLACK ? (dpitch > 0 ? 'up' : 'down') : null;
+    }
 
     if (!pressed) return;
 
@@ -105,6 +126,14 @@ export class PhotoActivity implements ActivityInstance {
       return;
     }
     this.take(host, dot, distance);
+  }
+
+  /** Yaw and pitch from Pip's eye to the heart of the subject. */
+  private subjectAim(playerPos: Vec3): { yaw: number; pitch: number } {
+    const t = this.target;
+    if (t.kind === 'sky') return { yaw: Math.atan2(t.dir.x, t.dir.z), pitch: Math.asin(clamp(t.dir.y, -1, 1)) };
+    const dy = t.pos.y - (playerPos.y + PHOTO.eyeHeight);
+    return { yaw: bearingTo(playerPos, t.pos), pitch: Math.atan2(dy, Math.hypot(t.pos.x - playerPos.x, t.pos.z - playerPos.z)) };
   }
 
   /** True while the aim is still where the aurora's shutter opened. */
@@ -172,7 +201,7 @@ export class PhotoActivity implements ActivityInstance {
       ? 'Centred — press E'
       : this.hint === 'tooClose' ? 'Too close. Step back, then press E'
         : this.hint === 'tooFar' ? 'Too far. Step closer, then press E'
-          : 'Turn until it is centred';
+          : TURN_WORDS[this.turn ?? 'any'];
     return { label, fraction: null, urgent: this.hint === 'aim' };
   }
 

@@ -120,12 +120,17 @@ export function createPixelPipeline(canvas: HTMLCanvasElement, kit: SceneKit): P
     camera.layers.disable(AURORA_LAYER);
     scene.overrideMaterial = normalMaterial;
     scene.background = null;
-    renderer.setRenderTarget(normal);
-    renderer.clear();
-    renderer.render(scene, camera);
-    scene.overrideMaterial = previousOverride;
-    scene.background = previousBackground;
-    camera.layers.enable(AURORA_LAYER);
+    // Put back in `finally`: a throw mid-pass left the normal override on the scene, and from then on
+    // the beauty pass drew the world in normal colours, pink and mint, until a reload (critic round 12).
+    try {
+      renderer.setRenderTarget(normal);
+      renderer.clear();
+      renderer.render(scene, camera);
+    } finally {
+      scene.overrideMaterial = previousOverride;
+      scene.background = previousBackground;
+      camera.layers.enable(AURORA_LAYER);
+    }
     (material.uniforms.uNear.value as number) = camera.near;
     (material.uniforms.uFar.value as number) = camera.far;
     renderer.setRenderTarget(null);
