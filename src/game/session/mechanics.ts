@@ -23,6 +23,7 @@ import { TUNING } from '../../core/player/tuning';
 import { NPCS } from '../../data/npcs';
 import { QUESTS } from '../../data/quests';
 import { ITEMS } from '../../data/items';
+import { PLACES } from '../../data/places';
 import type { WorldBuild } from '../world/assemble';
 
 export interface MechanicsDeps {
@@ -84,6 +85,15 @@ export function createMechanics(deps: MechanicsDeps): Mechanics {
       for (const p of outcome.passedSteps) {
         if (p.step.gives) {
           bus.emit('toast', { text: `Got: ${itemName(p.step.gives.item)}`, icon: 'quest', tier: 'discovery' });
+        }
+        // A step that sent Pip to stand somewhere says what Pip found there, but only on the arrival
+        // itself: a place visited before the errand passes the step at the giver's, far from it.
+        if (p.step.when.kind === 'reached' && e.name === 'place:reached') {
+          const id = p.step.when.id;
+          const heard = PLACES.find((pl) => pl.id === id)?.heard;
+          if (heard && (e.data as { id: string }).id === id) {
+            bus.emit('toast', { text: heard, icon: 'quest', tier: 'discovery' });
+          }
         }
         // An errand moved on by something Pip did out in the valley, not by a talk, says so and says
         // what comes next. Critic round 5 missed seven pinecones of eight, saw the errand move on, and
@@ -171,9 +181,12 @@ export function createMechanics(deps: MechanicsDeps): Mechanics {
     emit: (name, data) => bus.emit(name, data),
     award: (result) => {
       bus.emit('activity:completed', { id: instance.def.id, score: result.score });
-      if (instance.def.kind === 'sled') {
-        const best = state.sledBests[instance.def.id];
-        if (best === undefined || result.score < best) state.sledBests[instance.def.id] = result.score;
+      // Best times, by course: the sleds, and since round 10 the races under `race:<id>` (the field keeps
+      // its first name; the journal's sled stat skips those).
+      if (instance.def.kind === 'sled' || instance.def.kind === 'race') {
+        const key = instance.def.kind === 'race' ? `race:${instance.def.id}` : instance.def.id;
+        const best = state.sledBests[key];
+        if (best === undefined || result.score < best) state.sledBests[key] = result.score;
       }
     },
   });

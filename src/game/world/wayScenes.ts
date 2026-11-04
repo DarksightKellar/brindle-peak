@@ -210,7 +210,12 @@ export function buildWayScenes(sampler: TerrainSampler): WayScenes {
   group.add(rimeMesh);
 
   const colliders: Collider[] = [
-    { kind: 'box', x: SLEDGE.x, z: SLEDGE.z, hw: 3.2, hd: 1.7, yaw: SLEDGE.yaw },
+    // The sledge, its stack of rounds and the chopping block, each its own box. One box over all three
+    // walled off the gaps between them, and critic round 9 stood stuck against bare snow there.
+    ...([[0, 0.07, 0.75, 1.75], [-2.6, 0, 0.95, 0.75], [2.1, 0.6, 0.45, 0.45]] as const).map(([lx, lz, hw, hd]): Collider => {
+      const cos = Math.cos(SLEDGE.yaw), sin = Math.sin(SLEDGE.yaw);
+      return { kind: 'box', x: SLEDGE.x + lx * cos + lz * sin, z: SLEDGE.z - lx * sin + lz * cos, hw, hd, yaw: SLEDGE.yaw };
+    }),
     { kind: 'circle', x: ERRATIC.x, z: ERRATIC.z, r: 3.1 },
     { kind: 'box', x: BOTHY.x, z: BOTHY.z, hw: 2.3, hd: 1.8, yaw: Math.PI },
     // Its woodpile on the east wall and the bench by the door; the bothy is turned half round.

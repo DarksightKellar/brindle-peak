@@ -64,6 +64,8 @@ function capture(canvas: HTMLCanvasElement): string | null {
 export interface Polaroid {
   /** Print what the canvas shows now, captioned, and keep it under `id`. */
   take(id: string, caption: string): void;
+  /** Send a print that is up on its way early (Esc), true when one was up. */
+  dismiss(): boolean;
   destroy(): void;
 }
 
@@ -76,6 +78,11 @@ export function createPolaroid(root: HTMLElement, canvas: HTMLCanvasElement): Po
   const img = card.querySelector('img') as HTMLImageElement;
   const cap = card.querySelector('figcaption') as HTMLElement;
   let timer: number | undefined;
+  const leave = (): void => {
+    card.classList.remove('is-in');
+    card.classList.add('is-out');
+    timer = window.setTimeout(() => { card.hidden = true; }, 400);
+  };
 
   return {
     take(id, caption): void {
@@ -95,11 +102,13 @@ export function createPolaroid(root: HTMLElement, canvas: HTMLCanvasElement): Po
       void card.offsetWidth;
       card.classList.add('is-in');
       window.clearTimeout(timer);
-      timer = window.setTimeout(() => {
-        card.classList.remove('is-in');
-        card.classList.add('is-out');
-        timer = window.setTimeout(() => { card.hidden = true; }, 400);
-      }, SHOW_S * 1000);
+      timer = window.setTimeout(leave, SHOW_S * 1000);
+    },
+    dismiss(): boolean {
+      if (card.hidden || !card.classList.contains('is-in')) return false;
+      window.clearTimeout(timer);
+      leave();
+      return true;
     },
     destroy(): void {
       window.clearTimeout(timer);

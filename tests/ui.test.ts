@@ -96,7 +96,8 @@ describe('toast queue (GDD R5)', () => {
 
 describe('typewriter', () => {
   it('reveals at the rated speed and reports completion', () => {
-    const tw = new Typewriter('hello world', CHARS_PER_SEC);
+    const tw = new Typewriter('hello world', 45);
+    expect(CHARS_PER_SEC).toBeGreaterThan(0);
     expect(tw.text).toBe('');
     expect(tw.complete).toBe(false);
     const after = tw.update(0.1); // 45 * 0.1 = 4.5 chars

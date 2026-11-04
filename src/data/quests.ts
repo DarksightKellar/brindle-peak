@@ -94,7 +94,7 @@ export const QUESTS: readonly QuestDef[] = [
     { offer: 'hollis-root', waiting: 'hollis-wait' }, [
       talk('owl', 'Ask Fen in the pines if he saw the mitten.', 'fen', 'fen-mitten'),
       s('creek', 'Fish the Creek Pool below the split pine in Pinewind Wood.', { kind: 'activity', id: 'pinewind-creek-fish' }),
-      talk('tell', 'Tell Hollis where the mitten was.', 'hollis', 'hollis-done'),
+      talk('tell', 'Take the mitten back to Hollis.', 'hollis', 'hollis-done'),
     ], { item: 'mitten', bells: 12 }),
 
   // ---- Pinewind Wood -------------------------------------------------------

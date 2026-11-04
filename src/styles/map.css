@@ -34,11 +34,11 @@
 /* The place picked to go back to (session/travel.ts): lantern-lit name and a ring round its ground. */
 .ui-map__name.is-hop { fill: var(--lantern); }
 .ui-map__zone.is-hop { stroke: var(--lantern); stroke-width: 1.5; stroke-dasharray: 3 3; opacity: 0.8; }
-.ui-map__hop { margin: 0 0 12px; padding: 6px 8px; border: 1px solid var(--snow-sh); color: var(--snow-lt); font-size: 11px; line-height: 1.5; }
+.ui-map__hop { margin: 0 0 12px; padding: 6px 8px; border: 1px solid var(--snow-sh); color: var(--snow-lt); font-size: 12px; line-height: 1.5; }
 .ui-map__hop.is-picked { border-color: var(--lantern); color: var(--snow-hi); }
 .ui-map__hop.is-picked b { color: var(--lantern); }
 .ui-map__hop.is-blocked { color: var(--snow-mid); }
-.ui-map__hop kbd { padding: 0 3px; border: 1px solid var(--snow-sh); font-family: var(--mono); font-size: 10px; }
+.ui-map__hop kbd { padding: 0 3px; border: 1px solid var(--snow-sh); font-family: var(--mono); font-size: 11px; }
 
 /* The whole path is there from the first look; where you have walked it, it is brighter. */
 .ui-map__trail {
@@ -67,7 +67,7 @@
   filter: drop-shadow(0 0 3px rgba(143, 232, 255, 0.9)); }
 
 /* The key: each authored sentence next to its mark. */
-.ui-map__caption { flex: 0 1 220px; margin: 4px 0 0; font-size: 11px; line-height: 1.5; color: var(--snow-mid); }
+.ui-map__caption { flex: 0 1 220px; margin: 4px 0 0; font-size: 12px; line-height: 1.5; color: var(--snow-mid); }
 .ui-map__key { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
 .ui-map__key li { display: flex; align-items: center; gap: 10px; }
 .ui-map__key-mark { flex: 0 0 auto; width: 26px; height: 26px; overflow: visible; }

@@ -117,6 +117,10 @@ export function createSession(opts: SessionOptions): Session {
   const polaroid = createPolaroid(opts.uiRoot, opts.canvas);
   bus.on('photo:taken', (e) => {
     const id = String((e.data as { id: string }).id);
+    // The print is of the valley, not of the aiming arrow over the deer: draw the frame once more
+    // without the activity's guides before it is copied.
+    markers.clear();
+    pipeline.render();
     polaroid.take(id, WORDS.photoResult(PHOTO_SUBJECTS[id]?.what ?? 'view'));
   });
   const promptAt = createPromptAnchor(kit.camera, opts.canvas, world.npcs);
@@ -152,7 +156,12 @@ export function createSession(opts: SessionOptions): Session {
     },
   });
   const overlays = createOverlayRouter({
-    ui, state, isActivityRunning: () => runner.isRunning(), dismissActivityResult: () => runner.dismissResult(),
+    ui, state, isActivityRunning: () => runner.isRunning(),
+    // A photo's print is a result card too: the first Esc sends it away with the panel, not to the menu.
+    dismissActivityResult: () => {
+      const card = runner.dismissResult();
+      return polaroid.dismiss() || card;
+    },
   });
   // The map's hop back to walked ground (session/travel.ts). The journal closes and Pip stands there.
   ui.journal.setTravel({

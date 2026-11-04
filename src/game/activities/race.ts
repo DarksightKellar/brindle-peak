@@ -48,6 +48,8 @@ export class RaceActivity implements ActivityInstance {
   private ground: number[] = [];
   /** Gates actually reached (a skipped gate is passed but not reached). */
   private reached = 0;
+  /** The best time on this course before this run, from the save; null on a first run. */
+  private bestBefore: number | null = null;
   /** Heading from where the player stood to the first gate, so the run opens looking at it. */
   private opening = 0;
   /** Where the runner was this frame, for the pointer that hangs beside them. */
@@ -65,6 +67,8 @@ export class RaceActivity implements ActivityInstance {
     const first = this.course.gates[0];
     this.opening = first ? Math.atan2(first.x - host.playerPos.x, first.z - host.playerPos.z) : host.cameraYaw;
     this.reached = 0;
+    const best = host.state.sledBests[`race:${this.def.id}`];
+    this.bestBefore = typeof best === 'number' ? best : null;
     this.runner = { x: host.playerPos.x, y: host.playerPos.y + 0.6, z: host.playerPos.z };
     this.camYaw = host.cameraYaw;
     this.next = 0;
@@ -186,7 +190,7 @@ export class RaceActivity implements ActivityInstance {
     const total = this.course.gates.length;
     if (this.course.look === 'lantern') return WORDS.lanternResult(total);
     if (this.course.look === 'hoop') return WORDS.hoopResult(this.elapsed, this.reached, total);
-    return WORDS.raceResult(this.elapsed);
+    return WORDS.raceResult(this.elapsed, this.bestBefore);
   }
 
   isComplete(): boolean {

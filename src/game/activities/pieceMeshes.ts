@@ -52,22 +52,37 @@ function hole(b: GeoBuilder): void {
 /**
  * A roe deer standing side-on, about a metre at the shoulder: the glade's photograph. Faces +Z.
  *
- * Built light: in the dark mid-browns it read as a dead bush against the pines. A warm fawn coat, a
- * white rump and throat, big ears and a head held up are what make it a deer at 384 x 216.
+ * Round 10: the warm fawn ball on stilts (built light because dark mid-browns read as a dead bush)
+ * looked like a toy, and the director asked for a deer that belongs in the snow. Now it wears a roe's
+ * winter coat, grey-brown with snow settled on its back; the body is a deep chest and a rounder haunch
+ * rather than one egg; the legs thicken at the thigh and go dark below the hock; the head tapers to a
+ * dark muzzle. The white rump, the pale throat, the big ears and the head held up still say "deer" at
+ * 384 x 216, against the open snow it stands on.
  */
 function deer(b: GeoBuilder): void {
-  b.add(GEO.ico, propMatrix(0, 0.95, 0, 0.27, 0.28, 0.58), 'WOOD_LT', 'SUN_MID', 0.35);
-  b.add(GEO.ico, propMatrix(0, 0.98, -0.54, 0.16, 0.17, 0.09), 'SNOW_HI'); // the white rump
-  for (const [x, z] of [[-0.13, 0.38], [0.13, 0.38], [-0.13, -0.38], [0.13, -0.38]]) {
-    b.strut([x, 0, z], [x, 0.86, z], 0.055, 'WOOD_MID');
+  // Chest, deeper and forward; haunch, rounder and behind; a back between them. Snow lies on the top.
+  b.add(GEO.ico, propMatrix(0, 0.86, 0.2, 0.2, 0.25, 0.3), 'ROCK_WARM', 'SNOW_LT', 0.75);
+  b.add(GEO.ico, propMatrix(0, 0.9, -0.24, 0.19, 0.22, 0.27), 'ROCK_WARM', 'SNOW_LT', 0.75);
+  b.add(GEO.ico, propMatrix(0, 0.78, -0.02, 0.15, 0.13, 0.3), 'SNOW_LT'); // pale belly
+  b.add(GEO.ico, propMatrix(0, 0.92, -0.47, 0.13, 0.15, 0.07), 'SNOW_HI'); // the white rump
+  // Legs: coat-coloured thighs, dark slender shanks, the hind ones bent back at the hock.
+  for (const x of [-0.11, 0.11]) {
+    b.strut([x, 0.82, 0.3], [x, 0.44, 0.32], 0.06, 'ROCK_WARM');
+    b.strut([x, 0.44, 0.32], [x, 0, 0.33], 0.032, 'WOOD_DK');
+    b.strut([x, 0.86, -0.3], [x, 0.42, -0.4], 0.07, 'ROCK_WARM');
+    b.strut([x, 0.42, -0.4], [x, 0, -0.33], 0.032, 'WOOD_DK');
   }
-  b.strut([0, 1.05, 0.44], [0, 1.36, 0.62], 0.11, 'WOOD_LT'); // neck, up and forward
-  b.add(GEO.ico, propMatrix(0, 1.18, 0.58, 0.09, 0.1, 0.06), 'SNOW_HI'); // pale throat
-  b.add(GEO.ico, propMatrix(0, 1.44, 0.74, 0.13, 0.13, 0.22), 'WOOD_LT', 'SUN_MID', 0.4);
-  b.add(GEO.octa, propMatrix(0, 1.4, 0.94, 0.06, 0.06, 0.06), 'PIP_GLASS'); // nose
+  b.strut([0, 0.98, 0.36], [0, 1.32, 0.58], 0.09, 'ROCK_WARM'); // neck, up and forward
+  b.add(GEO.ico, propMatrix(0, 1.12, 0.52, 0.07, 0.08, 0.05), 'SNOW_HI'); // pale throat
+  b.add(GEO.ico, propMatrix(0, 1.38, 0.66, 0.1, 0.11, 0.14), 'ROCK_WARM', 'SNOW_LT', 0.85);
+  // A tapering muzzle, pale round a dark nose.
+  b.add(GEO.cone5, propMatrix(0, 1.34, 0.84, 0.07, 0.18, 0.07, 0, Math.PI / 2), 'ROCK_LT');
+  b.add(GEO.octa, propMatrix(0, 1.34, 0.93, 0.045, 0.045, 0.045), 'PIP_GLASS'); // nose
   for (const side of [-1, 1]) {
-    b.add(GEO.cone5, propMatrix(side * 0.12, 1.62, 0.68, 0.08, 0.2, 0.04, 0, 0, -side * 0.6), 'SUN_MID'); // ears
-    b.strut([side * 0.04, 1.54, 0.7], [side * 0.08, 1.86, 0.66], 0.025, 'BARK'); // short antlers
+    b.add(GEO.octa, propMatrix(side * 0.08, 1.42, 0.72, 0.022, 0.022, 0.022), 'PIP_GLASS'); // eyes
+    b.add(GEO.cone5, propMatrix(side * 0.1, 1.54, 0.6, 0.065, 0.17, 0.035, 0, 0, -side * 0.55), 'ROCK_WARM'); // ears
+    // Short winter antlers, still in velvet: a buck's grow back over the cold months.
+    b.strut([side * 0.035, 1.47, 0.63], [side * 0.07, 1.68, 0.6], 0.02, 'WOOD_MID');
   }
 }
 

@@ -138,7 +138,10 @@ export function formatJournal(s: GameState, content: JournalContent = {}): Journ
     ? content.achievements.map((a) => ({ id: a.id, name: a.name, desc: a.desc, unlocked: s.achievements[a.id] !== undefined }))
     : Object.keys(s.achievements).map((id) => ({ id, name: id, desc: '', unlocked: true }));
 
-  const bests = Object.values(s.sledBests).filter((t) => Number.isFinite(t) && t > 0);
+  // The save's best times also hold the races since round 10, under `race:<id>`; this stat is the sleds'.
+  const bests = Object.entries(s.sledBests)
+    .filter(([id, t]) => !id.startsWith('race:') && Number.isFinite(t) && t > 0)
+    .map(([, t]) => t);
   const found = (kind: string): CountRow | null => {
     if (!content.pickups) return null;
     const all = content.pickups.filter((p) => p.kind === kind);

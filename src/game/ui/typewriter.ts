@@ -5,7 +5,8 @@
  * hook is 45 audio events a second.
  */
 
-export const CHARS_PER_SEC = 45;
+/** Two critics in a row found the long conversations slow to read out; 45 became 60. */
+export const CHARS_PER_SEC = 60;
 
 /** Vowel groups, minus a silent trailing `e`. Good enough for chirp cadence, not for poetry. */
 export function countSyllables(word: string): number {

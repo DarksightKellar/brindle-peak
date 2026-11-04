@@ -22,7 +22,8 @@ import { formatDistance } from '../../core/guide/compass';
 import { mapHTML, type MapHop } from './journalMap';
 import type { JournalContent, JournalModel } from './journalModel';
 import { formatJournal } from './journalModel';
-import { achHTML, fishHTML, notesHTML, questsHTML, settingsHTML } from './journalTabs';
+import { achHTML, fishHTML, notesHTML, questsHTML, settingsHTML, tryHTML } from './journalTabs';
+import { ACTIVITIES } from '../../data/activities';
 
 // The journal's public surface: the model is re-exported here so callers (and the tests) keep one
 // import for the whole surface.
@@ -91,7 +92,7 @@ function tabHTML(
         ? mapHTML(s, content.map, content.mapDecor?.(), hop)
         : '<p class="ui-empty">No map to draw: the valley content is not loaded.</p>';
     case 'Quests':
-      return questsHTML(m, tracked, cursor, content.map ? errandWhere(s, content.map) : undefined);
+      return questsHTML(m, tracked, cursor, content.map ? errandWhere(s, content.map) : undefined) + tryHTML(ACTIVITIES, s);
     case 'Fish':
       return fishHTML(m, s, content.fish);
     case 'Achievements':

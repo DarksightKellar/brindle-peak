@@ -8,7 +8,8 @@
  * here reads the clock, the DOM or the world.
  */
 
-import type { AchievementDef, FishDef, GameState } from '../../core/contracts';
+import type { AchievementDef, ActivityDef, FishDef, GameState } from '../../core/contracts';
+import { compassWord, formatDistance } from '../../core/guide/compass';
 import type { JournalModel, JournalSettingsView } from './journalModel';
 import { esc } from './html';
 import { icon } from './icons';
@@ -107,6 +108,30 @@ export function questsHTML(
     ? '<p class="ui-journal__meta">↑↓ choose an errand · E follow it</p>'
     : '';
   return `${hint}<ul class="ui-quests">${rows.join('')}</ul>`;
+}
+
+/** How many of the nearest untried activities the Quests page lists. */
+const TRY_ROWS = 6;
+
+/**
+ * Things to try: the nearest activities not yet done, with how far and which way. Critic round 9
+ * found the kite, the sled, the skating and the toss only as a line that flashed by, or not at all;
+ * the map drew their marks, but nothing said which were near. The page now does.
+ */
+export function tryHTML(activities: readonly ActivityDef[], s: GameState): string {
+  const from = s.player.pos;
+  const rows = activities
+    .filter((a) => (s.counters[`activity:${a.id}`] ?? 0) === 0)
+    .map((a) => ({ a, dx: a.pos.x - from.x, dz: a.pos.z - from.z }))
+    .map((e) => ({ ...e, d: Math.hypot(e.dx, e.dz) }))
+    .sort((x, y) => x.d - y.d)
+    .slice(0, TRY_ROWS)
+    .map((e) => {
+      const where = e.d < 4 ? 'here' : `${formatDistance(e.d)} ${compassWord(e.dx, e.dz)}`;
+      return `<li class="ui-try"><span class="ui-try__name">${esc(e.a.name)}</span><span class="ui-quest__where">${esc(where)}</span></li>`;
+    });
+  if (rows.length === 0) return '';
+  return `<h3 class="ui-try__head">Things to try nearby</h3><ul class="ui-tries">${rows.join('')}</ul>`;
 }
 
 export function fishHTML(m: JournalModel, s: GameState, fish: readonly FishDef[] | undefined): string {

@@ -16,10 +16,15 @@ export interface PlaceDef {
   pos: Vec2;
   /** How close counts as being there. */
   radius: number;
+  /** What Pip notices on arriving for an errand that sent them here; toasted as the step passes. */
+  heard?: string;
 }
 
 export const PLACES: readonly PlaceDef[] = [
   // The five pools (world/landmarks.ts SPRING_POOLS) sit within about 27 units of this point; inside
   // the circle Pip is among them, with steam on both sides. Move it with the pools.
-  { id: 'kettle-pools', zone: 'kettles', pos: { x: -39, z: 60 }, radius: 30 },
+  {
+    id: 'kettle-pools', zone: 'kettles', pos: { x: -39, z: 60 }, radius: 30,
+    heard: 'The pools tick and hiss. Under the steam, somewhere, water is running.',
+  },
 ];

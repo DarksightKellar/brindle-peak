@@ -15,7 +15,7 @@ import { compassWord, formatDistance } from '../../core/guide/compass';
 /** A thing to do nearer than this is worth naming, in world units. */
 export const NOTICE_RANGE = 60;
 /** How long the line stays, in ms. */
-export const NOTICE_MS = 7000;
+export const NOTICE_MS = 12000;
 
 /**
  * Every thing to do within NOTICE_RANGE and not yet done, nearest first, for the compass strip. The line

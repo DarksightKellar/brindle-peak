@@ -23,7 +23,10 @@ export const WORDS = {
     `Down in ${clock(seconds)} · ${got} of ${total} rings${best ? ' · your fastest yet' : ''}`
     + (got * 2 < total ? '. The rings sit on the fast line: steer through them.' : ''),
   // Race results and the hoop readout
-  raceResult: (seconds: number): string => `Over the line in ${clock(seconds)}`,
+  // Critic round 9 found the finish a bare line of text: it now says how the run stands against the last.
+  raceResult: (seconds: number, best: number | null): string =>
+    `Over the line in ${clock(seconds)}`
+    + (best === null ? '. Run it again to beat it.' : seconds < best ? ` · a new best, ${clock(best - seconds)} quicker` : ` · best ${clock(best)}`),
   lanternResult: (lit: number): string => `${lit} lanterns lit, all the way up the ridge`,
   hoopResult: (seconds: number, through: number, total: number): string =>
     `Down in ${clock(seconds)} · through ${through} of ${total} hoops`,
