@@ -36,6 +36,18 @@
 /* The errand line sits in the same band as the keys, and a framed shot has no use for it. */
 #ui:has(.ui-finder:not([hidden])) .ui-hud__next { visibility: hidden; }
 
+/* The activity panel leaves the frame too: at the top right it covered the subject's arrow whenever the
+   subject stood up and to the right (director, round 6 look). Under the frame's bottom-right corner it
+   keeps only the running line; the name is on the prompt you pressed, and Esc joins the keys. */
+#ui:has(.ui-finder:not([hidden])) .ui-activity {
+  top: auto; right: 9%; bottom: 6px; min-width: 0; max-width: 210px; padding: 4px 10px 5px;
+}
+#ui:has(.ui-finder:not([hidden])) .ui-activity__kicker,
+#ui:has(.ui-finder:not([hidden])) .ui-activity__name,
+#ui:has(.ui-finder:not([hidden])) .ui-activity__hint,
+#ui:has(.ui-finder:not([hidden])) .ui-activity__foot { display: none; }
+#ui:has(.ui-finder:not([hidden])) .ui-activity__label { margin-top: 4px; font-size: 10px; line-height: 1.3; }
+
 /* Under the frame's bottom edge: over its top edge, the keys sat on the compass (critic round 6). */
 .ui-finder__keys {
   position: absolute; left: 50%; bottom: calc(11% - 22px); transform: translateX(-50%); margin: 0;

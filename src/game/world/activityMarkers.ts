@@ -127,6 +127,8 @@ export interface ActivityMarkerLayer {
   clear(): void;
   /** Put kept pieces back without an activity running, e.g. a finished build after a reload. */
   restore(specs: readonly MarkerSpec[]): void;
+  /** Hide or show one kept group (`keep` key) without touching its pieces. */
+  hide(key: string, hidden: boolean): void;
   dispose(): void;
 }
 
@@ -220,6 +222,10 @@ export function createActivityMarkers(): ActivityMarkerLayer {
     clear,
     restore(specs): void {
       syncKept(specs as readonly PlacedMarker[]);
+    },
+    hide(key, hidden): void {
+      const g = kept.get(key);
+      if (g) g.visible = !hidden;
     },
     dispose(): void {
       for (const proto of Object.values(PROTOTYPES)) proto.geometry.dispose();

@@ -7,123 +7,126 @@
 <style>
   :root {
     --bg: #f4f1ea; --card: #ffffff; --ink: #1d2230; --mute: #5d6474; --line: #ddd6c8;
-    --pick: #2f7d5b; --pick-bg: #e3f2ea; --tag: #8a5a12; --tag-bg: #f8ecd6;
+    --pick: #2f7d5b; --pick-bg: #e3f2ea; --ask: #8a5a12; --ask-bg: #f8ecd6;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
       --bg: #12151d; --card: #1b2030; --ink: #e8e6e1; --mute: #9aa1b2; --line: #2c3346;
-      --pick: #7fd3a8; --pick-bg: #18332a; --tag: #f1c07a; --tag-bg: #3a2c16;
+      --pick: #7fd3a8; --pick-bg: #18332a; --ask: #f1c07a; --ask-bg: #3a2c16;
     }
   }
   :root[data-theme="dark"] {
     --bg: #12151d; --card: #1b2030; --ink: #e8e6e1; --mute: #9aa1b2; --line: #2c3346;
-    --pick: #7fd3a8; --pick-bg: #18332a; --tag: #f1c07a; --tag-bg: #3a2c16;
+    --pick: #7fd3a8; --pick-bg: #18332a; --ask: #f1c07a; --ask-bg: #3a2c16;
   }
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
   main { max-width: 1500px; margin: 0 auto; padding: 24px 16px 64px; }
   h1 { font-size: 22px; margin: 0 0 4px; }
-  .lede { color: var(--mute); margin: 0 0 28px; max-width: 900px; }
+  .lede { color: var(--mute); margin: 0 0 20px; max-width: 900px; }
+  .status { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px; margin-bottom: 28px; }
+  .status div { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; font-size: 14px; }
+  .status b { display: block; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--mute); margin-bottom: 2px; }
   h2 { font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: var(--mute); margin: 36px 0 12px; }
   section.item { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px; margin-bottom: 18px; }
   .head { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: baseline; margin-bottom: 4px; }
   .head h3 { margin: 0; font-size: 17px; }
   .where { color: var(--mute); font-size: 13px; }
-  .what { margin: 4px 0 12px; }
+  .what { margin: 4px 0 12px; max-width: 1000px; }
   .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; }
   figure { margin: 0; }
-  figure img { width: 100%; height: auto; display: block; border-radius: 6px; border: 1px solid var(--line); image-rendering: pixelated; cursor: zoom-in; }
+  figure img { width: 100%; height: auto; display: block; border-radius: 6px; border: 1px solid var(--line); cursor: zoom-in; }
   figcaption { font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--mute); margin: 6px 2px 0; }
   figcaption span { font-weight: 400; text-transform: none; letter-spacing: 0; }
-  .pick { margin-top: 12px; padding: 8px 12px; border-radius: 6px; background: var(--pick-bg); color: var(--ink); }
+  .pick { margin-top: 12px; padding: 8px 12px; border-radius: 6px; background: var(--pick-bg); }
   .pick b { color: var(--pick); }
-  .none { display: flex; align-items: center; justify-content: center; min-height: 120px; border: 1px dashed var(--line); border-radius: 6px; color: var(--mute); font-size: 13px; padding: 12px; text-align: center; }
+  .ask { margin-top: 12px; padding: 8px 12px; border-radius: 6px; background: var(--ask-bg); }
+  .ask b { color: var(--ask); }
+  .fix { margin: 0 0 12px; padding: 8px 12px; border-left: 3px solid var(--ask); background: var(--ask-bg); border-radius: 0 6px 6px 0; }
   dialog { border: 0; padding: 0; background: transparent; max-width: 96vw; }
-  dialog img { max-width: 96vw; max-height: 92vh; image-rendering: pixelated; display: block; }
+  dialog img { max-width: 96vw; max-height: 92vh; display: block; }
   dialog::backdrop { background: rgba(0,0,0,.85); }
 </style>
 </head>
 <body>
 <main>
-  <h1>Round 6: what changed on screen, and what's still open</h1>
-  <p class="lede">Real captures from the game at 960×540, same save and same spot in each pair. "Before" is the build before rounds 5–6 (commit 4946344). "After" is now (d298b42). "Proposed" is a live in-game mock of a fix, not a paint-over. Click any image to enlarge.</p>
+  <h1>Round 6 look: your answers, acted on</h1>
+  <p class="lede">Real captures from the game at 960×540. Pink circles mark where to look. "After" is built into the game; "Proposed" is a live mock running in the game, not built yet. Click any image to enlarge.</p>
 
-  <h2>Rounds 5–6 changes</h2>
+  <div class="status">
+    <div><b>Built</b>1 panel no longer covers the arrow · 3 bigger gem · 4 photo frame hidden while shooting</div>
+    <div><b>Needs your eye</b>5 the fish (new mock) · 6 the bell (new mock, with a correction)</div>
+    <div><b>Closed</b>2 glow: proposal withdrawn · 7 ridge: left as is</div>
+  </div>
 
-  <section class="item">
-    <div class="head"><h3>1. Photo keys and the activity panel</h3><span class="where">Hoarfrost Glade photo, Pinewind</span></div>
-    <p class="what">The photo keys moved from over the compass to the bottom of the frame on a dark panel. The goal's "Next" line hides while you aim. The activity panel dropped below the compass so it no longer covers the goal line.</p>
-    <div class="grid">
-      <figure><img src="photo-before.jpg" alt=""><figcaption>Before <span>— keys, Next line and panel pile up on the compass</span></figcaption></figure>
-      <figure><img src="photo-after.jpg" alt=""><figcaption>After <span>— top strip is clean</span></figcaption></figure>
-      <div class="none">No change proposed. One small thing: the panel's lower edge now clips the top of the yellow subject arrow.</div>
-    </div>
-    <div class="pick"><b>My pick: keep After.</b></div>
-  </section>
-
-  <section class="item">
-    <div class="head"><h3>2. Pip's lantern glow at dusk</h3><span class="where">Hamlet edge, dusk</span></div>
-    <p class="what">After dark, Nana's lantern lights a warm pool round Pip, so the bird stops vanishing into the blue snow.</p>
-    <div class="grid">
-      <figure><img src="glow-before.jpg" alt=""><figcaption>Before <span>— blue bird on blue snow</span></figcaption></figure>
-      <figure><img src="glow-after.jpg" alt=""><figcaption>After <span>— light at head height</span></figcaption></figure>
-      <figure><img src="glow-proposed.jpg" alt=""><figcaption>Proposed <span>— light lowered to the lantern</span></figcaption></figure>
-    </div>
-    <p class="what" style="margin-top:10px">Why a proposal: close up (see the fish shots below), the light at head height burns an orange spot on Pip's face. Lowering it fixes that but lights less of Pip's breast.</p>
-    <div class="pick"><b>My pick: keep After.</b> At normal distance it reads best. If the face hotspot bothers you up close, I'd split the difference rather than go fully to Proposed.</div>
-  </section>
-
-  <section class="item">
-    <div class="head"><h3>3. Green markers for things to do nearby</h3><span class="where">Hamlet, looking north toward the Market Lamps</span></div>
-    <p class="what">A small green gem now turns over each activity you haven't done within 90 u, and green ticks on the compass point to ones within 60 u. A line under the goal names each one once ("Market Lamps nearby — north, 27 u").</p>
-    <div class="grid">
-      <figure><img src="gems-before.jpg" alt=""><figcaption>Before <span>— nothing says there's a thing to do here</span></figcaption></figure>
-      <figure><img src="gems-after.jpg" alt=""><figcaption>After <span>— gem (top middle), green compass ticks, nearby line</span></figcaption></figure>
-      <figure><img src="gems-proposed.png" alt=""><figcaption>Proposed <span>— gem 1.7× bigger and brighter</span></figcaption></figure>
-    </div>
-    <div class="pick"><b>My pick: Proposed.</b> At its current size the gem is a few pixels and easy to miss, which defeats the point. Bigger still sits below the story's gold gem in loudness.</div>
-  </section>
-
-  <h2>Open issues for round 7</h2>
-
-  <section class="item">
-    <div class="head"><h3>4. Orange bar across the aurora photo</h3><span class="where">Aurora photo, Brindle Peak</span></div>
-    <p class="what">The critic blamed the mast. It isn't the mast: it's the photo spot's own orange start frame, standing right beside you, so it sits in the viewfinder.</p>
-    <div class="grid">
-      <figure><img src="aurora-now.jpg" alt=""><figcaption>Now</figcaption></figure>
-      <figure><img src="aurora-proposed.jpg" alt=""><figcaption>Proposed <span>— the start frame hides while its photo is open</span></figcaption></figure>
-    </div>
-    <div class="pick"><b>My pick: Proposed</b>, applied to every photo spot.</div>
-  </section>
+  <h2>Needs your eye</h2>
 
   <section class="item">
     <div class="head"><h3>5. The fish you catch</h3><span class="where">Creek Pool, Pinewind, a grayling</span></div>
-    <p class="what">The catch hangs pale grey against pale snow and water: it reads as two loose flat shapes, not a fish.</p>
+    <p class="what">You're right that none of the old shots looked like a fish. That's the problem. When you land one, it hangs from the line beside Pip, but it's built from a stretched diamond and a cone for a tail, in one flat grey. It reads as two loose shapes. (The white ring is the ripple on the water.) The last mock only changed the colours, so it still didn't look like a fish.</p>
     <div class="grid">
-      <figure><img src="fish-now.jpg" alt=""><figcaption>Now <span>— grey body, near-white fin</span></figcaption></figure>
-      <figure><img src="fish-proposed.jpg" alt=""><figcaption>Proposed <span>— dusky mauve body, pink sail fin</span></figcaption></figure>
+      <figure><img src="p5-now.jpg" alt=""><figcaption>Now <span>— diamond + cone, flat grey</span></figcaption></figure>
+      <figure><img src="p5-proposed.jpg" alt=""><figcaption>Proposed <span>— fish silhouette: rounded body, forked tail, tall back fin, eye</span></figcaption></figure>
     </div>
-    <div class="pick"><b>My pick: Proposed</b>, with every fish given a darker body and one strong fin colour (char orange, pike green, the ghost trout staying pale with a teal fin). The mock changes colour only; the shape could also take a tail.</div>
+    <div class="ask"><b>My pick: Proposed.</b> Every fish gets the same shape, in its own colours: a darker body with one strong fin colour (char orange, pike green, the ghost trout pale with a teal fin). I'd also shrink it about a fifth, since it's a little big beside Pip.</div>
   </section>
 
   <section class="item">
     <div class="head"><h3>6. The bell you throw at</h3><span class="where">Bell Ring, Hamlet square</span></div>
-    <p class="what">Confirmed. The bell is the small dark red shape at the top of the post, and it reads as a pennant. Nothing tells you it's the target, and the aim dots start off to one side of it.</p>
+    <p class="fix"><b>Correction:</b> last time I said the bell was the red shape. It isn't. The red triangle is the Bell Ring's start flag. The bell is the tiny yellow dot under the crossbar at the top of the post, and the flag stands right in front of it.</p>
+    <p class="what"><b>What Bell Ring is:</b> a throwing game in the square. You turn with A/D (the dotted line shows your throw) and press E to throw a snowball at the bell; one hit rings it. The critic couldn't tell what they were aiming at.</p>
     <div class="grid">
-      <figure><img src="bell-now.jpg" alt=""><figcaption>Now</figcaption></figure>
-      <figure><img src="bell-proposed.jpg" alt=""><figcaption>Proposed <span>— a lit lantern-coloured ring round the bell while aiming</span></figcaption></figure>
+      <figure><img src="p6-now.jpg" alt=""><figcaption>Now <span>— bell is a dot; flag in front of it</span></figcaption></figure>
+      <figure><img src="p6-a.jpg" alt=""><figcaption>Proposed A <span>— a real brass bell, bigger; flag moved aside</span></figcaption></figure>
+      <figure><img src="p6-b.jpg" alt=""><figcaption>Proposed B <span>— A, plus a lit ring round the bell</span></figcaption></figure>
     </div>
-    <div class="pick"><b>My pick: Proposed</b>, and recolour the bell brass so it reads as a bell.</div>
+    <p class="what" style="margin-top:10px"><b>About the ring:</b> it shows only while you're playing Bell Ring, to say "this is the target", and goes away when you stop. Walking round the square, you'd just see the brass bell. The snowman build already uses a lit ring the same way.</p>
+    <div class="ask"><b>My pick: B.</b> A alone makes the bell readable; the ring makes it unmissable at dusk, when the bell is darkest.</div>
+  </section>
+
+  <h2>Built</h2>
+
+  <section class="item">
+    <div class="head"><h3>1. Activity panel clipping the photo arrow</h3><span class="where">Hoarfrost Glade photo, Pinewind</span></div>
+    <p class="what">While you aim a photo, the panel now sits under the frame's bottom-right corner and shows only the running line. "Esc stop" moved onto the keys line. The frame itself is clear.</p>
+    <div class="grid">
+      <figure><img src="p1-before.jpg" alt=""><figcaption>Before</figcaption></figure>
+      <figure><img src="p1-after.jpg" alt=""><figcaption>After</figcaption></figure>
+    </div>
   </section>
 
   <section class="item">
-    <div class="head"><h3>7. The "whiteout" on Windscar Ridge</h3><span class="where">Climbing the ridge face</span></div>
-    <p class="what">On the steep face the slope fills the frame: one blue surface with nothing on it. The critic filed this as camera.</p>
+    <div class="head"><h3>3. Bigger green gem over things to do</h3><span class="where">Hamlet, dusk</span></div>
+    <p class="what">Built as you picked: 1.7× the size and brighter.</p>
     <div class="grid">
-      <figure><img src="ridge-now.jpg" alt=""><figcaption>Now</figcaption></figure>
-      <div class="none">No mock. The framing is the camera, which you've signed off. The art-side option would be rock outcrops and drift lines on the face, so it isn't one blank surface.</div>
+      <figure><img src="p3-before.jpg" alt=""><figcaption>Before</figcaption></figure>
+      <figure><img src="p3-after.jpg" alt=""><figcaption>After</figcaption></figure>
     </div>
-    <div class="pick"><b>My pick: leave it.</b> Say so if you want the rock outcrops tried.</div>
+  </section>
+
+  <section class="item">
+    <div class="head"><h3>4. Photo spot's frame post hidden while shooting</h3><span class="where">Aurora photo, Brindle Peak</span></div>
+    <p class="what">Built for every photo spot. The post comes back as soon as the photo closes. (The panel has also moved out of the frame, from item 1.)</p>
+    <div class="grid">
+      <figure><img src="aurora-now.jpg" alt=""><figcaption>Before</figcaption></figure>
+      <figure><img src="aurora-built.jpg" alt=""><figcaption>After</figcaption></figure>
+    </div>
+  </section>
+
+  <h2>Closed</h2>
+
+  <section class="item">
+    <div class="head"><h3>2. Pip's lantern glow</h3></div>
+    <p class="what">You're right: the proposal looked the same as the current glow at normal distance. The face hotspot it was meant to fix doesn't show from the usual camera angle either, so I've dropped it. The glow stays as built.</p>
+    <div class="grid">
+      <figure><img src="glow-before.jpg" alt=""><figcaption>Before rounds 5–6</figcaption></figure>
+      <figure><img src="glow-after.jpg" alt=""><figcaption>Now (kept)</figcaption></figure>
+    </div>
+  </section>
+
+  <section class="item">
+    <div class="head"><h3>7. Windscar Ridge face</h3></div>
+    <p class="what">Left as is.</p>
   </section>
 </main>
 <dialog id="big"><img alt=""></dialog>

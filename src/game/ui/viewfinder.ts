@@ -26,7 +26,7 @@ export function createViewfinder(root: HTMLElement): Viewfinder {
     '<i class="ui-finder__corner is-tl"></i><i class="ui-finder__corner is-tr"></i>' +
     '<i class="ui-finder__corner is-bl"></i><i class="ui-finder__corner is-br"></i>' +
     '<i class="ui-finder__mark"></i>' +
-    '<p class="ui-finder__keys">A / D turn · W / S tilt · E shoot</p>';
+    '<p class="ui-finder__keys">A / D turn · W / S tilt · E shoot · Esc stop</p>';
   root.appendChild(frame);
   let wasCentred = false;
 

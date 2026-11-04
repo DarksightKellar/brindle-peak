@@ -65,6 +65,9 @@ export interface ActivityRunner {
 
 export function createActivityRunner(d: ActivityRunnerDeps): ActivityRunner {
   let active: ActivityInstance | null = null;
+  /** A photo's own start frame, hidden while the viewfinder is up: it stands beside the spot and
+   * crossed the aurora shot (critic round 7). */
+  let framed: string | null = null;
   let seconds = 0;
   let openingYaw: number | null = null;
   let openingLeft = 0;
@@ -88,6 +91,8 @@ export function createActivityRunner(d: ActivityRunnerDeps): ActivityRunner {
     // One last sync: an aborted build puts its pile back as it was, a finished one leaves it standing.
     d.markers.sync(a.markers?.() ?? []);
     d.markers.clear();
+    if (framed) d.markers.hide(framed, false);
+    framed = null;
     active = null;
     const line = a.result() !== null ? extras(a).summary?.() ?? null : null;
     if (line) {
@@ -121,6 +126,8 @@ export function createActivityRunner(d: ActivityRunnerDeps): ActivityRunner {
       resultLeft = 0;
       openingYaw = extras(active).startYaw?.() ?? null;
       openingLeft = openingYaw === null ? 0 : OPENING_TURN;
+      framed = def.kind === 'photo' ? `start:${def.id}` : null;
+      if (framed) d.markers.hide(framed, true);
       running = extras(active).solids?.() ?? [];
       d.solids?.push(...running);
       const hint = HINT_FOR_ID[def.id] ?? extras(active).instruction?.() ?? undefined;

@@ -40,7 +40,10 @@ export function createNearbyNotice(activities: readonly ActivityDef[]): { update
       if (current && nowMs < until) {
         const d = Math.hypot(current.pos.x - from.x, current.pos.z - from.z);
         if (d < 4) return '';
-        return `${current.name} nearby — ${compassWord(current.pos.x - from.x, current.pos.z - from.z)}, ${formatDistance(d)}`;
+        // A map hop carries Pip hundreds of units inside the line's few seconds: "nearby, 773 u".
+        if (d <= NOTICE_RANGE) {
+          return `${current.name} nearby — ${compassWord(current.pos.x - from.x, current.pos.z - from.z)}, ${formatDistance(d)}`;
+        }
       }
       current = null;
       for (const a of activities) {

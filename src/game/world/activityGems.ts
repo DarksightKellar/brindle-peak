@@ -7,7 +7,7 @@
  * that far away is a grey fleck. The map drew their glyphs; nothing in the world said "here".
  *
  * Quieter than the story's gem and the errand's (goalMarker.ts): no column of light, green rather than
- * lantern or amber, a smaller size on screen, shown only inside SEEN units and gone inside the E pill's
+ * lantern or amber, shown only inside SEEN units and gone inside the E pill's
  * reach. Once an activity has been done its gem never comes back; the map keeps its glyph for a rerun.
  * It draws over the hill in front of it, as a mark on the skyline would: the point is "over there".
  * Sized in screen pixels like the goal gem, so it reads the same at 20 units and at 90.
@@ -24,8 +24,12 @@ const SEEN = 90;
 const FADE = 20;
 /** Gone inside this: the activity's own E pill is up. */
 const NEAR = 6;
-/** The gem's half-height in internal pixels (the story's is 3.5, the errand's 2.5). */
-const GEM_PX = 2.5;
+/**
+ * The gem's half-height in internal pixels (the story's is 3.5, the errand's 2.5). At 2.5 it was a
+ * few pixels and missed; the director chose this size from a side-by-side. The story's gem still
+ * leads: it alone stands on a column of light.
+ */
+const GEM_PX = 4.25;
 /** Above the start's ground, clear of a start post and a villager's head. */
 const LIFT = 2.8;
 const PX_PER_UNIT = (2 * Math.tan(((CAMERA.fov / 2) * Math.PI) / 180)) / 216;
@@ -42,7 +46,7 @@ export function createActivityGems(sampler: TerrainSampler, activities: readonly
   const geo = new THREE.OctahedronGeometry(1, 0);
   const gems = activities.map((a) => {
     const mat = new THREE.MeshLambertMaterial({
-      color: PALETTE.AURORA_G, emissive: new THREE.Color(PALETTE.AURORA_G), emissiveIntensity: 0.5,
+      color: PALETTE.AURORA_G, emissive: new THREE.Color(PALETTE.AURORA_G), emissiveIntensity: 1,
       flatShading: true, fog: false, transparent: true,
       // Drawn over the ground in front of it: the kite and the chimney race stand on the ridge's top,
       // above the trail's sight line, and a gem the hill hides says nothing.
