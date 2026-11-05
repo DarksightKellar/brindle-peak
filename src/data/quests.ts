@@ -31,6 +31,10 @@
 
 import type { Condition, QuestDef, QuestReward, QuestStep, ZoneId } from '../core/contracts';
 
+/** The radio call is this quest's last step: done means Edda has keyed the set. After it the valley lights
+ * every trail post Pip did not (game/session/wayHome.ts). */
+export const RADIO_QUEST = 'the-mast';
+
 type StepExtra = Pick<QuestStep, 'say' | 'gives' | 'hold' | 'fresh' | 'offers'>;
 const s = (id: string, text: string, when: Condition, extra: StepExtra = {}): QuestStep => ({ id, text, when, ...extra });
 const talk = (id: string, text: string, npc: string, say: string, extra: Omit<StepExtra, 'say'> = {}): QuestStep =>
@@ -134,7 +138,7 @@ export const QUESTS: readonly QuestDef[] = [
       // Fresh: a run ridden before Skiff asked used to finish his errand on the spot (critic round 10).
       s('hill', 'Ride the sled down the boathouse hill in the Frozen Reach.', { kind: 'activity', id: 'reach-sled-hill' }, { fresh: true }),
       talk('margit', 'Ask Margit if the ice holds a sled.', 'margit', 'margit-sled'),
-      talk('sled', 'Take the sled from Skiff.', 'skiff', 'skiff-done'),
+      talk('sled', 'Tell Skiff at his boat what Margit said, and take his sled.', 'skiff', 'skiff-done'),
     ], { ability: 'sled', bells: 12 }),
 
   q('margit-ice', 'Where the Pike Sit', 'margit', 'reach', "She doesn't believe in luck. She believes in records.",

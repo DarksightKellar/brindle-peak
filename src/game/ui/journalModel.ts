@@ -15,6 +15,7 @@ import { ZONE_IDS } from '../../core/contracts';
 import type { GuideContent } from '../../core/guide/nextStep';
 import { nextStepOf } from '../../core/guide/nextStep';
 import { evaluate } from '../../core/progress/conditions';
+import { RADIO_QUEST } from '../../data/quests';
 import { ZONE_NAMES } from '../../data/zoneNames';
 import type { MapDecor } from './journalMap';
 
@@ -76,6 +77,11 @@ export interface JournalModel {
   /** Every bell Pip holds, rewards included: the HUD chip's number. */
   purse: number;
   lanterns: CountRow;
+  /**
+   * Posts Pip lit, once the valley has lit the rest after the radio call; null before it. Critic round 16
+   * read "Lanterns 2 / 12" in the journal after watching every post come on down the mountain.
+   */
+  lanternsLitByPip: number | null;
   fish: CountRow;
   photos: CountRow;
   achievements: CountRow;
@@ -146,6 +152,7 @@ export function formatJournal(s: GameState, content: JournalContent = {}): Journ
   const bests = Object.entries(s.sledBests)
     .filter(([id, t]) => !id.startsWith('race:') && Number.isFinite(t) && t > 0)
     .map(([, t]) => t);
+  const valleyLit = s.quests[RADIO_QUEST]?.status === 'complete' && content.lanternsTotal !== undefined;
   const found = (kind: string): CountRow | null => {
     if (!content.pickups) return null;
     const all = content.pickups.filter((p) => p.kind === kind);
@@ -156,7 +163,8 @@ export function formatJournal(s: GameState, content: JournalContent = {}): Journ
     feathers: found('feather') ?? tally(s.feathers, FEATHERS_TOTAL),
     bells: found('bell') ?? tally(s.bells, null),
     purse: s.bells,
-    lanterns: tally(owned(s.lanterns), content.lanternsTotal ?? null),
+    lanterns: valleyLit ? tally(content.lanternsTotal ?? 0, content.lanternsTotal) : tally(owned(s.lanterns), content.lanternsTotal ?? null),
+    lanternsLitByPip: valleyLit ? owned(s.lanterns) : null,
     fish: tally(owned(s.fish), content.fish?.length ?? null),
     photos: tally(owned(s.photos), content.photosTotal ?? null),
     achievements: tally(Object.keys(s.achievements).length, content.achievements?.length ?? ACHIEVEMENTS_TOTAL),

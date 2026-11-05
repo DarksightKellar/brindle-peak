@@ -187,9 +187,13 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
         const nearby = nextAllowed && feather.line === ''
           ? nearbyNotice?.update(s, lastFrom, performance.now(), notable) ?? ''
           : '';
+        // A thing nearby goes on a second line under the errand, not over it: critic round 16 lost the
+        // errand's distance to "Pressure Ridges nearby" and "Boathouse Hill nearby" again and again.
+        const errandText = step ? `${formatNextStep(step)}${offStrip(step.target ?? null)}${hopHint(s, step)}` : '';
         if (feather.line !== '') writeNext(feather.line, null);
+        else if (nearby !== '' && errandText !== '') writeNext(`${errandText}\n${nearby}`, step);
         else if (nearby !== '') writeNext(nearby, null);
-        else writeNext(`${formatNextStep(step)}${offStrip(step?.target ?? null)}${hopHint(s, step)}`, step);
+        else writeNext(errandText, step);
       }
       const side = nextAllowed && errandTarget && errandTarget !== heldTarget ? errandTarget : null;
       // With no story point the errand is the goal, and its line wears the goal's mark, not its own.

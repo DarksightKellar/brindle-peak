@@ -73,7 +73,7 @@
   font-size: 13px; line-height: 1.35; letter-spacing: 0.02em; color: var(--lantern); text-align: center;
   background: rgba(51, 64, 107, 0.72); border: 1px solid rgba(226, 166, 79, 0.45);
   /* Wraps rather than cuts: critic round 12 read "Next: Ring Gus's shop bell cl…" and no more. */
-  white-space: normal; overflow-wrap: anywhere; pointer-events: none;
+  white-space: pre-line; overflow-wrap: anywhere; pointer-events: none;
 }
 
 /* ── The compass strip ───────────────────────────────────────────────────────

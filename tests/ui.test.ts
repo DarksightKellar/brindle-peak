@@ -168,6 +168,13 @@ describe('journal model', () => {
     expect(m.sledBest).toBe('41.2s');
   });
 
+  it('counts every post lit once the radio call has the valley light the rest, and keeps Pip\'s share', () => {
+    const s = filled();
+    expect(formatJournal(s, { lanternsTotal: 12 })).toMatchObject({ lanterns: { text: '2 / 12' }, lanternsLitByPip: null });
+    s.quests['the-mast'] = { status: 'complete', step: 2 };
+    expect(formatJournal(s, { lanternsTotal: 12 })).toMatchObject({ lanterns: { got: 12, text: '12 / 12' }, lanternsLitByPip: 2 });
+  });
+
   /*
    * The unlock value is the ORDER the player earned it in, not a boolean: the tracker writes
    * `s.achievements[id] = Object.keys(s.achievements).length`, so the first achievement anyone earns

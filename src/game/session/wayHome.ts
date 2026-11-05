@@ -25,11 +25,10 @@
 
 import type { GameState, Vec2 } from '../../core/contracts';
 import { PICKUPS } from '../../data/pickups';
+import { RADIO_QUEST } from '../../data/quests';
 import { wayPoints } from '../world/trail';
 import { HOLD } from '../camera/director';
 
-/** The radio call is this quest's last step: done means Edda has keyed the set (data/quests.ts). */
-const RADIO_QUEST = 'the-mast';
 /** Pip this far from the mast has stepped off the summit's top, and the trail below is in view. */
 const BROW = 40;
 /** Seconds after the camera turns home (HOLD) by which the run starts even if Pip has not moved. */

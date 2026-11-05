@@ -34,6 +34,13 @@ const bellsHTML = (m: JournalModel): string =>
   statHTML('Bells', m.bells, `${icon('bell', 12)}${m.purse}`,
     `<span class="ui-stat__note">${esc(m.bells.text)} ${esc(BELLS_FOUND_WORDS)}</span>`);
 
+/** After the radio call every post is on; the note under it keeps Pip's own share. */
+const lanternsHTML = (m: JournalModel): string =>
+  m.lanternsLitByPip === null
+    ? statHTML('Lanterns', m.lanterns)
+    : statHTML('Lanterns', m.lanterns, esc(m.lanterns.text),
+      `<span class="ui-stat__note">${m.lanternsLitByPip} lit by you, the rest by the valley</span>`);
+
 /** The kept photographs, pinned under the counts. The src is a data URL this game wrote itself. */
 const printsHTML = (prints: readonly { src: string; caption: string }[]): string =>
   prints.length === 0
@@ -53,7 +60,7 @@ export function notesHTML(m: JournalModel, prints: readonly { src: string; capti
     )
     .join('');
   return (
-    `<div class="ui-jgrid">${stats.map((r, i) => (r === m.bells ? bellsHTML(m) : statHTML(labels[i], r))).join('')}</div>` +
+    `<div class="ui-jgrid">${stats.map((r, i) => (r === m.bells ? bellsHTML(m) : r === m.lanterns ? lanternsHTML(m) : statHTML(labels[i], r))).join('')}</div>` +
     (m.carrying.length > 0 ? `<p class="ui-journal__meta">Carrying: ${m.carrying.map(esc).join(' · ')}</p>` : '') +
     printsHTML(prints) +
     `<ul class="ui-zones">${zones}</ul>` +

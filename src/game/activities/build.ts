@@ -178,12 +178,11 @@ export class BuildActivity implements ActivityInstance {
     const placed = Math.min(this.stage, total);
     const miss = this.aligned ? this.hand.miss(this.elapsed) : null;
     const count = `${nounFor(this.site)} ${placed} / ${total}`;
-    // The moment is said in words for the first log only; after that the panel's amber is the cue, and
-    // the timing is the player's. Critic round 15 laid all eight by reading "Square — press E".
-    const coach = this.squareNow && placed === 0;
+    // The moment is said for every log. Round 16 said it for the first only, and critic round 16 read
+    // that as the hint vanishing; the skill is in the swing now, each log at its own pace (logHand.ts).
     const label = miss
       ? `${miss === 'early' ? WORDS.woodEarly : WORDS.woodLate} · ${count}`
-      : coach ? `${WORDS.woodNow} · ${count}` : count;
+      : this.squareNow ? `${WORDS.woodNow} · ${count}` : count;
     return { label, fraction: placed / total, urgent: this.squareNow };
   }
 

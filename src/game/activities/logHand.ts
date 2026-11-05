@@ -11,6 +11,11 @@ import type { PlacedMarker } from './markerLooks';
 import { LOG } from './pieceMeshes';
 import { isSquare, missSide, slipAt, swingAt, SWING } from './logSwing';
 
+/** Shortest wait, in seconds, from a log coming up to its first square pass. */
+const LEAD = 0.45;
+/** How much quicker or slower than the rest a log may swing: one in eight. */
+const PACE = 0.12;
+
 export class LogHand {
   /** Clock when the log now swinging was lifted, and when a crooked one began to slip (-1: none). */
   private lifted = 0;
@@ -21,9 +26,28 @@ export class LogHand {
   /** Clock at the last crooked press (-1: none), and which side of square it missed on. */
   private missAt = -1;
   private missed: 'early' | 'late' = 'early';
+  /** Logs lifted so far: each starts its swing somewhere else (`lift`), and swings at its own pace. */
+  private lifts = 0;
+  private pace = 1;
+
+  /**
+   * Lift a log off the heap. Each one comes up partway through its swing, a different way each time:
+   * starting every log at the same point put square a fixed 0.65 s after the last one landed, and
+   * critic round 16 laid seven of seven pressing E once every 0.7 s without looking.
+   */
+  private lift(now: number): void {
+    this.lifts++;
+    // It comes up crooked, just past a square pass, and the next square is LEAD to LEAD + spread
+    // seconds away: never so soon that a deliberate press reads as a mash.
+    this.pace = 1 + PACE * Math.sin(this.lifts * 2.4);
+    const p = SWING.period, w = (p * Math.asin(Math.sqrt(SWING.square / SWING.amp))) / (2 * Math.PI);
+    const spread = p / 2 - 2 * w - LEAD * this.pace;
+    this.lifted = now - (p / 4 + w + ((this.lifts * 0.618) % 1) * spread) / this.pace;
+  }
 
   reset(now: number): void {
-    this.lifted = now;
+    this.lifts = 0;
+    this.lift(now);
     this.slipStart = -1;
     this.lastPress = Number.NEGATIVE_INFINITY;
     this.missAt = -1;
@@ -31,7 +55,7 @@ export class LogHand {
 
   /** The swinging log's angle off square at `now`, on crib layer `layer`. */
   angle(now: number, layer: number): number {
-    return swingAt(now - this.lifted, layer);
+    return swingAt((now - this.lifted) * this.pace, layer);
   }
 
   /** True while a press now would lay the log. */
@@ -48,15 +72,15 @@ export class LogHand {
     if (pressed) this.lastPress = now;
     if (this.slipStart >= 0 && now - this.slipStart >= SWING.slip) {
       this.slipStart = -1;
-      this.lifted = now;
+      this.lift(now);
     }
     if (this.slipStart >= 0 || !pressed) return null;
     const angle = this.angle(now, layer);
     if (!mashed && isSquare(angle)) {
-      this.lifted = now;
+      this.lift(now);
       return angle;
     }
-    const t = now - this.lifted;
+    const t = (now - this.lifted) * this.pace;
     this.slipStart = now;
     this.slipAngle = angle;
     this.missAt = now;

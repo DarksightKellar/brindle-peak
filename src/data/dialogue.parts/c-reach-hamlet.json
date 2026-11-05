@@ -33,7 +33,7 @@
     "id": "skiff-errand",
     "speaker": "skiff",
     "lines": [
-      "Take the sled down the boathouse hill. Mind the birch at the bottom. It doesn't move.",
+      "First try the old hill sled. It's left at the top of the boathouse hill. Ride it down once. Mind the birch at the bottom. It doesn't move.",
       "Then find Margit, the raven who counts the ice. She's out there now.",
       "Ask her if it'll hold a sled. And don't let her talk your ear off."
     ],
@@ -68,7 +68,8 @@
     "speaker": "skiff",
     "lines": [
       "So the raven says it holds. Good enough for me.",
-      "Sled's yours. Use it hard. That's all a sled wants. Same as a boat."
+      "Then mine comes down off the roof. Here. Not a loan: yours, on any slope you like.",
+      "Use it hard. That's all a sled wants. Same as a boat."
     ]
   },
   {

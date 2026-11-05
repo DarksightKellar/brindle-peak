@@ -154,6 +154,24 @@ describe('build', () => {
     }
   });
 
+  it('a steady rhythm of presses, not watching the log, does not stack the pile', () => {
+    // Critic round 16 laid seven of seven pressing once every 0.7 s: every log came square at the same
+    // moment after the last. Now each comes up at a different point in its swing.
+    const d = def('build', 'hearth-kindling', { x: -335.5, z: 296.4 });
+    for (const every of [36, 42, 48]) {
+      const build = createBuildActivity(d);
+      const h = host({ x: d.pos.x + 2, y: 0, z: d.pos.z });
+      build.start(h);
+      let presses = 0;
+      for (let f = 1; f < 60 * 60 && build.placed < build.stepCount; f++) {
+        const press = f % every === 0;
+        if (press) presses++;
+        step(build, h, { interactPressed: press });
+      }
+      expect(presses - build.placed, `every ${every} frames`).toBeGreaterThanOrEqual(3);
+    }
+  });
+
   it('each square press moves a log from the crooked heap onto the crib; the last one lands before it counts', () => {
     const d = def('build', 'hearth-kindling', { x: -335.5, z: 296.4 });
     const build = createBuildActivity(d);

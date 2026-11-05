@@ -109,8 +109,20 @@ export function createPixelPipeline(canvas: HTMLCanvasElement, kit: SceneKit): P
   const quadScene = new THREE.Scene().add(quad);
   const quadCamera = new THREE.Camera();
 
+  /** The scene's own background, as last seen outside the normal pass. */
+  let background: THREE.Scene['background'] = null;
+
   function render(): void {
     const { scene, camera } = kit;
+    // A frame stopped mid-pass never reaches `finally` (a script killed by a timeout), and the next one
+    // would keep the normal override as "previous": critic round 16 went on through the Frozen Reach in
+    // mint and pink. The override is only ever on inside the pass, so finding it here means undo it.
+    if (scene.overrideMaterial === normalMaterial) {
+      scene.overrideMaterial = null;
+      scene.background = background;
+      camera.layers.enable(AURORA_LAYER);
+    }
+    background = scene.background;
     const previousOverride = scene.overrideMaterial, previousBackground = scene.background;
     renderer.setRenderTarget(beauty);
     renderer.clear();
