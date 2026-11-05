@@ -327,6 +327,11 @@ export interface Condition {
   id: string;
   /** For `count`: required value. Defaults to 1. */
   n?: number;
+  /**
+   * For `visited`: a hop by the map counts as arriving. Off, only a walk in does ("walk as far as the
+   * pines"); on, the thing is carried there however Pip goes ("carry the bundle to the springs").
+   */
+  hop?: boolean;
 }
 
 export interface QuestStep {

@@ -30,6 +30,8 @@ const BELL_SHAPE = new THREE.LatheGeometry(
     .map(([r, y]) => new THREE.Vector2(r, y)),
   8,
 ).toNonIndexed();
+/** How far west of the bell post its lamp hangs, clear of the bell's 0.55 u rim. photoSubjects.ts aims here. */
+export const LAMP_ARM = 0.95;
 
 export const LANDMARKS: readonly { id: string; x: number; z: number }[] = [
   { id: 'station', x: -352, z: 352 },
@@ -163,7 +165,17 @@ function hamlet(sampler: TerrainSampler, x: number, z: number): THREE.Group {
   b.glow();
   // Hung from the crossbar, its middle at the throw target's height (activities/throwSetups.ts BELL).
   b.add(BELL_SHAPE, propMatrix(0, 2.5, 0, 1.3, 1.3, 1.3), 'AMBER');
+  // The market lamp Orla lit, on an arm west of the bell, so the photo of it (photoSubjects.ts) has a
+  // lamp in it: the post used to carry only the bell, and critic round 45 was asked to centre a lamp
+  // that wasn't there. West, because from the photo spot the east side hangs over a lit window.
+  b.add(GEO.octa, propMatrix(-LAMP_ARM, 1.6, 0, 0.24, 0.3, 0.24), 'LANTERN');
+  b.add(GEO.quad, propMatrix(-LAMP_ARM, 1.6, 0.2, 0.3, 0.42, 1), 'AMBER');
   b.glow(false);
+  // A dark cap and base, so it reads as a lantern and not a patch of light.
+  b.box(-LAMP_ARM, 1.88, 0, 0.4, 0.1, 0.4, 'WOOD_DK', 'SNOW_LT');
+  b.box(-LAMP_ARM, 1.3, 0, 0.32, 0.08, 0.32, 'WOOD_DK');
+  b.strut([-0.1, 2.1, 0], [-LAMP_ARM, 2.1, 0], 0.05, 'WOOD_DK');
+  b.strut([-LAMP_ARM, 2.1, 0], [-LAMP_ARM, 1.98, 0], 0.02, 'ROCK_DK');
   const bell = b.finish('hamlet-bell');
   bell.position.set(x, sampler.heightAt(x, z), z);
   bell.userData.colliders = [{ kind: 'circle', x, z, r: 0.18 + BIRD_BULK }];

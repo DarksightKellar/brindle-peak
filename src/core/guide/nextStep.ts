@@ -200,7 +200,9 @@ export function nextStepFor(
       questId: def.id,
       questTitle: def.title,
       stepIndex: now.index,
-      stepText: now.step.text,
+      // Already standing in the zone, the step can only pass on a fresh way in: critic round 45 hopped to
+      // Pinewind Wood for Jory's walk and read the same line with nothing to do.
+      stepText: inside ? `${now.step.text} You're in it: walk out and back in.` : now.step.text,
       ...placed,
     };
   }

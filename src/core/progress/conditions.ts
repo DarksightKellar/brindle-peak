@@ -59,7 +59,7 @@ export function measure(c: Condition, s: GameState): number | null {
     case 'talked':
       return s.talkedAt[c.id] ?? 0;
     case 'visited':
-      return s.counters['visit:' + c.id] ?? 0;
+      return (s.counters['visit:' + c.id] ?? 0) + (c.hop === true ? s.counters['hop:' + c.id] ?? 0 : 0);
     case 'activity':
       return s.counters['activity:' + c.id] ?? 0;
     case 'reached':

@@ -95,7 +95,9 @@ function mutate(s: GameState, name: GameEventName, f: Fields): void {
         s.zone = id;
         // A hop from the map is not a walk there: critic round 33 hopped to Pinewind Wood and Jory's
         // "walk as far as the pines for me" was done, and he thanked Pip for going.
-        if (f['byMap'] !== true) bump(s.counters, 'visit:' + id);
+        // Hops are counted apart, for the steps that take them (Condition.hop): critic round 45 hopped to
+        // Kettle Springs with Ilsa's bundle and could never deliver it.
+        bump(s.counters, (f['byMap'] === true ? 'hop:' : 'visit:') + id);
       }
       break;
     }

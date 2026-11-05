@@ -23,6 +23,8 @@ import type { Presentation } from './presentation';
 import { NPCS } from '../../data/npcs';
 import { QUESTS } from '../../data/quests';
 import { talkReach } from './interact';
+import { bearing } from '../ui/hudCompass';
+import { keyToward } from '../activities/activityWords';
 
 /** The story's first chapter, and who it starts with: its giver, and how far E reaches them. */
 const FIRST = QUESTS.find((q) => q.main);
@@ -40,6 +42,8 @@ export interface OnboardingDeps {
   ui: Presentation;
   /** Write progress now, so a beat survived a reload on the next frame. */
   persist(): void;
+  /** Camera yaw: the walk tip names the key toward the cabin from the view, as the compass does. */
+  viewYaw(): number;
 }
 
 export interface Onboarding {
@@ -82,6 +86,19 @@ export function createOnboardingScript(d: OnboardingDeps): Onboarding {
 
   const hidePrompt = (): void => ui.tutorial.hide();
 
+  /*
+    The walk tip ends on the key that walks to Nana from this view. The opening frame has the cabin on
+    Pip's right, and critic round 45 pressed W after "walk toward the cabin" and walked away from it.
+    The shown key holds until the cabin is a little past its edge, so the words don't flicker there.
+  */
+  let walkKey: string | null = null;
+  const worded = (beat: TutorialBeat): TutorialBeat => {
+    if (beat.id !== 'walk' || OPENER_AT === null) return beat;
+    const turn = -bearing(OPENER_AT.x - player.pos.x, OPENER_AT.z - player.pos.z, d.viewYaw());
+    if (walkKey === null || (keyToward(turn - 0.08) !== walkKey && keyToward(turn + 0.08) !== walkKey)) walkKey = keyToward(turn);
+    return { ...beat, prompt: `${beat.prompt}: hold ${walkKey}` };
+  };
+
   /** This frame's moment, for `beatApplies`. Climbing and mantling are neither flying nor walking. */
   const context = (): BeatContext => ({
     airborne: player.mode === 'air' || player.mode === 'glide',
@@ -120,7 +137,7 @@ export function createOnboardingScript(d: OnboardingDeps): Onboarding {
   const handle = (events: readonly OnboardingEvent[]): void => {
     for (const e of events) {
       if (e.kind === 'enter') {
-        ui.tutorial.show(e.beat);
+        ui.tutorial.show(worded(e.beat));
         // Mid-script progress, saved as it happens rather than only at the end.
         if (state.onboardingBeat !== e.beat.id) {
           state.onboardingBeat = e.beat.id;
@@ -210,7 +227,7 @@ export function createOnboardingScript(d: OnboardingDeps): Onboarding {
         // "Hold Shift — run" under "E Stack" is two instructions where one is the thing in front of you.
         else if (!beatApplies(beat, context()) || (beat.patience !== undefined && ui.hud.promptShowing())) {
           ui.tutorial.hide(false);
-        } else ui.tutorial.show(beat);
+        } else ui.tutorial.show(worded(beat));
       }
     },
   };

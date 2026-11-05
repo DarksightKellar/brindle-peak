@@ -121,6 +121,16 @@ describe('errands', () => {
     expect(g.state.quests['jory-first-step']?.step).toBe(2);
   });
 
+  // Critic round 45 hopped to Kettle Springs with Ilsa's bundle, and the step never passed.
+  it("a hop from the map carries Ilsa's bundle to the springs", () => {
+    const g = play();
+    g.emit('zone:entered', 'pinewind');
+    g.talk('ilsa');
+    expect(g.state.quests['ilsa-kindling']?.step).toBe(0);
+    g.emit('zone:entered', 'kettles', true);
+    expect(g.state.quests['ilsa-kindling']?.step).toBe(1);
+  });
+
   it('two errands waiting on Hollis each get their own talk', () => {
     const g = play();
     g.talk('hollis');

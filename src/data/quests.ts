@@ -130,7 +130,7 @@ export const QUESTS: readonly QuestDef[] = [
 
   q('ilsa-kindling', 'The Bundle', 'ilsa', 'pinewind', 'She carries things for everyone except herself.',
     { offer: 'ilsa-root', waiting: 'ilsa-wait' }, [
-      s('springs', "Carry Ilsa's bundle to Kettle Springs.", { kind: 'visited', id: 'kettles' }),
+      s('springs', "Carry Ilsa's bundle to Kettle Springs.", { kind: 'visited', id: 'kettles', hop: true }),
       talk('ivy', 'Hand the bundle to Ivy, her sister.', 'ivy', 'ivy-bundle'),
       talk('back', 'Tell Ilsa it landed.', 'ilsa', 'ilsa-done'),
     ], { bells: 15 }),

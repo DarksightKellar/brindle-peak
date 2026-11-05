@@ -172,6 +172,7 @@ export function bootstrap(opts: BootOptions): Booted {
   // session's frame, which is the only place that knows dt and the input.
   const onboarding = createOnboardingScript({
     state, player, spawn, bus, ui, persist: () => { if (savesAllowed()) store.persist(); },
+    viewYaw: () => rig.yaw(),
   });
 
   return {
