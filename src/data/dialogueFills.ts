@@ -63,6 +63,11 @@ export const DIALOGUE_FILLS: Readonly<Record<string, (s: GameState) => string[]>
     (s.counters['activity:hamlet-snowman'] ?? 0) > 0
       ? ["Was that your snowman on the green? It leans. I like it."]
       : ["Still no snowman on the green, I see. Somebody ought to enjoy the snow."],
+  // Gus's first words. Critic round 28 bought a feather from him and was then told "you're not buying".
+  'gus-hello': (s) =>
+    s.flags['picked:feather-shop-one'] === true || s.flags['picked:feather-shop-two'] === true
+      ? ["Bells! Bells for sale! ...Oh, you've had a feather off me already. A customer! Hello."]
+      : ["Bells! Bells for sale! ...Oh, you're not buying."],
   // When she sends Pip to Skiff. Critic round 27 had built the snowman already and was still asked for
   // one, and said yes to it: she has seen it, or asks for it, whichever is true. Said first.
   'orla-green': (s) =>

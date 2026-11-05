@@ -17,12 +17,13 @@ export const ACTIVITY_RADIUS = 2.6;
 /**
  * E reaches an activity from at least this far. Critic round 8 walked past the kite's prompt in half a
  * second and pressed at the woodpile from just outside it; their ask was three to four units. Critic
- * round 27 still stopped 3 to 4 u from the deer run's flag and the skating post and got no prompt. No two
- * activities or villagers stand within 8 u of each other, so this overlaps nothing.
+ * round 27 still stopped 3 to 4 u from the deer run's flag and the skating post and got no prompt, and
+ * critic round 28 at 6 u. Where two reaches overlap (the dam and Ivy, 8 u apart) the nearer wins
+ * (interactions.ts), so a wide reach never hides a prompt.
  */
-export const ACTIVITY_REACH_MIN = 4.6;
+export const ACTIVITY_REACH_MIN = 6;
 /** How close to an activity's start prop E reaches it. */
-export const PROP_REACH = 4;
+export const PROP_REACH = 5.5;
 export const LANTERN_RADIUS = 2.4;
 /** Carrying the lantern, Pip lights a post just by passing this close to it. */
 export const LANTERN_PASS = 6;

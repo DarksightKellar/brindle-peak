@@ -63,3 +63,28 @@ export function signTo(from: Vec3, target: Vec2, camYaw: number): PlacedMarker[]
   const roll = Math.sign(delta) * Math.min(Math.abs(delta), ARROW_MAX_ROLL);
   return (['arrow-rim', 'arrow'] as const).map((look) => ({ shape: 'float', look, ...at, yaw: camYaw + Math.PI, tilt: roll, size }));
 }
+
+export type Way = 'ahead' | 'left' | 'right' | 'behind';
+
+/** Within this of the view's heading (radians) the target is "ahead"; past WAY_BEHIND, "behind you". */
+const WAY_AHEAD = 0.5;
+// Past a right angle, as the compass strip has it (hudCompass.ts): at 2.3 the panel said "27 u on your
+// left" while the compass over it said "behind you" (critic round 22).
+const WAY_BEHIND = Math.PI / 2;
+/** A word is kept until the target is this far (radians) past the edge of its band. */
+const WAY_HOLD = 0.15;
+
+/**
+ * Which way a target is from the view, in words, holding the last word near a band's edge: a gate on
+ * the line between "ahead" and "on your left" had the race's panel flicking between the two every frame
+ * (critic round 28). `turn` is the target's bearing from the view's heading, left positive.
+ */
+export function steadyWay(turn: number, last: Way | null): Way {
+  const a = Math.abs(turn);
+  const raw: Way = a < WAY_AHEAD ? 'ahead' : a > WAY_BEHIND ? 'behind' : turn > 0 ? 'left' : 'right';
+  if (last === null || raw === last) return raw;
+  const keep = last === 'ahead' ? a < WAY_AHEAD + WAY_HOLD
+    : last === 'behind' ? a > WAY_BEHIND - WAY_HOLD
+    : (turn > 0) === (last === 'left') && a > WAY_AHEAD - WAY_HOLD && a < WAY_BEHIND + WAY_HOLD;
+  return keep ? last : raw;
+}

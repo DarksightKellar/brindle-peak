@@ -222,9 +222,9 @@ describe('build', () => {
       const moveX = key ? (key === 'D' ? 1 : -1) : Math.max(-1, Math.min(1, (-watched.stoneOff * 4) / k.d));
       const now = watched.squareNow && f - last > 30;
       if (watched.squareNow) expect(said).toMatch(/^Over the gap — press E · /);
-      // After two stones the key steps back (round 27), unless a stone sits at the end of its reach.
-      if (!watched.squareNow && watched.placed >= 2 && Math.abs(watched.stoneOff) < 1.4 && !/^Not over|^Easy/.test(said)) {
-        expect(said).toMatch(/^The current has it\. Steer it back over the gap · /);
+      // Every stone names its key while off the gap (critic round 28 stalled at stone 2 without it).
+      if (!watched.squareNow && Math.abs(watched.stoneOff) > 0.3 && !/^Not over|^Easy/.test(said)) {
+        expect(said).toMatch(/^The current has it\. Hold [ADWS] to bring it over the gap · /);
       }
       if (now) last = f;
       step(watched, h, { moveX, interactPressed: now });

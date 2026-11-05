@@ -23,15 +23,10 @@ import type { PlacedMarker } from './markerLooks';
 import { nounFor, placePiece, siteFor, stepsFor, type BuildSite, type Piece } from './buildSites';
 import { BUILD, settleAt } from './build';
 import { WORDS } from './activityWords';
-import { floorArrowTo } from './pointer';
+import { floorArrowTo, steadyWay, type Way } from './pointer';
 
 /** A full ball further than this (metres, rim to ring) from the spot raises a beam over it. */
 const BEAM_GAP = 5;
-/** The ring within this of the view's heading (radians) is "ahead"; past WAY_BEHIND, "behind you" (as race.ts). */
-const WAY_AHEAD = 0.5;
-// Past a right angle, as the compass strip has it (hudCompass.ts): at 2.3 the panel said "27 u on your
-// left" while the compass over it said "behind you" (critic round 22).
-const WAY_BEHIND = Math.PI / 2;
 
 export const ROLL = {
   /**
@@ -65,6 +60,8 @@ export class SnowmanActivity implements ActivityInstance {
   private last: { x: number; z: number } = { x: 0, z: 0 };
   private elapsed = 0;
   private ground = 0;
+  /** The way word the panel said last frame (pointer.ts steadyWay). */
+  private way: Way | null = null;
   private groundAt: (x: number, z: number) => number = () => this.ground;
   private phase: 'build' | 'done' | 'aborted' = 'build';
   private outcome: ActivityResult | null = null;
@@ -89,6 +86,7 @@ export class SnowmanActivity implements ActivityInstance {
   }
 
   start(host: ActivityHost): void {
+    this.way = null;
     this.ground = host.terrain.heightAt(this.site.at.x, this.site.at.z);
     this.groundAt = (x, z) => host.terrain.heightAt(x, z);
     this.stage = 0;
@@ -191,7 +189,7 @@ export class SnowmanActivity implements ActivityInstance {
     // was theirs. The ball being pushed stands in its own light, and once it is full a line of lights
     // runs from it to the spot.
     // Critic round 13 then saw two gold rings and could not tell which was the target: the ball's own
-    // ring is mint now, gold is only ever where it goes, and a full ball raises a beam over the spot.
+    // ring is mint now, gold is only ever where it goes, and a beam stands over the spot while the ball is away.
     if (b) {
       const by = this.groundAt(b.x, b.z);
       out.push({ shape: 'ring', look: 'halo', x: b.x, y: by, z: b.z, size: b.r + 0.35, strength: full ? 0.9 : 0.6, color: PALETTE.AURORA_G });
@@ -199,7 +197,9 @@ export class SnowmanActivity implements ActivityInstance {
       const gap = Math.hypot(dx, dz) - b.r - 1.3;
       // The beam is for finding the spot from afar. Close to it, between the camera and the bird, it
       // stood as a wide orange column across the view (critic round 19); the ring and the lights do.
-      if (full && gap > BEAM_GAP) out.push({ shape: 'ring', look: 'beam', x: at.x, y: this.ground, z: at.z, yaw: 0, size: 1 });
+      // From the first roll, not only once the ball is full: critic round 28 rolled a small ball 700 u off
+      // with nothing standing over the ring to come back to.
+      if (gap > BEAM_GAP) out.push({ shape: 'ring', look: 'beam', x: at.x, y: this.ground, z: at.z, yaw: 0, size: 1 });
       if (full && gap > 1) {
         const n = Math.min(5, Math.floor(gap / 1.2));
         for (let i = 1; i <= n; i++) {
@@ -238,7 +238,7 @@ export class SnowmanActivity implements ActivityInstance {
     const at = this.site.at;
     const far = Math.hypot(at.x - b.x, at.z - b.z) - b.r - 1.3;
     const turn = angleDelta(this.camYaw, Math.atan2(at.x - b.x, at.z - b.z));
-    const way = Math.abs(turn) < WAY_AHEAD ? 'ahead' : Math.abs(turn) > WAY_BEHIND ? 'behind' : turn > 0 ? 'left' : 'right';
+    const way = this.way = steadyWay(turn, this.way);
     const where = far > 2 ? ` · ${WORDS.gateWay(far, way, turn > 0 ? 'left' : 'right')}` : '';
     return { label: `${full ? WORDS.snowPush : WORDS.snowRoll}${where} · ${count}`, fraction: (this.stage + grown) / total, urgent: full };
   }

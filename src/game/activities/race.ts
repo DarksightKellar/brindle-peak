@@ -24,17 +24,12 @@ import type { PlacedMarker } from './markerLooks';
 import { courseFor, type RaceCourse } from './raceCourses';
 import { advanceGates, courseLength, gateYaw } from './raceGates';
 import { WORDS } from './activityWords';
-import { floorArrowTo } from './pointer';
+import { floorArrowTo, steadyWay, type Way } from './pointer';
 
 /** A hoop counts within this many metres of its centre height (so walking under one does not). */
 const HOOP_BAND = 2.2;
 /** The hoop mesh sits this far above its marker base (world/activityMarkers.ts PROTOTYPES.hoop.lift). */
 const HOOP_LIFT = 3;
-/** The next gate within this of the view's heading (radians) is "ahead"; past WAY_BEHIND, "behind you". */
-const WAY_AHEAD = 0.5;
-// Past a right angle, as the compass strip has it (hudCompass.ts): at 2.3 the panel said "27 u on your
-// left" while the compass over it said "behind you" (critic round 22).
-const WAY_BEHIND = Math.PI / 2;
 
 export class RaceActivity implements ActivityInstance {
   readonly def: ActivityDef;
@@ -59,8 +54,10 @@ export class RaceActivity implements ActivityInstance {
   private opening = 0;
   /** Where the runner was this frame, for the pointer that hangs beside them. */
   private runner: { x: number; y: number; z: number } | null = null;
-  /** The chase camera's heading this frame: the pointer faces it, like a sign held up to the lens. */
+  /** The chase camera's heading this frame: the panel's way words are measured against it. */
   private camYaw = 0;
+  /** The way word the panel said last frame (pointer.ts steadyWay). */
+  private way: Way | null = null;
 
   compassTarget(): Vec2 | null {
     const g = this.stage === 'run' ? this.course.gates[this.next] : undefined;
@@ -73,6 +70,7 @@ export class RaceActivity implements ActivityInstance {
   }
 
   start(host: ActivityHost): void {
+    this.way = null;
     this.ground = this.course.gates.map((g) => host.terrain.heightAt(g.x, g.z));
     this.groundAt = (x, z) => host.terrain.heightAt(x, z);
     const first = this.course.gates[0];
@@ -197,7 +195,7 @@ export class RaceActivity implements ActivityInstance {
     const g = this.course.gates[aim], p = this.runner;
     if (!g || !p) return { label, fraction: total === 0 ? 0 : this.next / total };
     const turn = angleDelta(this.camYaw, Math.atan2(g.x - p.x, g.z - p.z));
-    const way = Math.abs(turn) < WAY_AHEAD ? 'ahead' : Math.abs(turn) > WAY_BEHIND ? 'behind' : turn > 0 ? 'left' : 'right';
+    const way = this.way = steadyWay(turn, this.way);
     // A hoop above or below the glide says so: the round-26 critic had a distance and no height.
     const h = this.course.heights?.[aim];
     const rise = h !== undefined && Math.abs(h - p.y) > HOOP_BAND ? ` · ${WORDS.hoopHeight(h - p.y)}` : '';

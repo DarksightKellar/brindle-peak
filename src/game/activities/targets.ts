@@ -417,7 +417,9 @@ export class TargetActivity implements ActivityInstance {
       const reach = drawing ? this.reachAt(this.draw) : 1;
       const lands = drawing && this.letGoHits;
       for (const p of previewArc(this.feet, this.aim, targets, this.groundAt, 9, reach, this.bell ? this.wind : undefined)) {
-        out.push({ shape: 'float', look: 'dot', x: p.x, y: p.y, z: p.z, strength: lands ? 1 : drawing ? 0.85 : 0.6, size: lands ? 1.7 : 1.25 });
+        // Sized to read at the game's resolution: at 1.25 the dots were a few pixels each, and critic round
+        // 28 played the toss by the words alone, never seeing the arc turn bold.
+        out.push({ shape: 'float', look: 'dot', x: p.x, y: p.y, z: p.z, strength: lands ? 1 : drawing ? 0.85 : 0.6, size: lands ? 2.8 : drawing ? 1.9 : 1.6 });
       }
       const t = on >= 0 && this.fan.length > 0 ? targets[on] : null;
       if (t) out.push({ shape: 'ring', look: 'halo', x: t.pos.x, y: this.groundAt(t.pos.x, t.pos.z), z: t.pos.z, size: 0.9, strength: 1 });

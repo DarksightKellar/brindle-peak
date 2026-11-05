@@ -498,8 +498,8 @@
   {
     "id": "gus-root",
     "speaker": "gus",
+    "fill": "gus-hello",
     "lines": [
-      "Bells! Bells for sale! ...Oh, you're not buying.",
       "I sell bells. Every size. And I've never once heard the big one ring.",
       "Would you ring my shop bell for me? One clean strike. I want to know how far it goes.",
       "Pell, the postmaster, walks the whole hamlet. Ask him if he heard it."
