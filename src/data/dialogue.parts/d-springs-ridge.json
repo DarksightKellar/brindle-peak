@@ -219,9 +219,8 @@
   {
     "id": "jory-wait",
     "speaker": "jory",
+    "fill": "jory-wait",
     "lines": [
-      "You are still going? Good. I am still here. I have not moved.",
-      "A fish from the warm pool first. Then the pines, in Pinewind Wood.",
       "Then tell me what they are like. All of it. The cold too."
     ]
   },

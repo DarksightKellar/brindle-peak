@@ -65,10 +65,11 @@ export const DIALOGUE_FILLS: Readonly<Record<string, (s: GameState) => string[]>
       ? ["Was that your snowman on the green? It leans. I like it."]
       : ["Still no snowman on the green, I see. Somebody ought to enjoy the snow."],
   // Gus's first words. Critic round 28 bought a feather from him and was then told "you're not buying".
+  // Not bought yet, he says where the feathers are and how: critic round 39 found them only by scanning.
   'gus-hello': (s) =>
     s.flags['picked:feather-shop-one'] === true || s.flags['picked:feather-shop-two'] === true
       ? ["Bells! Bells for sale! ...Oh, you've had a feather off me already. A customer! Hello."]
-      : ["Bells! Bells for sale! ...Oh, you're not buying."],
+      : ["Bells! Bells for sale! ...Oh, it's you. Got bells? The two feathers at my feet are forty each. Stand by one and press E."],
   // Margit's record names the fish: critic round 30 caught a Burbot at her hole and heard "one fish".
   // The best of what the hole has given, by the activity's own tally of catches by kind.
   'margit-catch': (s) => {
@@ -139,6 +140,11 @@ export const DIALOGUE_FILLS: Readonly<Record<string, (s: GameState) => string[]>
       ? "The dam's holding. I can hear it."
       : 'The dam first. Hold each stone over its gap against the current, then set it.',
   ],
+  // Jory's errand as it stands: critic round 39 brought him the fish and was still asked for one.
+  'jory-wait': (s) =>
+    (s.quests['jory-first-step']?.step ?? 0) >= 1
+      ? ['You caught the fish? Good. I will wrap it in a leaf, for the walk.', 'Now the pines, in Pinewind Wood. Go first.']
+      : ['You are still going? Good. I am still here. I have not moved.', 'A fish from the warm pool first. Then the pines, in Pinewind Wood.'],
   'nana-posts': (s) => {
     const lit = Object.keys(s.lanterns).length;
     return [lit >= POSTS ? NANA_POSTS.all : lit > 0 ? NANA_POSTS.some : NANA_POSTS.none];

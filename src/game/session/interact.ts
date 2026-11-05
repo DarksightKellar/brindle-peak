@@ -72,7 +72,8 @@ export function buildInteractables(
         kind: 'pickup',
         id: p.id,
         pos: { x: p.pos.x, y: sampler.heightAt(p.pos.x, p.pos.z), z: p.pos.z },
-        radius: PICKUP_RADIUS + 0.6,
+        // Reachable from beside it, not only on top of it: critic round 39 got the prompt within a metre.
+        radius: PICKUP_RADIUS + 1.3,
         prompt: `Buy · ${p.price} bells`,
       });
       continue;
