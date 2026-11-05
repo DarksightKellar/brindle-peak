@@ -248,14 +248,16 @@ describe('build', () => {
         step(snow, h);
       }
     };
-    for (let ball = 1; ball <= 3; ball++) {
+    // A ball can fill on the way back and go on with the walk home, so this rolls until all three are on.
+    for (let ball = 1; snow.placed < 3 && ball <= 3; ball++) {
       walk(at.x + 3, at.z + 12); // roll out into the open and grow it
       // Out there, the card says where the ring is (critic round 20 circled for it).
       expect(snow.progress()?.label).toMatch(/ · \d+ u (ahead|behind you, over your (left|right) shoulder|on your (left|right)) · /);
       walk(at.x + 3, at.z);
       walk(at.x, at.z); // push it home
-      expect(snow.placed).toBe(ball);
+      expect(snow.placed).toBeGreaterThanOrEqual(ball);
     }
+    expect(snow.placed).toBe(3);
     expect(snow.freeRoam).toBe(false);
     for (let i = 0; i < 10; i++) step(snow, h);
     step(snow, h, { interactPressed: true });

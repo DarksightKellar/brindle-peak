@@ -34,7 +34,9 @@ const ARROW_OUT = 0.5;
 const ARROW_UP = 2.3;
 /** The next gate within this of the view's heading (radians) is "ahead"; past WAY_BEHIND, "behind you". */
 const WAY_AHEAD = 0.5;
-const WAY_BEHIND = 2.3;
+// Past a right angle, as the compass strip has it (hudCompass.ts): at 2.3 the panel said "27 u on your
+// left" while the compass over it said "behind you" (critic round 22).
+const WAY_BEHIND = Math.PI / 2;
 /** The pointer leans at most this far (radians) from up: down-left or down-right, never plain down. */
 const ARROW_MAX_ROLL = 2.4;
 

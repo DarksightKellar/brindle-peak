@@ -28,12 +28,17 @@ import { WORDS } from './activityWords';
 const BEAM_GAP = 5;
 /** The ring within this of the view's heading (radians) is "ahead"; past WAY_BEHIND, "behind you" (as race.ts). */
 const WAY_AHEAD = 0.5;
-const WAY_BEHIND = 2.3;
+// Past a right angle, as the compass strip has it (hudCompass.ts): at 2.3 the panel said "27 u on your
+// left" while the compass over it said "behind you" (critic round 22).
+const WAY_BEHIND = Math.PI / 2;
 
 export const ROLL = {
-  /** Radius a fresh ball starts at, and how much it grows per metre rolled. */
+  /**
+   * Radius a fresh ball starts at, and how much it grows per metre rolled. At 0.04 the three balls took
+   * 23 m of rolling, and critic round 22 put one on and walked away; at 0.08 it is about 12.
+   */
   start: 0.16,
-  grow: 0.04,
+  grow: 0.08,
   /** Gap kept between Pip and the ball's surface. */
   gap: 0.35,
   /** A full-size ball whose centre comes within this of the snowman's spot (plus its radius) goes on. */

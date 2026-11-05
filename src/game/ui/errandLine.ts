@@ -8,8 +8,14 @@
  *
  *  - The player can pick (`track`, from the journal's Quests page). A picked errand is kept, across
  *    reloads, until it is done; nothing else takes the line from it.
- *  - With nothing picked, the errand most recently handed over or moved on a step is tracked. That is
- *    the one being worked on, and it is the player's own action that moved it.
+ *  - With nothing picked, the errand most recently handed over, or moved on by something Pip chose to
+ *    do (a talk, an activity), is tracked. A step that passes on its own as Pip walks by (a place
+ *    reached, a zone visited) does not take the line: critic round 22 walked past the hot pools, Wren's
+ *    errand passed "listen to the pools" and took the line from the Bundle they were carrying, and
+ *    they overshot Ivy. When the line does move by itself, `switched` says so for the HUD to show.
+ *  - The story can be picked too: then the line under the goal stands down and the compass follows the
+ *    story alone, until an errand is picked or a new one taken on. Critic round 22 picked "Up to the
+ *    Mast" on the Quests page and got Four Loaves, because the story was not a row the cursor stopped on.
  *  - When the tracked errand finishes, the nearest live one is taken up.
  *  - No other errand is ever named over the tracked one. The others wait in the journal.
  *
@@ -27,14 +33,21 @@ import { nextStepFor, nextStepOf, worthShowing } from '../../core/guide/nextStep
 
 /** The save flag that remembers the player's pick: `track:<questId>`. At most one is set. */
 const PIN = 'track:';
+/** The pick that means "the story, no errand". */
+const STORY = '@story';
 
 export interface ErrandLine {
   /** The step to print, or null for no line. Moves the tracking on; call once a frame. */
   pick(s: GameState, from: Vec2): GuideStep | null;
   /** What the last `pick` returned: for a reader (the map) that must not move the tracking. */
   current(): GuideStep | null;
-  /** The errand being followed, picked or not; null when none is. */
+  /** The errand being followed, picked or not, or the story's quest when the story is picked; null when none is. */
   trackedId(): string | null;
+  /**
+   * The title of the errand the line moved to by itself in the last `pick` (one finished, another moved
+   * on), else null. Not set when the player picked.
+   */
+  switched(): string | null;
   /**
    * Every other live errand's next step that has a place, nearest first. Critic round 7 carried five
    * errands and could only see the one being followed: these are the marks and the "nearby" lines for
@@ -78,7 +91,14 @@ export function createErrandLine(guide: GuideContent): ErrandLine {
   let seeded = false;
   let tracked: string | null = null;
   let pinned = false;
+  /** The player picked the story: no errand line until they pick one or take a new one on. */
+  let story = false;
+  let lastState: GameState | null = null;
+  let switchedTo: string | null = null;
   let last: GuideStep | null = null;
+
+  const storyQuest = (s: GameState): string | null =>
+    guide.quests.find((q) => q.main === true && nextStepOf(q, s) !== null)?.id ?? null;
 
   const live = (id: string, s: GameState): boolean => {
     const def = guide.quests.find((q) => q.id === id);
@@ -98,9 +118,13 @@ export function createErrandLine(guide: GuideContent): ErrandLine {
 
   return {
     pick(s, from): GuideStep | null {
+      lastState = s;
+      const was = tracked;
+      switchedTo = null;
       if (!seeded) {
         const saved = pinnedIn(s);
-        if (saved !== null && live(saved, s)) {
+        if (saved === STORY) story = true;
+        else if (saved !== null && live(saved, s)) {
           tracked = saved;
           pinned = true;
         }
@@ -119,20 +143,37 @@ export function createErrandLine(guide: GuideContent): ErrandLine {
         const key = `${def.id}:${now.index}`;
         if (seen.has(key)) continue;
         seen.add(key);
-        // Handed over, or moved on: this is the one being worked on, unless the player picked another.
-        if (seeded && !pinned) tracked = def.id;
+        if (!seeded) continue;
+        // Handed over (nothing of it seen before), or moved on by something Pip chose to do: this is the
+        // one being worked on, unless the player picked another. Taking one on ends a story pick.
+        const handed = ![...seen].some((k) => k !== key && k.startsWith(`${def.id}:`));
+        const by = def.steps[now.index - 1]?.when.kind;
+        const chosen = handed || by === 'talked' || by === 'activity';
+        if (handed && story) {
+          story = false;
+          unpin(s);
+        }
+        if (chosen && !pinned && !story) tracked = def.id;
       }
       seeded = true;
 
+      if (story) {
+        last = null;
+        return last;
+      }
       const nearest = nextStepFor(s, from, guide, 'side');
       if (tracked === null && nearest?.kind === 'quest') tracked = nearest.questId;
+      if (was !== null && tracked !== null && tracked !== was) {
+        switchedTo = guide.quests.find((q) => q.id === tracked)?.title ?? null;
+      }
       const mine = tracked === null ? null : stepOf(tracked, s, from);
       if (mine) last = mine;
       else last = worthShowing(nearest, Number.POSITIVE_INFINITY) ? nearest : null;
       return last;
     },
     current: () => last,
-    trackedId: () => tracked,
+    trackedId: () => (story && lastState ? storyQuest(lastState) : tracked),
+    switched: () => switchedTo,
     others(s, from): GuideStep[] {
       const out: GuideStep[] = [];
       for (const def of guide.quests) {
@@ -144,8 +185,23 @@ export function createErrandLine(guide: GuideContent): ErrandLine {
     },
     stepFor: (id, s, from) => stepOf(id, s, from),
     track(s, id): void {
+      lastState = s;
+      const main = guide.quests.find((q) => q.id === id)?.main === true;
+      if (main && nextStepOf(guide.quests.find((q) => q.id === id)!, s) !== null) {
+        unpin(s);
+        pinned = false;
+        if (story) {
+          story = false;
+          return;
+        }
+        story = true;
+        tracked = null;
+        s.flags[`${PIN}${STORY}`] = true;
+        return;
+      }
       if (!live(id, s)) return;
       unpin(s);
+      story = false;
       if (pinned && tracked === id) {
         pinned = false;
         return;

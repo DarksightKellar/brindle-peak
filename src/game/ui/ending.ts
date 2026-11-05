@@ -89,7 +89,7 @@ export function createEnding(root: HTMLElement): Ending {
       statsEl.innerHTML = [
         row('Feathers', `${stats.feathers} of ${stats.feathersTotal}`),
         row('Bells', String(stats.bells)),
-        row('Errands finished', `${stats.questsDone} of ${stats.questsTotal}`),
+        row('Side errands finished', `${stats.questsDone} of ${stats.questsTotal}`),
         row('Zones walked', `${stats.zonesSeen} of ${stats.zonesTotal}`),
         row('Time on the mountain', spokenTime(stats.playtime)),
       ].join('');

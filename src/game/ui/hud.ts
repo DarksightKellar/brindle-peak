@@ -85,6 +85,9 @@ function hopHint(s: GameState, step: ReturnType<typeof nextStepFor>): string {
   return ' · M, E to go back';
 }
 
+/** Milliseconds the line says which errand it moved on to. */
+const SWITCH_SHOW = 5000;
+
 export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
   const layer = document.createElement('div');
   layer.className = 'ui-hud';
@@ -113,6 +116,8 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
   let lastPlace = '';
   /** Camera yaw, set by the session each frame. The compass is relative to the VIEW, not the body. */
   let viewYaw = 0;
+  let switchedTitle = '';
+  let switchedUntil = 0;
   let nextAllowed = true;
   let held = false;
   let promptUp = false;
@@ -181,6 +186,13 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
         // Derived every frame (a dozen comparisons over a table); the DOM is touched only on change.
         // One errand, the tracked one, stays on screen until it is done (errandLine.ts).
         const step = nextAllowed && errands ? errands.pick(s, p.pos) : null;
+        // The line moved to another errand by itself (one finished): it says so for a few seconds, so
+        // a new name under the goal is not a surprise (critic round 22).
+        const moved = errands?.switched() ?? null;
+        if (moved !== null) {
+          switchedTitle = moved;
+          switchedUntil = performance.now() + SWITCH_SHOW;
+        }
         errandTarget = step?.target ?? null;
         heldTarget = liveTarget();
         // The feather's one line outranks an errand for its few seconds; the errand is still in the journal.
@@ -195,7 +207,9 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
           : '';
         // A thing nearby goes on a second line under the errand, not over it: critic round 16 lost the
         // errand's distance to "Pressure Ridges nearby" and "Boathouse Hill nearby" again and again.
-        const errandText = step ? `${formatNextStep(step)}${offStrip(step.target ?? null)}${hopHint(s, step)}` : '';
+        const now = performance.now() < switchedUntil ? `Now on the line: ${switchedTitle}
+` : '';
+        const errandText = step ? `${now}${formatNextStep(step)}${offStrip(step.target ?? null)}${hopHint(s, step)}` : '';
         if (feather.line !== '') writeNext(feather.line, null);
         else if (nearby !== '' && errandText !== '') writeNext(`${errandText}\n${nearby}`, step);
         else if (nearby !== '') writeNext(nearby, null);

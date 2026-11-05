@@ -28,6 +28,8 @@ export function goalLine(s: GameState, main: GuideStep | null): string {
   }
   // No story step live: either it has not begun (Nana starts it) or every chapter is done.
   return s.talked.nana
-    ? "The valley's talking again. Wander, or finish the field notes."
+    // It names the errands, so the line under it (an errand still open) reads as the same advice. Critic
+    // round 22 read "finish the field notes" over "Ask Skiff about the flour" and took them to disagree.
+    ? "The valley's talking again. Wander, or see your errands through."
     : 'Talk to Nana at the cabin door.';
 }

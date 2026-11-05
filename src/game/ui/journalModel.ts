@@ -138,7 +138,8 @@ export function formatJournal(s: GameState, content: JournalContent = {}): Journ
         stepText: def?.steps[p.step]?.text ?? `Step ${p.step + 1}`,
         nextText: now?.step.text ?? null,
         epilogue: (p.status === 'complete' ? doneLine(id) : null) ?? def?.blurb ?? '',
-        trackable: p.status === 'active' && def?.main !== true && now !== null,
+        // The story is pickable too: picking it clears the line under the goal (errandLine.ts).
+        trackable: p.status === 'active' && now !== null,
         main: def?.main === true,
       };
     })

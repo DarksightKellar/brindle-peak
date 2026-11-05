@@ -103,7 +103,7 @@ export function questsHTML(
     // Critic round 10 read "following" on an errand while the goal and compass named the story, and
     // took them to disagree. They don't: the story is the goal at the top, the followed errand the line
     // under it. The page now says so in those words.
-    const status = on ? 'line under the goal' : q.main && q.status === 'active' ? 'the goal' : q.status;
+    const status = on ? (q.main ? 'followed alone' : 'line under the goal') : q.main && q.status === 'active' ? 'the goal' : q.status;
     const pick = q.trackable ? ` is-pickable${q.id === cursor ? ' is-cursor' : ''}${on ? ' is-tracked' : ''}` : '';
     return (
       `<li class="ui-quest is-${q.status}${pick}" data-quest="${esc(q.id)}"><div class="ui-quest__row"><span class="ui-quest__title">${tick}${esc(q.title)}</span>` +
@@ -115,7 +115,7 @@ export function questsHTML(
     );
   });
   const hint = m.quests.some((q) => q.trackable)
-    ? '<p class="ui-journal__meta">↑↓ choose an errand · E puts it on the line under the goal</p>'
+    ? '<p class="ui-journal__meta">↑↓ choose · E puts an errand on the line under the goal, or on the story, follows it alone</p>'
     : '';
   return `${hint}<ul class="ui-quests">${rows.join('')}</ul>`;
 }
