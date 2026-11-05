@@ -61,11 +61,9 @@ export function createTutorial(root: HTMLElement): Tutorial {
 
   return {
     show(beat: TutorialBeat): void {
-      // Keyed on the words too: the walk tip's key follows the view (session/onboarding.ts `worded`).
-      const key = `${beat.id}|${beat.prompt}`;
-      if (key === current && bar.classList.contains('is-in')) return;
-      if (key !== current) render(beat);
-      current = key;
+      if (beat.id === current && bar.classList.contains('is-in')) return;
+      if (beat.id !== current) render(beat);
+      current = beat.id;
       bar.classList.remove('is-snap');
       bar.classList.add('is-in');
     },
