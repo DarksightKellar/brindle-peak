@@ -73,6 +73,17 @@ export const DIALOGUE_FILLS: Readonly<Record<string, (s: GameState) => string[]>
       ? "Kettle Springs here. Dam's whole again, and the pools are steaming."
       : "Kettle Springs here. Pools are cooling, but there's warm enough yet.",
   ],
+  // Critic round 19 rebuilt the dam before meeting Ivy, and she still asked for the stones back.
+  'ivy-dam': (s) => [
+    (s.counters['activity:kettles-dam-build'] ?? 0) > 0
+      ? "Wait. The dam's whole again? Somebody's put the stones back. You? Well. That's half of it."
+      : "Put the stones back in the dam. They're lying where they landed.",
+  ],
+  'ivy-dam-wait': (s) => [
+    (s.counters['activity:kettles-dam-build'] ?? 0) > 0
+      ? "The dam's holding. I can hear it."
+      : 'The dam first. The stones are scattered round the low pool.',
+  ],
   'nana-posts': (s) => {
     const lit = Object.keys(s.lanterns).length;
     return [lit >= POSTS ? NANA_POSTS.all : lit > 0 ? NANA_POSTS.some : NANA_POSTS.none];

@@ -31,8 +31,8 @@
   {
     "id": "ivy-errand",
     "speaker": "ivy",
+    "fill": "ivy-dam",
     "lines": [
-      "Put the stones back in the dam. They're lying where they landed.",
       "Then get the temperature off Corm, the raven by the steam. The glass is on his rock.",
       "He's sat beside it a whole year and never once read it. Make him read it.",
       "I want a number. Not news."
@@ -41,8 +41,8 @@
   {
     "id": "ivy-wait",
     "speaker": "ivy",
+    "fill": "ivy-dam-wait",
     "lines": [
-      "The dam first. The stones are scattered round the low pool.",
       "Then Corm, on his rock by the steam. Make him read the glass.",
       "A number, mind. Not something he heard."
     ]
@@ -291,7 +291,7 @@
       "There. Tied, tightened, tested. It'll hold a storm.",
       "Tell Bram it's still forty feet. Not an inch off. He can come up and measure it himself.",
       "I didn't cross it. I didn't need to.",
-      "Here. I found this tied into the old rope years back. Never knew what it opens."
+      "Here. I found this tied into the old rope years back. Show Bram. He'll know it."
     ]
   },
   {

@@ -1,5 +1,10 @@
 /**
- * Throwing: turn the aim with A / D, press E, watch it fly.
+ * Throwing: turn the aim with A / D, hold E to draw, let go to throw, watch it fly.
+ *
+ * Holding E draws the throw: its strength swells and ebbs (THROW.draw), and the arc of dots grows and
+ * shrinks with it. Let go as the arc reaches the target. Critic round 19 found every throw decided by
+ * the panel's "Lined up: press E"; the words still say which way to turn and when the aim is on, but
+ * how hard to throw is the player's own timing, and a throw let go early falls short.
  *
  * The old round resolved each press instantly against the camera's yaw, which does not move during
  * an activity: the aim was frozen, misses were invisible, and five presses "completed" it with no
@@ -30,6 +35,13 @@ export const THROW = {
   linger: 0.7,
   /** Radians the aim opens away from the target, so nothing is won by pressing E once. */
   openOffset: 0.3,
+  /**
+   * The draw: seconds for strength to swell from a lob to a heave and back, and that range of speed as
+   * a share of the throw that arrives on the target. Half way through the swell it does.
+   */
+  drawPeriod: 1.8,
+  drawMin: 0.75,
+  drawMax: 1.25,
   /** Seconds a puff of snow (a hit or a landing) stays visible. */
   puff: 0.35,
   /** Seconds "Hit!" or "Missed" stays in the panel, and a struck snowman's ring spreads. */
@@ -38,8 +50,14 @@ export const THROW = {
 
 interface Puff { pos: Vec3; age: number }
 
-/** Which way a missed throw went wide, or null when it was close or there was nothing to miss. */
-type Side = 'left' | 'right' | null;
+/** How a missed throw missed, or null when it was close or there was nothing to miss. */
+type Side = 'left' | 'right' | 'short' | 'long' | null;
+
+/** Strength of a throw drawn for `held` seconds, as a share of the throw that arrives on the target. */
+export function drawReach(held: number): number {
+  const swell = 0.5 - 0.5 * Math.cos((2 * Math.PI * held) / THROW.drawPeriod);
+  return THROW.drawMin + (THROW.drawMax - THROW.drawMin) * swell;
+}
 
 export class TargetActivity implements ActivityInstance {
   readonly def: ActivityDef;
@@ -57,6 +75,8 @@ export class TargetActivity implements ActivityInstance {
   private throwsLeft = 0;
   private hits = 0;
   private cooldown = 0;
+  /** Seconds E has been held for the throw being drawn; -1 when none is. */
+  private draw = -1;
   /** `elapsed` when the round was decided, or -1 while it is still open. */
   private decidedAt = -1;
   private stage: 'throwing' | 'done' | 'aborted' = 'throwing';
@@ -85,6 +105,7 @@ export class TargetActivity implements ActivityInstance {
     this.throwsLeft = this.setup.budget;
     this.hits = 0;
     this.cooldown = 0;
+    this.draw = -1;
     this.decidedAt = -1;
     this.outcome = null;
     this.paid = false;
@@ -124,10 +145,15 @@ export class TargetActivity implements ActivityInstance {
     this.feet = { ...host.playerPos };
     this.aim = turnAim(this.aim, host.input.moveX, step);
 
-    if (pressed && this.decidedAt < 0 && this.cooldown <= 0 && this.throwsLeft > 0) {
+    if (this.draw < 0) {
+      if (pressed && this.decidedAt < 0 && this.cooldown <= 0 && this.throwsLeft > 0 && this.shots.length === 0) this.draw = 0;
+    } else if (host.input.interactHeld) {
+      this.draw += step;
+    } else {
       this.throwsLeft--;
       this.cooldown = THROW.cooldown;
-      this.shots.push(launch(this.feet, this.aim, this.strikeables(), this.groundAt));
+      this.shots.push(launch(this.feet, this.aim, this.strikeables(), this.groundAt, drawReach(this.draw)));
+      this.draw = -1;
     }
 
     this.elapsed += step;
@@ -179,7 +205,10 @@ export class TargetActivity implements ActivityInstance {
     if (!t) return null;
     // A raises the aim yaw, which turns it left; left of the line to the target is +(cos, -sin).
     const lateral = (at.x - t.pos.x) * Math.cos(t.bearing) - (at.z - t.pos.z) * Math.sin(t.bearing);
-    return Math.abs(lateral) < 0.3 ? null : lateral > 0 ? 'left' : 'right';
+    if (Math.abs(lateral) >= 0.6) return lateral > 0 ? 'left' : 'right';
+    // On line, so it was the strength: landed before the target, or flew past it.
+    const along = (at.x - t.pos.x) * Math.sin(t.bearing) + (at.z - t.pos.z) * Math.cos(t.bearing);
+    return along < -0.3 ? 'short' : along > 0.3 ? 'long' : null;
   }
 
   /**
@@ -187,8 +216,8 @@ export class TargetActivity implements ActivityInstance {
    * to, or -1. Round 8: "lined up" judged where they stood at the press, and a throw on the cue to the
    * edge of a swinging snowman could land behind it. The cue now says what the throw will do.
    */
-  private predict(): number {
-    const shot = launch(this.feet, this.aim, this.strikeables(), this.groundAt);
+  private predict(reach = 1): number {
+    const shot = launch(this.feet, this.aim, this.strikeables(), this.groundAt, reach);
     const h = 1 / 60;
     for (let t = h; !shot.done; t += h) {
       const hit = stepShot(shot, h, this.strikeables(this.elapsed + t), this.groundAt);
@@ -266,8 +295,13 @@ export class TargetActivity implements ActivityInstance {
     if (this.stage === 'throwing' && this.decidedAt < 0 && this.throwsLeft > 0 && this.shots.length === 0) {
       const targets = this.strikeables();
       const on = this.predict();
-      for (const p of previewArc(this.feet, this.aim, targets, this.groundAt)) {
-        out.push({ shape: 'float', look: 'dot', x: p.x, y: p.y, z: p.z, strength: on >= 0 ? 1 : 0.8, size: on >= 0 ? 1.7 : 1.25 });
+      // Before the draw the arc is a faint guide for the aim; drawing, it is the throw as it stands, and
+      // it turns bold while letting go would hit.
+      const drawing = this.draw >= 0;
+      const reach = drawing ? drawReach(this.draw) : 1;
+      const lands = drawing && this.predict(reach) >= 0;
+      for (const p of previewArc(this.feet, this.aim, targets, this.groundAt, 9, reach)) {
+        out.push({ shape: 'float', look: 'dot', x: p.x, y: p.y, z: p.z, strength: lands ? 1 : drawing ? 0.85 : 0.6, size: lands ? 1.7 : 1.25 });
       }
       const t = on >= 0 && this.fan.length > 0 ? targets[on] : null;
       if (t) out.push({ shape: 'ring', look: 'halo', x: t.pos.x, y: this.groundAt(t.pos.x, t.pos.z), z: t.pos.z, size: 0.9, strength: 1 });
@@ -293,8 +327,11 @@ export class TargetActivity implements ActivityInstance {
       on = this.predict() >= 0;
       // Said for the whole round. Round 16 tried coaching to the first hit only, and critic round 16 was
       // left with a hit count and no idea which way to turn; round 13 hit nothing without the words.
+      // The aim is coached, while drawing too (a snowman swings out of line); the strength is not:
+      // on line and drawing, the words only say to let go on the arc.
       const t = on ? null : this.nearestToAim();
-      cue = on ? `${WORDS.throwOn} · ` : t ? `${WORDS.throwTurn(angleDelta(this.aim, t.bearing) > 0 ? 'left' : 'right')} · ` : '';
+      const lined = this.draw >= 0 ? WORDS.throwDrawing : WORDS.throwOn;
+      cue = on ? `${lined} · ` : t ? `${WORDS.throwTurn(angleDelta(this.aim, t.bearing) > 0 ? 'left' : 'right')} · ` : '';
     }
     return {
       label: `${said}${cue}Hits ${Math.min(this.hits, need)} / ${need} · ${this.throwsLeft} left`,
@@ -344,6 +381,11 @@ export class TargetActivity implements ActivityInstance {
 
   get inFlight(): number {
     return this.shots.length;
+  }
+
+  /** A throw is being drawn and letting go now would hit: the moment the arc turns bold. */
+  get letGoHits(): boolean {
+    return this.draw >= 0 && this.predict(drawReach(this.draw)) >= 0;
   }
 }
 

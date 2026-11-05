@@ -23,7 +23,7 @@ export const ITEMS: readonly ItemDef[] = [
   {
     id: 'soup',
     name: 'Tin of Barley Soup',
-    desc: 'From Orla at the bakery. Barley, mostly. One tin was meant for Nana.',
+    desc: 'Two tins from Orla at the bakery. Barley, mostly. One is meant for Nana.',
     icon: 'M2 6h8a4 4 0 0 1-8 0zM3 3v1M5 2v2M7 3v1',
   },
   {
@@ -41,8 +41,10 @@ export const ITEMS: readonly ItemDef[] = [
   {
     id: 'key',
     name: 'Bent Brass Key',
-    desc: 'Tuck found it tied into the old bridge rope. Bent at the bow. Nobody knows what it opens.',
+    desc: 'Tuck found it tied into the old bridge rope. Bent at the bow. Tuck says Bram will know what it opens.',
     icon: 'M4 6a2 2 0 1 0 4 0a2 2 0 1 0-4 0M8 6h3M9 6v2',
+    // Bram knows it when Pip tells him the rope is tied, and takes it back.
+    handedOver: { kind: 'quest', id: 'tuck-rope' },
   },
   {
     id: 'sketchbook',

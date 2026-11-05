@@ -15,8 +15,12 @@ import { angleDelta } from '../../core/contracts';
 import type { Vec3 } from '../../core/contracts';
 
 export const FLIGHT = {
-  /** Horizontal speed, u/s. Quick enough that a swinging target barely needs leading. */
-  speed: 26,
+  /**
+   * Horizontal speed, u/s. A lob, not a line drive: at 26 the throw flew so flat that any strength of
+   * draw (activities/targets.ts) arrived on the target. At 12 it rises and falls, so how hard it is
+   * thrown decides whether it drops short, lands on the target or sails over.
+   */
+  speed: 12,
   gravity: 14,
   /** Hand height above the feet. */
   hand: 1.3,
@@ -75,12 +79,17 @@ export function loft(from: Vec3, yaw: number, range: number, y: number): Vec3 {
   return { x: Math.sin(yaw) * FLIGHT.speed, y: vy, z: Math.cos(yaw) * FLIGHT.speed };
 }
 
-/** Throw from a player standing at `feet`, lofted for the aimed target if there is one. */
+/**
+ * Throw from a player standing at `feet`, lofted for the aimed target if there is one. `reach` is how
+ * hard it is thrown: the loft that arrives on the target, times `reach`. Less drops below it, more
+ * passes over (the gap grows with distance, as a real lob's does).
+ */
 export function launch(
   feet: Vec3,
   yaw: number,
   targets: readonly (Strikeable | null)[],
   groundAt: (x: number, z: number) => number,
+  reach = 1,
 ): Shot {
   const from = { x: feet.x, y: feet.y + FLIGHT.hand, z: feet.z };
   const i = aimedTarget(from, yaw, targets);
@@ -92,7 +101,7 @@ export function launch(
     const r = FLIGHT.idleRange;
     vel = loft(from, yaw, r, groundAt(from.x + Math.sin(yaw) * r, from.z + Math.cos(yaw) * r));
   }
-  return { pos: from, vel, age: 0, done: false };
+  return { pos: from, vel: { x: vel.x * reach, y: vel.y * reach, z: vel.z * reach }, age: 0, done: false };
 }
 
 /**
@@ -141,14 +150,16 @@ export function previewArc(
   targets: readonly (Strikeable | null)[],
   groundAt: (x: number, z: number) => number,
   count = 9,
+  reach = 1,
 ): Vec3[] {
-  const shot = launch(feet, yaw, targets, groundAt);
+  const shot = launch(feet, yaw, targets, groundAt, reach);
   const aimed = aimedTarget(shot.pos, yaw, targets);
   const t = aimed >= 0 ? targets[aimed] : null;
-  const range = t ? Math.hypot(t.pos.x - shot.pos.x, t.pos.z - shot.pos.z) : FLIGHT.idleRange;
+  // A lob's range grows with the square of its speed: the arc reaches as far as the throw would.
+  const range = (t ? Math.hypot(t.pos.x - shot.pos.x, t.pos.z - shot.pos.z) : FLIGHT.idleRange) * reach * reach;
   const out: Vec3[] = [];
   for (let k = 1; k <= count; k++) {
-    const s = (k / count) * (range / FLIGHT.speed);
+    const s = (k / count) * (range / (FLIGHT.speed * reach));
     const y = shot.pos.y + shot.vel.y * s - 0.5 * FLIGHT.gravity * s * s;
     const x = shot.pos.x + shot.vel.x * s;
     const z = shot.pos.z + shot.vel.z * s;

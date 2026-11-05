@@ -46,6 +46,9 @@ export const WORDS = {
   woodLate: 'Too late. Wait for it to swing back square',
   // While the log hangs square: the moment in words, not only the panel turning amber (critic round 8).
   woodNow: 'Square — press E',
+  stoneNow: 'Over the gap — press E',
+  stoneEarly: 'Too soon. Let it sway over the gap first',
+  stoneLate: 'Too late. Wait for it to sway back over',
   // Snowman, rolled: the ball is growing; it is big enough to push onto the spot; the face goes on with E.
   snowRoll: 'Keep rolling it bigger. It goes on the lit ring',
   snowPush: 'Big enough. Push it onto the lit ring',
@@ -70,10 +73,13 @@ export const WORDS = {
   bellSilent: 'The bell never rang. Press E at the snowballs for another go.',
   // Called for a moment as each throw lands.
   throwHit: 'Hit!',
-  throwWide: (side: 'left' | 'right' | null): string => (side ? `Missed, wide ${side}` : 'Missed, by a whisker'),
+  throwWide: (side: 'left' | 'right' | 'short' | 'long' | null): string =>
+    side === 'short' ? 'Fell short' : side === 'long' ? 'Sailed over' : side ? `Missed, wide ${side}` : 'Missed, by a whisker',
   // The aim line's cue, until the throw is lined up; A turns the aim left, D right.
   throwTurn: (way: 'left' | 'right'): string => `Aim ${way} (${way === 'left' ? 'A' : 'D'})`,
-  throwOn: 'Lined up: press E',
+  throwOn: 'Lined up: hold E',
+  /** While E is held: the strength is the player's to judge, by the arc. */
+  throwDrawing: 'Let go as the arc reaches it',
   // Skate result
   skateResult: (seconds: number): string => `Down on the ice after ${seconds.toFixed(1)}s. Up again whenever.`,
   skateLap: 'Round the Reach and upright the whole way.',
@@ -99,5 +105,6 @@ export const HINT_FOR_ID: Readonly<Record<string, string>> = {
   'kettles-otter-slide': 'A / D steer. Keep off the edges, and ride through the rings for speed.',
   'reach-sled-hill': 'A / D steer. Keep off the edges, and ride through the rings for speed.',
   'hearth-kindling': 'Each log swings over the pile. Press E when it hangs square.',
+  'kettles-dam-build': 'Each stone sways over the wall. Press E as it hangs over its gap.',
   'hamlet-snowman': 'Walk to roll a ball bigger, then push it onto the lit ring. Three balls, then E for the face.',
 };

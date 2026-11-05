@@ -38,6 +38,18 @@ export const VALLEY_LINES: readonly (readonly [quest: string, line: string])[] =
 ];
 
 /**
+ * The journal's line under a finished chapter of the main story. A quest's blurb sets up the problem
+ * ("Edda is waiting at the mast…"), which reads wrong once it is solved; the errands use their
+ * `VALLEY_LINES` sentence there instead, and the chapters use these.
+ */
+export const CHAPTER_DONE: Readonly<Record<string, string>> = {
+  'the-line': "Bram's batteries went up the mountain in your bag.",
+  'the-climb': 'Edda has the batteries, and the set at the mast is warm.',
+  'the-mast': 'The aurora cleared the sky, and the valley heard the radio.',
+  'nana-home': 'You followed the lit posts home. Nana already knew.',
+};
+
+/**
  * Nana at the homecoming, on the trail posts (chosen by src/data/dialogueFills.ts, by how many Pip lit).
  *
  * What is true: Pip lit the posts reached on the way up; after Edda signs off, the valley lights the

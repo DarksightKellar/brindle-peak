@@ -173,6 +173,30 @@ describe('build', () => {
     }
   });
 
+  it('the dam sets a stone only while it sways over its gap (critic round 19: five presses, no way to miss)', () => {
+    const d = def('build', 'kettles-dam-build', { x: -52, z: 42 });
+    const mash = createBuildActivity(d);
+    const h = host({ x: d.pos.x + 2, y: 0, z: d.pos.z });
+    mash.start(h);
+    let presses = 0;
+    for (let f = 1; f < 60 * 30 && mash.placed < mash.stepCount; f++) {
+      const press = f % 40 === 0;
+      if (press) presses++;
+      step(mash, h, { interactPressed: press });
+    }
+    expect(presses - mash.placed).toBeGreaterThanOrEqual(3);
+
+    const watched = createBuildActivity(d);
+    watched.start(h);
+    step(watched, h);
+    for (let f = 0; f < 60 * 60 && !watched.isComplete(); f++) {
+      const now = watched.squareNow;
+      if (now) expect(watched.progress()?.label).toMatch(/^Over the gap — press E · /);
+      step(watched, h, { interactPressed: now });
+    }
+    expect(watched.isComplete()).toBe(true);
+  });
+
   it('each square press moves a log from the crooked heap onto the crib; the last one lands before it counts', () => {
     const d = def('build', 'hearth-kindling', { x: -335.5, z: 296.4 });
     const build = createBuildActivity(d);

@@ -15,6 +15,7 @@ import { ZONE_IDS } from '../../core/contracts';
 import type { GuideContent } from '../../core/guide/nextStep';
 import { nextStepOf } from '../../core/guide/nextStep';
 import { evaluate } from '../../core/progress/conditions';
+import { CHAPTER_DONE, VALLEY_LINES } from '../../data/endingLines';
 import { RADIO_QUEST } from '../../data/quests';
 import { ZONE_NAMES } from '../../data/zoneNames';
 import type { MapDecor } from './journalMap';
@@ -34,7 +35,7 @@ export interface JournalQuest {
   stepText: string;
   /** The first step whose condition does not hold yet — null when nothing is left to do. */
   nextText: string | null;
-  /** The quest's authored one-liner, used as the epilogue once it is complete. */
+  /** What came of a finished quest (`doneLine`), else its authored one-liner. */
   epilogue: string;
   /** A live errand: one the player can pick to follow (the story is always followed). */
   trackable: boolean;
@@ -102,6 +103,11 @@ const tally = (got: number, total: number | null = null): CountRow => ({
 
 const owned = (r: Readonly<Record<string, number>>): number => Object.keys(r).filter((k) => r[k] > 0).length;
 
+/** The outcome sentence for a finished quest: the ending card's line for an errand, or a chapter's. */
+function doneLine(id: string): string | null {
+  return VALLEY_LINES.find(([q]) => q === id)?.[1] ?? CHAPTER_DONE[id] ?? null;
+}
+
 export function formatPlaytime(seconds: number): string {
   const s = Math.max(0, Math.floor(seconds));
   const h = Math.floor(s / 3600);
@@ -131,7 +137,7 @@ export function formatJournal(s: GameState, content: JournalContent = {}): Journ
         step: p.step,
         stepText: def?.steps[p.step]?.text ?? `Step ${p.step + 1}`,
         nextText: now?.step.text ?? null,
-        epilogue: def?.blurb ?? '',
+        epilogue: (p.status === 'complete' ? doneLine(id) : null) ?? def?.blurb ?? '',
         trackable: p.status === 'active' && def?.main !== true && now !== null,
         main: def?.main === true,
       };
@@ -174,7 +180,7 @@ export function formatJournal(s: GameState, content: JournalContent = {}): Journ
       .filter((id) => (s.items[id] ?? 0) > 0)
       .map((id) => content.items?.find((i) => i.id === id) ?? { id, name: id })
       .filter((it) => !(it.handedOver && evaluate(it.handedOver, s)))
-      .map((it) => it.name),
+      .map((it) => ((s.items[it.id] ?? 0) > 1 ? `${it.name} ×${s.items[it.id]}` : it.name)),
     achievementsList,
     playtime: formatPlaytime(s.playtime),
     sledBest: bests.length > 0 ? `${Math.min(...bests).toFixed(1)}s` : '—',

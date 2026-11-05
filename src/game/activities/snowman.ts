@@ -24,6 +24,9 @@ import { nounFor, placePiece, siteFor, stepsFor, type BuildSite, type Piece } fr
 import { BUILD, settleAt } from './build';
 import { WORDS } from './activityWords';
 
+/** A full ball further than this (metres, rim to ring) from the spot raises a beam over it. */
+const BEAM_GAP = 5;
+
 export const ROLL = {
   /** Radius a fresh ball starts at, and how much it grows per metre rolled. */
   start: 0.16,
@@ -179,9 +182,11 @@ export class SnowmanActivity implements ActivityInstance {
     if (b) {
       const by = this.groundAt(b.x, b.z);
       out.push({ shape: 'ring', look: 'halo', x: b.x, y: by, z: b.z, size: b.r + 0.35, strength: full ? 0.9 : 0.6, color: PALETTE.AURORA_G });
-      if (full) out.push({ shape: 'ring', look: 'beam', x: at.x, y: this.ground, z: at.z, yaw: 0, size: 1 });
       const dx = at.x - b.x, dz = at.z - b.z;
       const gap = Math.hypot(dx, dz) - b.r - 1.3;
+      // The beam is for finding the spot from afar. Close to it, between the camera and the bird, it
+      // stood as a wide orange column across the view (critic round 19); the ring and the lights do.
+      if (full && gap > BEAM_GAP) out.push({ shape: 'ring', look: 'beam', x: at.x, y: this.ground, z: at.z, yaw: 0, size: 1 });
       if (full && gap > 1) {
         const n = Math.min(5, Math.floor(gap / 1.2));
         for (let i = 1; i <= n; i++) {

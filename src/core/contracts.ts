@@ -166,6 +166,8 @@ export interface InputFrame {
   jumpHeld: boolean;
   sprintHeld: boolean;
   interactPressed: boolean;
+  /** E (or Enter) is down this frame: a throw is drawn while it is held and flies on release. */
+  interactHeld: boolean;
   cancelPressed: boolean;
   /** Manual look axis, -1..1 (Q/R held; +1 turns the view right). The rig turns at its own rate. */
   lookX: number;
@@ -180,6 +182,7 @@ export const emptyInput = (camYaw = 0): InputFrame => ({
   jumpHeld: false,
   sprintHeld: false,
   interactPressed: false,
+  interactHeld: false,
   cancelPressed: false,
   lookX: 0,
   camYaw,

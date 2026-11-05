@@ -132,6 +132,7 @@ export function createInput(canvas: HTMLCanvasElement): InputSource {
         jumpHeld: isDown(' ', 'spacebar', 'space'),
         sprintHeld: isDown('shift'),
         interactPressed,
+        interactHeld: [...INTERACT_KEYS].some((k) => down.has(k)),
         cancelPressed,
         lookX: lookAxis(),
       };

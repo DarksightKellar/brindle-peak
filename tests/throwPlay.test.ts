@@ -5,7 +5,7 @@
 
 import { describe, expect, it } from 'vitest';
 import type { ActivityDef, ActivityResult } from '../src/core/contracts';
-import { createTargetActivity, THROW } from '../src/game/activities/targets';
+import { createTargetActivity, THROW, type TargetActivity } from '../src/game/activities/targets';
 import { FLIGHT, launch, stepShot, turnAim, type Strikeable } from '../src/game/activities/throwFlight';
 import { FRAME, def, host, step } from './activityHost';
 
@@ -36,6 +36,22 @@ describe('throw flight', () => {
   });
 });
 
+/** Hold E and let go the moment the arc turns bold, as a player watching it would, steering as it swings. */
+function throwOnArc(game: TargetActivity, h: ReturnType<typeof host>, steer: () => number = () => 0): boolean {
+  step(game, h, { interactPressed: true, interactHeld: true });
+  for (let f = 0; f < 240 && !game.letGoHits; f++) step(game, h, { interactHeld: true, moveX: steer() });
+  const bold = game.letGoHits;
+  step(game, h);
+  return bold;
+}
+
+/** Hold E for `frames` and let go, whatever the arc says. */
+function throwHeld(game: TargetActivity, h: ReturnType<typeof host>, frames: number): void {
+  step(game, h, { interactPressed: true, interactHeld: true });
+  for (let f = 1; f < frames; f++) step(game, h, { interactHeld: true });
+  step(game, h);
+}
+
 describe('throw', () => {
   /** Hold the aim on the nearest standing target and throw whenever allowed. */
   function play(d: ActivityDef, aimAt: boolean): { hits: number; awards: ActivityResult[]; frames: number } {
@@ -44,17 +60,19 @@ describe('throw', () => {
     game.start(h);
     step(game, h);
     let frames = 0;
-    while (!game.isComplete() && frames++ < 3000) {
+    const steer = (): number => {
       const t = game.hitVolumes.find((v) => v !== null);
-      let moveX = 0;
-      if (aimAt && t) {
-        const want = Math.atan2(t.pos.x - h.playerPos.x, t.pos.z - h.playerPos.z);
-        const err = Math.atan2(Math.sin(want - game.aimYaw), Math.cos(want - game.aimYaw));
-        moveX = Math.abs(err) < 0.01 ? 0 : -Math.sign(err) * Math.min(1, Math.abs(err) * 20);
-      } else if (!aimAt) {
-        moveX = frames < 120 ? 1 : 0; // turn well away first
-      }
-      step(game, h, { moveX, interactPressed: frames % 30 === 0 && frames > 125 });
+      if (!aimAt) return frames < 120 ? 1 : 0; // turn well away first
+      if (!t) return 0;
+      const want = Math.atan2(t.pos.x - h.playerPos.x, t.pos.z - h.playerPos.z);
+      const err = Math.atan2(Math.sin(want - game.aimYaw), Math.cos(want - game.aimYaw));
+      return Math.abs(err) < 0.01 ? 0 : -Math.sign(err) * Math.min(1, Math.abs(err) * 20);
+    };
+    while (!game.isComplete() && frames++ < 3000) {
+      if (frames % 30 === 0 && frames > 125 && game.inFlight === 0) {
+        if (aimAt) throwOnArc(game, h, steer);
+        else throwHeld(game, h, 27);
+      } else step(game, h, { moveX: steer() });
     }
     return { hits: game.hitCount, awards: h.awards, frames };
   }
@@ -66,7 +84,7 @@ describe('throw', () => {
     expect(r.awards[0]).toMatchObject({ score: 3, bonus: 'clean-sweep' });
   });
 
-  it('a throw made while a snowman wears the lined-up ring hits it (round 8)', () => {
+  it('a throw let go while the arc is bold hits (round 8: the cue says what the throw will do)', () => {
     const d = def('throw', 'pinewind-pinecone-throw', { x: -206, z: 160 });
     const game = createTargetActivity(d);
     const h = host({ x: d.pos.x, y: 0, z: d.pos.z });
@@ -82,8 +100,8 @@ describe('throw', () => {
         continue;
       }
       const before = game.hitCount;
+      if (!throwOnArc(game, h)) continue; // swung out of line during the draw: that throw proves nothing
       thrown++;
-      step(game, h, { interactPressed: true });
       for (let k = 0; k < 90 && game.inFlight > 0; k++) step(game, h);
       expect(game.hitCount).toBe(before + 1);
     }
@@ -115,11 +133,30 @@ describe('throw', () => {
       const want = Math.atan2(bell.pos.x - 274, bell.pos.z - 128) + (way === 'left' ? 0.25 : -0.25);
       const err = (): number => Math.atan2(Math.sin(want - game.aimYaw), Math.cos(want - game.aimYaw));
       for (let i = 0; i < 400 && Math.abs(err()) > 0.01; i++) step(game, h, { moveX: -Math.sign(err()) * Math.min(1, Math.abs(err()) * 20) });
-      step(game, h, { interactPressed: true });
+      // A quarter of the swell is the strength that arrives: only the aim is off.
+      throwHeld(game, h, Math.round(THROW.drawPeriod / 4 / FRAME));
       let f = 0;
       while (game.inFlight > 0 && f++ < 300) step(game, h);
       expect(game.hitCount).toBe(0);
       expect(game.progress()?.label).toMatch(new RegExp(`^Missed, wide ${way} · `));
+    }
+  });
+
+  it('on the line, a throw let go too soon falls short and one at the top of the swell sails over (round 19)', () => {
+    for (const [frames, said] of [[2, 'Fell short'], [Math.round(THROW.drawPeriod / 2 / FRAME), 'Sailed over']] as const) {
+      const game = createTargetActivity(def('throw', 'hamlet-bell-throw', { x: 274, z: 128 }));
+      const h = host({ x: 274, y: 0, z: 128 });
+      game.start(h);
+      step(game, h);
+      const bell = game.hitVolumes[0]!;
+      const want = Math.atan2(bell.pos.x - 274, bell.pos.z - 128);
+      const err = (): number => Math.atan2(Math.sin(want - game.aimYaw), Math.cos(want - game.aimYaw));
+      for (let i = 0; i < 400 && Math.abs(err()) > 0.01; i++) step(game, h, { moveX: -Math.sign(err()) * Math.min(1, Math.abs(err()) * 20) });
+      throwHeld(game, h, frames);
+      let f = 0;
+      while (game.inFlight > 0 && f++ < 300) step(game, h);
+      expect(game.hitCount).toBe(0);
+      expect(game.progress()?.label).toMatch(new RegExp(`^${said} · `));
     }
   });
 
@@ -135,8 +172,11 @@ describe('throw', () => {
     expect(Math.abs(err())).toBeGreaterThan(0.2);
     expect(game.progress()?.label).toBe(`${err() > 0 ? 'Aim left (A)' : 'Aim right (D)'} · Hits 0 / 1 · 8 left`);
     for (let i = 0; i < 400 && Math.abs(err()) > 0.01; i++) step(game, h, { moveX: -Math.sign(err()) * Math.min(1, Math.abs(err()) * 20) });
-    expect(game.progress()).toMatchObject({ label: 'Lined up: press E · Hits 0 / 1 · 8 left', urgent: true });
-    step(game, h, { interactPressed: true });
+    expect(game.progress()).toMatchObject({ label: 'Lined up: hold E · Hits 0 / 1 · 8 left', urgent: true });
+    step(game, h, { interactPressed: true, interactHeld: true });
+    expect(game.progress()?.label).toBe('Let go as the arc reaches it · Hits 0 / 1 · 8 left');
+    for (let i = 0; i < 240 && !game.letGoHits; i++) step(game, h, { interactHeld: true });
+    step(game, h);
     expect(game.inFlight).toBe(1);
     let f = 0;
     while (game.inFlight > 0 && f++ < 200) step(game, h);

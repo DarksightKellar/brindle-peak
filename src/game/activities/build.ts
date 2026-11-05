@@ -1,7 +1,9 @@
 /**
  * Building: a woodpile, a snowman or a stone dam, one visible piece per press. The woodpile asks a
  * little more: each log swings over its place and goes in on a press only when it is square
- * (logSwing.ts), because "stacked straight" is the whole of what Bram wants.
+ * (logSwing.ts), because "stacked straight" is the whole of what Bram wants. The dam's stones take the
+ * same timing, swaying side to side over their gap instead of turning: critic round 19 set all five
+ * with five presses and no way to miss.
  *
  * Each piece (buildSites.ts) drops onto the site with a short settle and is kept: the finished thing
  * still stands when the activity closes, and finishedBuildMarkers() stands it back up after a reload.
@@ -25,6 +27,9 @@ export const BUILD = {
   /** Yaw a log arrives skewed by before it settles square: "stacked straight" is something you watch. */
   wobble: 0.35,
 } as const;
+
+/** A dam stone sways this many metres off its gap per radian of swing: at the widest, over a neighbour. */
+const DAM_SWAY = 1.6;
 
 /** Drop height and leftover skew for a piece `age` seconds after its press. Pure, for tests. */
 export function settleAt(age: number): { drop: number; skew: number } {
@@ -53,8 +58,10 @@ export class BuildActivity implements ActivityInstance {
   private groundAt: (x: number, z: number) => number = () => this.ground;
   /** Heading from the player to the site at the start. */
   private opening = 0;
-  /** Woodpile only: logs swing and must be laid square. */
+  /** Woodpile and dam: each piece swings and must be laid square (a log) or over its gap (a stone). */
   private readonly aligned: boolean;
+  /** The dam's stones sway sideways rather than turn: metres off the gap per radian of swing. */
+  private readonly sway: number;
   /** The log swinging over its notch (logHand.ts). */
   private readonly hand = new LogHand();
   /** Angle off square each log was pressed at; it settles from there to square. */
@@ -64,7 +71,8 @@ export class BuildActivity implements ActivityInstance {
     this.def = def;
     this.site = siteFor(def);
     this.steps = stepsFor(this.site);
-    this.aligned = this.site.kind === 'woodpile';
+    this.aligned = this.site.kind === 'woodpile' || this.site.kind === 'dam';
+    this.sway = this.site.kind === 'dam' ? DAM_SWAY : 0;
   }
 
   start(host: ActivityHost): void {
@@ -132,7 +140,7 @@ export class BuildActivity implements ActivityInstance {
       const { drop, skew } = settleAt(this.elapsed - (this.placedAt[i] ?? 0));
       const sign = i % 2 === 0 ? 1 : -1;
       for (const p of this.steps[i]) {
-        const from = this.aligned ? this.pressAngle[i] ?? 0 : BUILD.wobble * sign;
+        const from = this.aligned && this.sway === 0 ? this.pressAngle[i] ?? 0 : BUILD.wobble * sign;
         const wobble = p.look === 'log' ? skew * from : 0;
         out.push(placePiece(this.site, this.ground, p, this.def.id, drop, wobble));
       }
@@ -140,7 +148,10 @@ export class BuildActivity implements ActivityInstance {
     const hanging = this.aligned && this.phase === 'build' ? this.steps[this.stage]?.[0] : undefined;
     if (hanging) {
       const rest = placePiece(this.site, this.ground, hanging, this.def.id);
-      const place = (drop: number, angle: number): PlacedMarker => placePiece(this.site, this.ground, hanging, this.def.id, drop, angle);
+      const place = (drop: number, angle: number): PlacedMarker => {
+        if (this.sway === 0) return placePiece(this.site, this.ground, hanging, this.def.id, drop, angle);
+        return placePiece(this.site, this.ground, { ...hanging, x: hanging.x + angle * this.sway }, this.def.id, drop);
+      };
       out.push(...this.hand.markers(this.elapsed, this.layer(), rest, place));
     }
     // Whatever is still waiting to be built from (Bram's crooked heap) shrinks as the build grows.
@@ -181,8 +192,8 @@ export class BuildActivity implements ActivityInstance {
     // The moment is said for every log. Round 16 said it for the first only, and critic round 16 read
     // that as the hint vanishing; the skill is in the swing now, each log at its own pace (logHand.ts).
     const label = miss
-      ? `${miss === 'early' ? WORDS.woodEarly : WORDS.woodLate} · ${count}`
-      : this.squareNow ? `${WORDS.woodNow} · ${count}` : count;
+      ? `${this.sway > 0 ? (miss === 'early' ? WORDS.stoneEarly : WORDS.stoneLate) : miss === 'early' ? WORDS.woodEarly : WORDS.woodLate} · ${count}`
+      : this.squareNow ? `${this.sway > 0 ? WORDS.stoneNow : WORDS.woodNow} · ${count}` : count;
     return { label, fraction: placed / total, urgent: this.squareNow };
   }
 
