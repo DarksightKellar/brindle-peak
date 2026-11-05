@@ -124,7 +124,9 @@ export function questsHTML(
     );
   });
   const hint = m.quests.some((q) => q.trackable)
-    ? '<p class="ui-journal__meta">↑↓ choose · E puts an errand on the line under the goal, or on the story, follows it alone</p>'
+    // Critic round 41 read the old "E puts an errand on the line under the goal, or on the story, follows
+    // it alone" twice and still could not tell what E would do.
+    ? '<p class="ui-journal__meta">↑↓ choose · E follows it: the line under the goal names it, and the compass points there</p>'
     : '';
   return `${hint}<ul class="ui-quests">${rows.join('')}</ul>`;
 }

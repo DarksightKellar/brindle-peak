@@ -139,7 +139,13 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
 
   const liveTarget = (): Vec2 | null => {
     if (held) return heldTarget;
-    const story = guide && lastState ? goalTarget(lastState, lastFrom, guide) : null;
+    // After the story, an errand under way has the pin, and the hello waits: critic round 41 picked an
+    // errand on the Quests page and watched the compass stay on a villager it had not met.
+    const errandFirst =
+      guide && lastState && errandTarget && Object.values(lastState.quests).some((q) => q.status === 'active')
+        ? unmetAfterStory(lastState, lastFrom, guide) !== null
+        : false;
+    const story = guide && lastState && !errandFirst ? goalTarget(lastState, lastFrom, guide) : null;
     const routed = story && guide?.routes ? routeAim(guide.routes, lastFrom, story) : null;
     goalDistance = routed?.distance;
     return routed?.aim ?? story ?? (nextAllowed ? errandTarget : null);

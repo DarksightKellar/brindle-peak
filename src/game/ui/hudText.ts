@@ -28,12 +28,12 @@ export function goalLine(s: GameState, main: GuideStep | null, unmet: { name: st
   }
   // No story step live: either it has not begun (Nana starts it) or every chapter is done. Done, it sends
   // Pip to someone not yet met (core/guide/goal.ts), the way Edda's "go and say hello" does.
-  // With an errand under way it says that first: critic round 40 took on Hollis's mitten and read "Go and
-  // say hello to Tamsin" over it, two orders at once.
+  // With an errand under way it says that first, and the compass follows the errand (hud.ts): critic
+  // round 40 took on Hollis's mitten and read "Go and say hello to Tamsin" over it, two orders at once.
   if (unmet) {
     const errand = Object.values(s.quests).some((q) => q.status === 'active');
     return errand
-      ? `The valley's talking again. See your errands through, and say hello to ${unmet.name}, in ${unmet.zone}.`
+      ? `The valley's talking again. See your errands through, then say hello to ${unmet.name}, in ${unmet.zone}.`
       : `The valley's talking again. Go and say hello to ${unmet.name}, in ${unmet.zone}.`;
   }
   return s.talked.nana

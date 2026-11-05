@@ -75,6 +75,11 @@ const wrap = (a: number): number => Math.atan2(Math.sin(a), Math.cos(a));
 const leftOf = (rel: number): string => `${(50 + (Math.max(-HALF, Math.min(HALF, rel)) / HALF) * REACH).toFixed(1)}%`;
 /** Within this of dead astern the turn cue keeps the side it already shows. */
 const ASTERN = (Math.PI * 5) / 6;
+/**
+ * The words "behind you" come on past HALF by this much and go off short of it by as much: a target near
+ * Pip's side flicked them on and off as Pip walked (critic round 41 saw them flip on the next frame).
+ */
+const BEHIND_GIVE = 0.2;
 
 /** Most things-to-do marks the strip draws at once. */
 const TODO_MAX = 4;
@@ -142,6 +147,7 @@ export function createHudCompass(layer: HTMLElement): HudCompass {
   };
   /** -1 turn left, 1 turn right, 0 the goal is in front. */
   let turnSide = 0;
+  let saidBehind = false;
 
   /** Place `node` at `target`'s bearing, or hide it. Returns the relative bearing, or null. */
   const place = (node: HTMLElement, target: Point | null, v: CompassView): number | null => {
@@ -191,7 +197,8 @@ export function createHudCompass(layer: HTMLElement): HudCompass {
       showTurn(!behind ? 0 : turnSide !== 0 && Math.abs(rel) > ASTERN ? turnSide : Math.sign(rel) || 1);
       // Behind, it names the key that walks there, as the errand's line does: critic round 40 read
       // "behind you" on the way to the mast with no key, and pushed W into the ridge.
-      const text = `${Math.round(v.goalDistance ?? Math.hypot(v.goal.x - v.from.x, v.goal.z - v.from.z))} u${behind ? ` · behind you, hold ${keyToward(-rel)}` : ''}`;
+      saidBehind = Math.abs(rel) > HALF + (saidBehind ? -BEHIND_GIVE : BEHIND_GIVE);
+      const text = `${Math.round(v.goalDistance ?? Math.hypot(v.goal.x - v.from.x, v.goal.z - v.from.z))} u${saidBehind ? ` · behind you, hold ${keyToward(-rel)}` : ''}`;
       if (text !== lastDist) {
         lastDist = text;
         dist.textContent = text;
