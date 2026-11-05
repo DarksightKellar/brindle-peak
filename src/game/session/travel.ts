@@ -46,7 +46,10 @@ export function hopPlaces(s: GameState): ZoneId[] {
 
 /** Why a hop cannot be made right now, in the player's words, or null when it can. */
 export function hopBlocked(s: GameState, busy: boolean): string | null {
-  if (s.quests[HOME_WALK]?.status === 'active') return 'Not tonight. Nana is watching the lit posts for you.';
+  if (s.quests[HOME_WALK]?.status === 'active') {
+    // Says when it lifts: critic round 46 carried errands home under it and couldn't tell it would.
+    return "Not tonight. Walk home past the lit posts: Nana is watching them for you. The map opens again once you're home.";
+  }
   if (busy) return 'Finish what you are doing first.';
   return null;
 }

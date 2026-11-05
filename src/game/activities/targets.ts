@@ -65,6 +65,13 @@ interface Puff { pos: Vec3; age: number }
 
 /** Radians nearer another target must be before the aim words switch to it. */
 const AIM_KEEP = 0.12;
+/**
+ * The aim words hold still near the centre. Critic round 46 saw "Aim left (A)" and "Aim right (D)" take
+ * turns every frame as a swaying snowman crossed the aim: the side is kept until the aim is this many
+ * radians past the target, and "on target" is kept for AIM_ON_HOLD seconds after it was last true.
+ */
+const AIM_SIDE_KEEP = 0.05;
+const AIM_ON_HOLD = 0.2;
 
 /**
  * Seconds a player has to react to "Let go!": a release this soon after the arc was last bold is thrown
@@ -110,6 +117,9 @@ export class TargetActivity implements ActivityInstance {
   private sayingNow = false;
   /** Which target the aim words coached toward last (strikeables() index), or -1. */
   private coached = -1;
+  /** The side the aim words last said, and when the aim was last on (AIM_SIDE_KEEP, AIM_ON_HOLD). */
+  private saidSide: 'left' | 'right' | null = null;
+  private onAt = -Infinity;
   private cooldown = 0;
   /** Seconds E has been held for the throw being drawn; -1 when none is. */
   private draw = -1;
@@ -478,6 +488,8 @@ export class TargetActivity implements ActivityInstance {
       // Drawing on a locked target, the aim keeps itself on it: the words are only about letting go. They
       // used to flick to "Aim right (D)" every few frames as the snowman swung (critic round 38).
       on = (this.draw >= 0 && this.locked >= 0) || this.predict() >= 0;
+      if (on) this.onAt = this.elapsed;
+      else if (this.draw < 0 && this.elapsed - this.onAt < AIM_ON_HOLD) on = true;
       // Said for the whole round. Round 16 tried coaching to the first hit only, and critic round 16 was
       // left with a hit count and no idea which way to turn; round 13 hit nothing without the words.
       // The aim is coached, while drawing too (a snowman swings out of line); the strength is not:
@@ -492,7 +504,11 @@ export class TargetActivity implements ActivityInstance {
       const sayNow = now && this.hits === 0;
       const lined = this.draw >= 0 ? (sayNow ? WORDS.throwNow : WORDS.throwDrawing) : WORDS.throwOn;
       this.sayingNow = this.draw >= 0 && sayNow;
-      cue = on ? `${lined} · ` : goal !== null ? `${WORDS.throwTurn(angleDelta(this.aim, goal) > 0 ? 'left' : 'right')} · ` : '';
+      if (goal !== null && !on) {
+        const off = angleDelta(this.aim, goal);
+        if (this.saidSide === null || Math.abs(off) > AIM_SIDE_KEEP) this.saidSide = off > 0 ? 'left' : 'right';
+      }
+      cue = on ? `${lined} · ` : goal !== null && this.saidSide !== null ? `${WORDS.throwTurn(this.saidSide)} · ` : '';
       on = this.draw >= 0 ? now : on;
     }
     const g = this.gustNow;
