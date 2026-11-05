@@ -97,7 +97,9 @@ export function createEnding(root: HTMLElement): Ending {
         row('Bells', String(stats.bells)),
         // Two rows, two things: critic round 26 read "1 of 18" errands beside seven activities played and
         // took the card to be counting what they had done, stingily.
-        row('Errands for villagers', `${stats.questsDone} of ${stats.questsTotal}`),
+        // None done yet, it says what is waiting: critic round 43 read "0 of 18" as the game saying it had
+        // done nothing, with the whole story behind it.
+        row('Errands for villagers', stats.questsDone === 0 ? `${stats.questsTotal} waiting for you` : `${stats.questsDone} of ${stats.questsTotal}`),
         row('Things tried', `${stats.triedDone} of ${stats.triedTotal}`),
         row('Zones walked', `${stats.zonesSeen} of ${stats.zonesTotal}`),
         row('Time on the mountain', spokenTime(stats.playtime)),
