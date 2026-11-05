@@ -223,14 +223,16 @@ export class BuildActivity implements ActivityInstance {
     const total = this.steps.length;
     const placed = Math.min(this.stage, total);
     const count = `${nounFor(this.site)} ${placed} / ${total}`;
-    if (this.isDam) return { label: `${this.stoneWords()} · ${count}`, fraction: placed / total, urgent: this.squareNow };
+    if (this.isDam) {
+      return { label: `${this.stoneWords()} · ${count}`, fraction: placed / total, urgent: this.squareNow, cue: this.squareNow ? WORDS.cueGap : undefined };
+    }
     const miss = this.aligned ? this.hand.miss(this.elapsed) : null;
     // The moment is said for every log. Round 16 said it for the first only, and critic round 16 read
     // that as the hint vanishing; the skill is in the swing now, each log at its own pace (logHand.ts).
     const label = miss
       ? `${miss === 'mash' ? WORDS.buildMash : miss === 'early' ? WORDS.woodEarly : WORDS.woodLate} · ${count}`
       : this.squareNow ? `${WORDS.woodNow} · ${count}` : count;
-    return { label, fraction: placed / total, urgent: this.squareNow };
+    return { label, fraction: placed / total, urgent: this.squareNow, cue: this.squareNow && !miss ? WORDS.cueSquare : undefined };
   }
 
   /** The dam's line: why a press missed, else set it now, else which key brings it home. */

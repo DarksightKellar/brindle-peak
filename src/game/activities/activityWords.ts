@@ -120,6 +120,10 @@ export const WORDS = {
   throwDrawing: 'Let go as the arc reaches it',
   /** While E is held and the arc is bold: letting go now hits. */
   throwNow: 'Let go!',
+  // The big cues in the middle of the view (ActivityReadout.cue): the moment, and the key.
+  cueBite: 'Now! Press E',
+  cueSquare: 'Square! Press E',
+  cueGap: 'Over the gap! Press E',
   /** A hoop well above or below the glide: flap to climb, or let the glide go a moment to sink. */
   hoopHeight: (dy: number): string => (dy > 0 ? `${Math.round(dy)} u above you: flap (Space)` : `${Math.round(-dy)} u below you: ease off Space to sink`),
   // Skate result

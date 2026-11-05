@@ -99,6 +99,8 @@ export class TargetActivity implements ActivityInstance {
   private elapsed = 0;
   private throwsLeft = 0;
   private hits = 0;
+  /** progress() is saying "Let go!" this frame; it goes up as the big cue too. */
+  private sayingNow = false;
   private cooldown = 0;
   /** Seconds E has been held for the throw being drawn; -1 when none is. */
   private draw = -1;
@@ -441,6 +443,7 @@ export class TargetActivity implements ActivityInstance {
     const aiming = this.stage === 'throwing' && this.decidedAt < 0 && this.throwsLeft > 0 && this.shots.length === 0;
     let cue = '';
     let on = false;
+    this.sayingNow = false;
     if (aiming && !fresh) {
       on = this.predict() >= 0;
       // Said for the whole round. Round 16 tried coaching to the first hit only, and critic round 16 was
@@ -456,6 +459,7 @@ export class TargetActivity implements ActivityInstance {
       const now = on && this.letGoHits;
       const sayNow = now && this.hits === 0;
       const lined = this.draw >= 0 ? (sayNow ? WORDS.throwNow : WORDS.throwDrawing) : WORDS.throwOn;
+      this.sayingNow = this.draw >= 0 && sayNow;
       cue = on ? `${lined} · ` : goal !== null ? `${WORDS.throwTurn(angleDelta(this.aim, goal) > 0 ? 'left' : 'right')} · ` : '';
       on = this.draw >= 0 ? now : on;
     }
@@ -467,6 +471,7 @@ export class TargetActivity implements ActivityInstance {
       label: `${said}${wind}${cue}Hits ${Math.min(this.hits, need)} / ${need} · ${this.throwsLeft} left`,
       fraction: need === 0 ? 0 : Math.min(1, this.hits / need),
       urgent: on,
+      cue: this.sayingNow ? WORDS.throwNow : undefined,
     };
   }
 

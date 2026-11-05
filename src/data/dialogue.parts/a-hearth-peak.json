@@ -176,7 +176,7 @@
       "You're Nana's. The one come up the road.",
       "I've lost a mitten. The left one. The good one.",
       "I know who took it. Fen, the owl who watches from the pines.",
-      "Go ask him. See what he says."
+      "Go and see what he says for himself."
     ],
     "choices": [
       {
@@ -197,7 +197,7 @@
       "He's an owl. He watches. He's got them big eyes.",
       "And he never says anything. Guilty, if you ask me.",
       "The pines. Creek side. That's where he sits.",
-      "Go on. Ask him."
+      "Go on, then. He's not going anywhere."
     ],
     "next": "hollis-wait"
   },
@@ -205,7 +205,7 @@
     "id": "hollis-wait",
     "speaker": "hollis",
     "lines": [
-      "Ask him direct. Fen, the owl in the pines, won't volunteer a thing.",
+      "Fen, the owl in the pines, won't volunteer a thing. Put it to him straight.",
       "Drop a line in the creek pool below the split pine, too. In case he dropped it in, flying off.",
       "Come back and tell me what he said."
     ]

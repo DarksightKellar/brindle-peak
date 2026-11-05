@@ -74,6 +74,16 @@ export function createActivityHud(root: HTMLElement): ActivityHud {
     '<p class="ui-activity__label"></p>' +
     '<footer class="ui-activity__foot">Esc — stop</footer>';
   root.appendChild(panel);
+  // The moment itself, large in the middle of the view (ActivityReadout.cue).
+  const cue = document.createElement('p');
+  cue.className = 'ui-cue';
+  cue.hidden = true;
+  root.appendChild(cue);
+  const setCue = (text: string | undefined): void => {
+    const show = text !== undefined && text !== '';
+    if (show && cue.textContent !== text) cue.textContent = text;
+    if (cue.hidden === show) cue.hidden = !show;
+  };
 
   const name = panel.querySelector('.ui-activity__name') as HTMLElement;
   const hint = panel.querySelector('.ui-activity__hint') as HTMLElement;
@@ -101,8 +111,10 @@ export function createActivityHud(root: HTMLElement): ActivityHud {
         label.textContent = `${readout.label} · ${formatClock(seconds)}`;
         fill.style.width = readout.fraction === null ? '0%' : `${Math.round(readout.fraction * 100)}%`;
         panel.classList.toggle('is-urgent', readout.urgent === true);
+        setCue(readout.cue);
       } else {
         label.textContent = formatClock(seconds);
+        setCue(undefined);
       }
     },
     showResult(line): void {
@@ -111,12 +123,14 @@ export function createActivityHud(root: HTMLElement): ActivityHud {
       track.hidden = true;
       foot.hidden = true;
       label.textContent = line;
+      setCue(undefined);
       panel.classList.add('is-urgent');
       panel.classList.remove('is-compact');
       panel.hidden = false;
     },
     hide(): void {
       panel.hidden = true;
+      setCue(undefined);
       panel.classList.remove('is-urgent', 'is-compact');
     },
     isOpen: () => !panel.hidden,

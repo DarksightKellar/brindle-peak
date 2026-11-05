@@ -24,6 +24,13 @@ const WORDS_SHOP = {
     `One of Gus's feathers: ${price} bells. You have ${have}. Bells come from errands, games and the snow`,
 };
 
+/**
+ * After a purchase the counter rests this long (ms) before it sells again. The two feathers sit 3 u
+ * apart, so a second press bought the second one: critic round 32 pressed E twice and paid 80 bells.
+ */
+const BUY_REST_MS = 3000;
+const boughtAt = new WeakMap<GameState, number>();
+
 /** Pip's own half-width, and the gap kept between the two bodies while they talk. */
 const PIP_BULK = 0.45;
 const TALK_GAP = 0.7;
@@ -92,8 +99,12 @@ export function interact(d: InteractVerbDeps): void {
   if (target.kind === 'pickup') {
     const p = PICKUPS.find((x) => x.id === target.id);
     if (!p || p.price === undefined || d.state.flags[`picked:${p.id}`]) return;
-    if (d.state.bells >= p.price) d.mech.collect(p.id, p.kind, p.price);
-    else d.bus.emit('toast', { text: WORDS_SHOP.short(p.price, d.state.bells), icon: 'feather', tier: 'discovery' });
+    const now = performance.now();
+    if (now - (boughtAt.get(d.state) ?? -Infinity) < BUY_REST_MS) return;
+    if (d.state.bells >= p.price) {
+      d.mech.collect(p.id, p.kind, p.price);
+      boughtAt.set(d.state, now);
+    } else d.bus.emit('toast', { text: WORDS_SHOP.short(p.price, d.state.bells), icon: 'feather', tier: 'discovery' });
     return;
   }
 

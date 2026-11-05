@@ -8,6 +8,7 @@
 import type {
   ActivityHost,
   ActivityInstance,
+  ConditionKind,
   EventBus,
   GameEvent,
   GameState,
@@ -56,6 +57,13 @@ export interface Mechanics {
   resetStaminaCap(): void;
 }
 
+/** The event that passes a step of this kind as it happens; passed by any other, it was done already. */
+const OWN_EVENT: Partial<Record<ConditionKind, string>> = {
+  activity: 'activity:completed',
+  reached: 'place:reached',
+  visited: 'zone:entered',
+};
+
 export function createMechanics(deps: MechanicsDeps): Mechanics {
   const { state, player, bus, quests, achievements, world } = deps;
 
@@ -101,6 +109,12 @@ export function createMechanics(deps: MechanicsDeps): Mechanics {
         // could not tell whether the toss had counted: Tamsin only asked for a go at it.
         const def = QUESTS.find((q) => q.id === p.quest);
         const next = def?.steps[p.index + 1];
+        // Passed by something done before the errand was taken, it says so: critic round 32 heard Wren
+        // say "you've been to both" and had not been told the hot pools had counted.
+        const own = OWN_EVENT[p.step.when.kind];
+        if (def && def.main !== true && own !== undefined && e.name !== own) {
+          bus.emit('toast', { text: `Already done: ${p.step.text}`, icon: 'quest', tier: 'discovery' });
+        }
         if (def && def.main !== true && p.step.when.kind !== 'talked' && next) {
           bus.emit('toast', { text: `${def.title} — ${next.text}`, icon: 'quest', tier: 'milestone' });
         }

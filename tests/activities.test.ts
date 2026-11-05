@@ -175,6 +175,19 @@ describe('fishing', () => {
     expect(FISH.map((f) => f.id)).toContain(a.id);
   });
 
+  // Critic round 32 read "NOW" in the corner panel too late: the bite goes up large in the view as well.
+  it('says the bite in the middle of the view, only while it is on', () => {
+    const fish = createFishingActivity(defOf('fish'));
+    const host = makeHost();
+    begin(fish, host);
+    expect(fish.progress()?.cue).toBeUndefined();
+    let guard = 0;
+    while (fish.elapsed < fish.strikeAt + 0.05 && guard++ < 300) step(fish, host);
+    expect(fish.progress()?.cue).toBe('Now! Press E');
+    step(fish, host, { interactPressed: true });
+    expect(fish.progress()?.cue).toBeUndefined();
+  });
+
   it('uses the injected fish table rather than the fallback', () => {
     const table: readonly FishDef[] = [
       { id: 'test-fish', name: 'Test Fish', rarity: 'common', value: 9, body: '#ffffff', accent: '#000000' },

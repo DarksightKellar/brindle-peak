@@ -22,8 +22,11 @@ import { fishSpotFor, floatPoint, standPoint, type FishSpot } from './fishSpots'
 import { catchMarkers, floatMarkers } from './fishingLooks';
 
 export const FISHING = {
-  /** Seconds after the float goes under during which a press still lands the fish. */
-  window: 0.9,
+  /**
+   * Seconds after the float goes under during which a press still lands the fish. 0.9 was gone before
+   * critic round 32 had read "NOW" in the corner; with the cue in the middle of the view it is 1.3.
+   */
+  window: 1.3,
   /** Shortest wait for a bite, and how much longer it can be. */
   waitMin: 2.6,
   waitSpread: 3.6,
@@ -239,7 +242,7 @@ export class FishingActivity implements ActivityInstance {
   }
 
   progress(): ActivityReadout | null {
-    if (this.stage === 'bite') return { label: 'NOW — press E', fraction: null, urgent: true };
+    if (this.stage === 'bite') return { label: 'NOW — press E', fraction: null, urgent: true, cue: WORDS.cueBite };
     if (this.stage === 'reel' && this.caught) return { label: this.caught.name, fraction: 1, urgent: true };
     const state = this.stage === 'spooked' ? 'Let it settle' : 'Waiting for a bite';
     return { label: `${state} · cast ${this.casts}`, fraction: null };

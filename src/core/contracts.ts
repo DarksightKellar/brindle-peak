@@ -590,6 +590,11 @@ export interface ActivityReadout {
   fraction: number | null;
   /** True when the player must act this instant; the HUD lights up. */
   urgent?: boolean;
+  /**
+   * A word or two for the instant itself ("Now! Press E"), drawn large in the middle of the view as well.
+   * Critic round 32 missed timing cues that only lit the small panel in the corner, eyes on the world.
+   */
+  cue?: string;
 }
 
 /**

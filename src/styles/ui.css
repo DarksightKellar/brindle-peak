@@ -192,6 +192,15 @@
 .ui-activity.is-compact .ui-activity__name { font-size: 12px; margin-bottom: 3px; }
 /* Urgent state must not rely on colour alone (A5): the border and the fill both change. */
 .ui-activity.is-urgent { border-color: var(--lantern); }
+/* The moment itself, large over the view (activityHud.ts): above Pip, below the compass. */
+.ui-cue {
+  position: absolute; left: 50%; top: 36%; transform: translateX(-50%); margin: 0;
+  padding: 6px 16px; background: var(--panel); border: 2px solid var(--lantern);
+  font-family: var(--mono); font-size: 22px; font-weight: 700; letter-spacing: 0.06em;
+  color: var(--lantern); white-space: nowrap; pointer-events: none;
+  animation: cue-in 160ms steps(3, end) both;
+}
+@keyframes cue-in { from { transform: translateX(-50%) scale(0.7); opacity: 0; } to { transform: translateX(-50%) scale(1); opacity: 1; } }
 .ui-activity.is-urgent .ui-activity__fill { background: var(--lantern); }
 .ui-activity.is-urgent .ui-activity__label { color: var(--lantern); font-weight: 700; }
 
