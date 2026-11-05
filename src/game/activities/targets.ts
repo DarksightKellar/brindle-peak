@@ -22,11 +22,20 @@ import type {
   TerrainSampler, Vec3,
 } from '../../core/contracts';
 import type { PlacedMarker } from './markerLooks';
-import { launch, previewArc, stepShot, turnAim, type Shot, type Strikeable } from './throwFlight';
+import { pointerTo } from './pointer';
+import { FLIGHT, launch, previewArc, stepShot, turnAim, type Shot, type Strikeable } from './throwFlight';
 import { bellTarget, FAN, makeFan, setupFor, targetFoot, type ThrowSetup, type ThrowTarget } from './throwSetups';
 import { WORDS } from './activityWords';
 
 export { targetAngle } from './throwSetups';
+
+/**
+ * The bell's gusts in turn, -1..1 of WIND_PUSH across the line to it (+ to the left). Light ones a straight
+ * throw still rings; strong ones carry it past the bell unless the aim leans into them.
+ */
+const BELL_WIND = [0.9, -0.5, -1, 0.35, 0.75, -0.85, 1, -0.6] as const;
+/** How far a full gust carries a straight throw sideways by the time it reaches the bell, metres. */
+const WIND_DRIFT = 2;
 
 export const THROW = {
   /** Seconds between throws, so a held key cannot dump the whole pouch in one frame. */
@@ -109,6 +118,19 @@ export class TargetActivity implements ActivityInstance {
    * mid-draw, and every throw let go after that was called wide.
    */
   private locked = -1;
+  /**
+   * The bell's crosswind: its push on a shot (u/s², across the line to the bell), and which gust of
+   * BELL_WIND it is. Critic round 25 played the toss and the bell as one hold-and-release game; the bell
+   * is still, so the wind is what it asks: read the arrow over it and aim upwind. It shifts every throw.
+   */
+  private wind = { x: 0, z: 0 };
+  private gust = 0;
+  /** Unit vector to the left of the line from the throwing spot to the bell. */
+  private across = { x: 0, z: 0 };
+  /** The aim that would ring the bell in this gust (cached per gust), or null when none would. */
+  private windAim: { gust: number; yaw: number | null } | null = null;
+  /** Camera yaw last frame, for the wind arrow over the bell. */
+  private camYaw = 0;
 
   constructor(def: ActivityDef) {
     this.def = def;
@@ -146,6 +168,25 @@ export class TargetActivity implements ActivityInstance {
     const bearing = mid ? Math.atan2(mid.x - this.feet.x, mid.z - this.feet.z) : host.cameraYaw;
     const side = angleDelta(bearing, host.cameraYaw) < 0 ? -1 : 1;
     this.aim = bearing + side * THROW.openOffset;
+    this.camYaw = host.cameraYaw;
+    this.across = { x: Math.cos(bearing), z: -Math.sin(bearing) };
+    this.gust = 0;
+    this.windAim = null;
+    this.setWind();
+  }
+
+  /** The bell's wind for the current gust; still air anywhere else. */
+  private setWind(): void {
+    // The push that drifts a throw WIND_DRIFT over its flight (range / speed seconds), wherever Pip stands.
+    const range = this.bell ? Math.hypot(this.bell.pos.x - this.feet.x, this.bell.pos.z - this.feet.z) : 0;
+    const flight = Math.max(0.3, range / FLIGHT.speed);
+    const k = this.bell ? (BELL_WIND[this.gust % BELL_WIND.length] * 2 * WIND_DRIFT) / (flight * flight) : 0;
+    this.wind = { x: this.across.x * k, z: this.across.z * k };
+  }
+
+  /** The gust's strength, -1..1, + blowing to the left of the line to the bell. */
+  private get gustNow(): number {
+    return this.bell ? BELL_WIND[this.gust % BELL_WIND.length] : 0;
   }
 
   /** Hit volumes this instant (or at `at`), index-aligned with the fan (null once a post is down). */
@@ -168,6 +209,7 @@ export class TargetActivity implements ActivityInstance {
     const pressed = host.input.interactPressed && !this.swallowPress;
     this.swallowPress = false;
     this.feet = { ...host.playerPos };
+    this.camYaw = host.cameraYaw;
     if (this.draw >= 0 && this.locked >= 0) this.follow(this.locked);
     else this.aim = turnAim(this.aim, host.input.moveX, step);
 
@@ -183,8 +225,13 @@ export class TargetActivity implements ActivityInstance {
       this.throwsLeft--;
       this.cooldown = THROW.cooldown;
       this.released = { aimedOn: this.predict() >= 0, rising: this.draw % THROW.drawPeriod < THROW.drawPeriod / 2 };
-      this.shots.push(launch(this.feet, this.aim, this.strikeables(), this.groundAt, this.reachAt(this.draw)));
+      this.shots.push(launch(this.feet, this.aim, this.strikeables(), this.groundAt, this.reachAt(this.draw), this.bell ? { ...this.wind } : undefined));
       this.draw = -1;
+      // The wind shifts once the throw is away: the one in flight keeps the gust it was let go in.
+      if (this.bell) {
+        this.gust++;
+        this.setWind();
+      }
     }
 
     this.elapsed += step;
@@ -269,8 +316,8 @@ export class TargetActivity implements ActivityInstance {
    * to, or -1. Round 8: "lined up" judged where they stood at the press, and a throw on the cue to the
    * edge of a swinging snowman could land behind it. The cue now says what the throw will do.
    */
-  private predict(reach = 1): number {
-    const shot = launch(this.feet, this.aim, this.strikeables(), this.groundAt, reach);
+  private predict(reach = 1, yaw = this.aim): number {
+    const shot = launch(this.feet, yaw, this.strikeables(), this.groundAt, reach, this.bell ? this.wind : undefined);
     const h = 1 / 60;
     for (let t = h; !shot.done; t += h) {
       const hit = stepShot(shot, h, this.strikeables(this.elapsed + t), this.groundAt);
@@ -326,6 +373,12 @@ export class TargetActivity implements ActivityInstance {
     if (this.bell && this.stage === 'throwing' && this.rang < 0) {
       const b = this.bell.pos;
       out.push({ shape: 'ring', look: 'pulse', x: b.x, y: b.y - 0.1, z: b.z, yaw: Math.atan2(this.feet.x - b.x, this.feet.z - b.z), size: 0.95 });
+      // The wind over the bell: an arrow pointing the way it blows, bigger the harder it blows.
+      const g = this.gustNow;
+      if (g !== 0) {
+        const to = { x: b.x + Math.sign(g) * this.across.x * 10, z: b.z + Math.sign(g) * this.across.z * 10 };
+        for (const m of pointerTo({ x: b.x, y: b.y - 0.9, z: b.z }, to, this.camYaw)) out.push({ ...m, size: (m.size ?? 1) * (0.6 + 0.5 * Math.abs(g)) });
+      }
     }
     if (this.bell && this.rang >= 0 && this.rang < 1.2) {
       const b = this.bell.pos;
@@ -353,7 +406,7 @@ export class TargetActivity implements ActivityInstance {
       const drawing = this.draw >= 0;
       const reach = drawing ? this.reachAt(this.draw) : 1;
       const lands = drawing && this.letGoHits;
-      for (const p of previewArc(this.feet, this.aim, targets, this.groundAt, 9, reach)) {
+      for (const p of previewArc(this.feet, this.aim, targets, this.groundAt, 9, reach, this.bell ? this.wind : undefined)) {
         out.push({ shape: 'float', look: 'dot', x: p.x, y: p.y, z: p.z, strength: lands ? 1 : drawing ? 0.85 : 0.6, size: lands ? 1.7 : 1.25 });
       }
       const t = on >= 0 && this.fan.length > 0 ? targets[on] : null;
@@ -384,17 +437,37 @@ export class TargetActivity implements ActivityInstance {
       // on line and drawing, the words only say to let go on the arc.
       // Drawing, it says "Let go!" (in the urgent colour) for exactly the moment the arc is bold: critic
       // round 20 could not see the window in the dots and timed the release by trial.
-      const t = on ? null : this.nearestToAim();
+      // At the bell the turn is toward the aim that rings it in this wind, not toward the bell itself.
+      const goal = on ? null : this.bell ? this.bellAim() : this.nearestToAim()?.bearing ?? null;
       const now = on && this.letGoHits;
       const lined = this.draw >= 0 ? (now ? WORDS.throwNow : WORDS.throwDrawing) : WORDS.throwOn;
-      cue = on ? `${lined} · ` : t ? `${WORDS.throwTurn(angleDelta(this.aim, t.bearing) > 0 ? 'left' : 'right')} · ` : '';
+      cue = on ? `${lined} · ` : goal !== null ? `${WORDS.throwTurn(angleDelta(this.aim, goal) > 0 ? 'left' : 'right')} · ` : '';
       on = this.draw >= 0 ? now : on;
     }
+    const g = this.gustNow;
+    const wind = this.bell && this.stage === 'throwing' && this.decidedAt < 0 && this.throwsLeft > 0
+      ? `${WORDS.bellWind(g > 0 ? 'right' : 'left', Math.abs(g))} · `
+      : '';
     return {
-      label: `${said}${cue}Hits ${Math.min(this.hits, need)} / ${need} · ${this.throwsLeft} left`,
+      label: `${said}${wind}${cue}Hits ${Math.min(this.hits, need)} / ${need} · ${this.throwsLeft} left`,
       fraction: need === 0 ? 0 : Math.min(1, this.hits / need),
       urgent: on,
     };
+  }
+
+  /**
+   * The aim that rings the bell in this gust: the middle of the run of aims that would, searched either
+   * side of the bell's bearing. Worked out once a gust.
+   */
+  private bellAim(): number | null {
+    if (!this.bell) return null;
+    if (this.windAim?.gust === this.gust) return this.windAim.yaw;
+    const b = Math.atan2(this.bell.pos.x - this.feet.x, this.bell.pos.z - this.feet.z);
+    const hits: number[] = [];
+    for (let d = -0.4; d <= 0.4001; d += 0.02) if (this.predict(1, b + d) >= 0) hits.push(b + d);
+    const yaw = hits.length > 0 ? (hits[0] + hits[hits.length - 1]) / 2 : null;
+    this.windAim = { gust: this.gust, yaw };
+    return yaw;
   }
 
   /** The result card: critic round 4 used all eight throws and the panel just went away. */
@@ -425,6 +498,11 @@ export class TargetActivity implements ActivityInstance {
 
   get aimYaw(): number {
     return this.aim;
+  }
+
+  /** At the bell, the aim that rings it in the wind now blowing (null elsewhere): for tests and tools. */
+  get ringAim(): number | null {
+    return this.bell ? this.bellAim() : null;
   }
 
   /** Current hit volumes (bell or standing posts), for tests and tools. */

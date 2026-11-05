@@ -14,6 +14,12 @@ export function clock(seconds: number): string {
   return m > 0 ? `${m}:${String(s).padStart(2, '0')}` : `${s}s`;
 }
 
+/** Where the arc was when a throw fell short or sailed over, by which way the release missed. */
+const ARC_WAS = {
+  short: { early: 'the arc was still growing', late: 'the arc had shrunk back' },
+  long: { early: "the arc hadn't shrunk enough", late: 'the arc grew past it' },
+} as const;
+
 export const WORDS = {
   // Sled readout and result
   rings: (got: number, total: number): string => `Rings ${got} of ${total}`,
@@ -49,8 +55,11 @@ export const WORDS = {
   // While the log hangs square: the moment in words, not only the panel turning amber (critic round 8).
   woodNow: 'Square — press E',
   stoneNow: 'Over the gap — press E',
-  stoneEarly: 'Too soon. Let it sway over the gap first',
-  stoneLate: 'Too late. Wait for it to sway back over',
+  /** The dam (damHand.ts): the current pushes the stone off its gap and Pip holds it there. */
+  stoneSteer: (key: 'A' | 'D' | 'W' | 'S'): string => `The current has it. Hold ${key} to bring it over the gap`,
+  stoneHold: 'The current has it. Steer it back over the gap',
+  stoneOff: 'Not over the gap. Hold it there first, then press E',
+  stoneMash: 'Easy: one press, once it sits over the gap',
   /** Pressed again straight after a press: the woodpile and the dam both take one press per swing. */
   buildMash: 'Easy: one press per swing. Watch for the lights',
   // Snowman, rolled: the ball is growing; it is big enough to push onto the spot; the face goes on with E.
@@ -73,13 +82,18 @@ export const WORDS = {
   // Throw result
   throwResult: (hits: number, need: number): string => `${Math.min(hits, need)} of ${need} hits`,
   /** Critic round 17 rang it and read "1 of 1 hits", if anything: the bell is the point, not the count. */
+  /** The bell's crosswind, said from the thrower's side: where it comes from and how hard. */
+  bellWind: (from: 'left' | 'right', strength: number): string =>
+    `Wind from the ${from}, ${strength >= 0.8 ? 'strong' : strength >= 0.45 ? 'steady' : 'light'}`,
   bellRang: 'The bell rang out across the square. Heads turned at the bakery.',
   bellSilent: 'The bell never rang. Press E at the snowballs for another go.',
   // Called for a moment as each throw lands.
   throwHit: 'Hit!',
+  // Says which way the arc was going as well: critic round 25 read "Fell short: let go sooner" as
+  // backwards, not seeing that the arc had already shrunk back past the target.
   throwWide: (side: 'left' | 'right' | 'short' | 'long' | null, timing?: 'early' | 'late'): string =>
     side === 'short' || side === 'long'
-      ? `${side === 'short' ? 'Fell short' : 'Sailed over'}${timing ? `: let go ${timing === 'early' ? 'later' : 'sooner'}` : ''}`
+      ? `${side === 'short' ? 'Fell short' : 'Sailed over'}${timing ? `: ${ARC_WAS[side][timing]}. Let go ${timing === 'early' ? 'later' : 'sooner'}` : ''}`
       : side ? `Missed, wide ${side}` : 'Missed, by a whisker',
   // The aim line's cue, until the throw is lined up; A turns the aim left, D right.
   throwTurn: (way: 'left' | 'right'): string => `Aim ${way} (${way === 'left' ? 'A' : 'D'})`,
@@ -110,11 +124,12 @@ export const WORDS = {
 
 /** Hints for activities whose kind's hint would be wrong for them, by activity id. */
 export const HINT_FOR_ID: Readonly<Record<string, string>> = {
-  'peak-thermal-flight': 'Run off the edge and press Space to jump. Hold Space to glide, and steer through the hoops.',
+  'peak-thermal-flight': 'Run off the edge and press Space to jump. Hold Space to glide. The hoops weave left and right: steer for each one.',
   'ridge-kite': 'A / D keep the kite in the rising snow. In it, the kite climbs. Hold it above the crest lights.',
   'kettles-otter-slide': 'A / D steer. Keep off the edges, and ride through the rings for speed.',
   'reach-sled-hill': 'A / D steer. Keep off the edges, and ride through the rings for speed.',
   'hearth-kindling': 'Each log swings over the pile. Press E when it hangs square.',
-  'kettles-dam-build': 'Each stone sways over the wall. Press E as it hangs over its gap.',
+  'hamlet-bell-throw': 'Wind blows across the square and shifts after every throw: the arrow over the bell shows it. Aim into the wind, then hold E and let go on the arc.',
+  'kettles-dam-build': 'The current pushes each stone off its gap. Hold it there with the move keys, then press E to set it.',
   'hamlet-snowman': 'Walk to roll a ball bigger, then push it onto the lit ring. Three balls, then E for the face.',
 };

@@ -557,6 +557,8 @@ export interface ActivityDef {
   pos: Vec2;
   radius: number;
   prompt: string;
+  /** What Pip does there, lower case, for the line that names it nearby: "build a stone dam". */
+  what?: string;
 }
 
 export interface ActivityResult {

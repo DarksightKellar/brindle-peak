@@ -217,6 +217,10 @@ describe('unfinished text', () => {
     ...ITEMS.flatMap((i) => [i.name, i.desc]),
   ];
 
+  it('says what Pip would do at every activity, for the line that names it nearby (critic round 25)', () => {
+    for (const a of ACTIVITIES) expect(a.what, a.id).toMatch(/^[a-z][^.]+$/);
+  });
+
   it('ships no empty or placeholder text', () => {
     for (const text of allText) {
       expect(text.trim().length, text).toBeGreaterThan(0);

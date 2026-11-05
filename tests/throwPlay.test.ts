@@ -64,7 +64,8 @@ describe('throw', () => {
       const t = game.hitVolumes.find((v) => v !== null);
       if (!aimAt) return frames < 120 ? 1 : 0; // turn well away first
       if (!t) return 0;
-      const want = Math.atan2(t.pos.x - h.playerPos.x, t.pos.z - h.playerPos.z);
+      // At the bell, into the wind (round 26): where the cue says, not straight at it.
+      const want = game.ringAim ?? Math.atan2(t.pos.x - h.playerPos.x, t.pos.z - h.playerPos.z);
       const err = Math.atan2(Math.sin(want - game.aimYaw), Math.cos(want - game.aimYaw));
       return Math.abs(err) < 0.01 ? 0 : -Math.sign(err) * Math.min(1, Math.abs(err) * 20);
     };
@@ -132,7 +133,7 @@ describe('throw', () => {
       step(game, h);
       const bell = game.hitVolumes[0]!;
       // A raises the aim yaw (turns left), so "left of the bell" is the bell's bearing plus a little.
-      const want = Math.atan2(bell.pos.x - 274, bell.pos.z - 128) + (way === 'left' ? 0.25 : -0.25);
+      const want = (game.ringAim ?? Math.atan2(bell.pos.x - 274, bell.pos.z - 128)) + (way === 'left' ? 0.25 : -0.25);
       const err = (): number => Math.atan2(Math.sin(want - game.aimYaw), Math.cos(want - game.aimYaw));
       for (let i = 0; i < 400 && Math.abs(err()) > 0.01; i++) step(game, h, { moveX: -Math.sign(err()) * Math.min(1, Math.abs(err()) * 20) });
       // A quarter of the swell is the strength that arrives: only the aim is off.
@@ -146,13 +147,13 @@ describe('throw', () => {
 
   it('on the line, a throw let go too soon falls short and one at the top of the swell sails over (round 19)', () => {
     // Let go two frames in, the swell was still growing: too soon. Let go at the top, it was too much.
-    for (const [frames, said] of [[2, 'Fell short: let go later'], [Math.round(THROW.drawPeriod / 2 / FRAME) - 2, 'Sailed over: let go sooner']] as const) {
+    for (const [frames, said] of [[2, 'Fell short: the arc was still growing. Let go later'], [Math.round(THROW.drawPeriod / 2 / FRAME) - 2, 'Sailed over: the arc grew past it. Let go sooner']] as const) {
       const game = createTargetActivity(def('throw', 'hamlet-bell-throw', { x: 274, z: 128 }));
       const h = host({ x: 274, y: 0, z: 128 });
       game.start(h);
       step(game, h);
       const bell = game.hitVolumes[0]!;
-      const want = Math.atan2(bell.pos.x - 274, bell.pos.z - 128);
+      const want = game.ringAim ?? Math.atan2(bell.pos.x - 274, bell.pos.z - 128);
       const err = (): number => Math.atan2(Math.sin(want - game.aimYaw), Math.cos(want - game.aimYaw));
       for (let i = 0; i < 400 && Math.abs(err()) > 0.01; i++) step(game, h, { moveX: -Math.sign(err()) * Math.min(1, Math.abs(err()) * 20) });
       throwHeld(game, h, frames);
@@ -163,23 +164,42 @@ describe('throw', () => {
     }
   });
 
+  it('the bell has a crosswind: straight at it, a strong gust carries the snowball past (round 26)', () => {
+    // Critic round 25 played the bell as the toss again. Now the wind across the square is the skill.
+    const game = createTargetActivity(def('throw', 'hamlet-bell-throw', { x: 274, z: 128 }));
+    const h = host({ x: 274, y: 0, z: 128 });
+    game.start(h);
+    step(game, h);
+    const bell = game.hitVolumes[0]!;
+    const straight = Math.atan2(bell.pos.x - 274, bell.pos.z - 128);
+    expect(Math.abs(Math.atan2(Math.sin(game.ringAim! - straight), Math.cos(game.ringAim! - straight)))).toBeGreaterThan(0.05);
+    const err = (): number => Math.atan2(Math.sin(straight - game.aimYaw), Math.cos(straight - game.aimYaw));
+    for (let i = 0; i < 400 && Math.abs(err()) > 0.01; i++) step(game, h, { moveX: -Math.sign(err()) * Math.min(1, Math.abs(err()) * 20) });
+    throwHeld(game, h, Math.round(THROW.drawPeriod / 4 / FRAME));
+    let f = 0;
+    while (game.inFlight > 0 && f++ < 300) step(game, h);
+    expect(game.hitCount).toBe(0);
+    expect(game.progress()?.label).toMatch(/^Missed, wide left · Wind from the /);
+  });
+
   it('reports hits and throws left, and waits for the hit to be seen before closing', () => {
     const game = createTargetActivity(def('throw', 'hamlet-bell-throw', { x: 274, z: 128 }));
     const h = host({ x: 274, y: 0, z: 128 });
     game.start(h);
     step(game, h);
     // The aim opens off the bell: line it up with A / D first, the way the cue says.
-    const bell = game.hitVolumes[0]!;
-    const want = Math.atan2(bell.pos.x - 274, bell.pos.z - 128);
+    // The first gust blows hard to the left (BELL_WIND): the cue turns toward the aim that rings it then.
+    const want = game.ringAim!;
     const err = (): number => Math.atan2(Math.sin(want - game.aimYaw), Math.cos(want - game.aimYaw));
-    expect(Math.abs(err())).toBeGreaterThan(0.2);
-    expect(game.progress()?.label).toBe(`${err() > 0 ? 'Aim left (A)' : 'Aim right (D)'} · Hits 0 / 1 · 8 left`);
+    const gust = 'Wind from the right, strong · ';
+    expect(Math.abs(err())).toBeGreaterThan(0.1);
+    expect(game.progress()?.label).toBe(`${gust}${err() > 0 ? 'Aim left (A)' : 'Aim right (D)'} · Hits 0 / 1 · 8 left`);
     for (let i = 0; i < 400 && Math.abs(err()) > 0.01; i++) step(game, h, { moveX: -Math.sign(err()) * Math.min(1, Math.abs(err()) * 20) });
-    expect(game.progress()).toMatchObject({ label: 'Lined up: hold E · Hits 0 / 1 · 8 left', urgent: true });
+    expect(game.progress()).toMatchObject({ label: `${gust}Lined up: hold E · Hits 0 / 1 · 8 left`, urgent: true });
     step(game, h, { interactPressed: true, interactHeld: true });
-    expect(game.progress()?.label).toBe('Let go as the arc reaches it · Hits 0 / 1 · 8 left');
+    expect(game.progress()?.label).toBe(`${gust}Let go as the arc reaches it · Hits 0 / 1 · 8 left`);
     for (let i = 0; i < 240 && !game.letGoHits; i++) step(game, h, { interactHeld: true });
-    expect(game.progress()).toMatchObject({ label: 'Let go! · Hits 0 / 1 · 8 left', urgent: true });
+    expect(game.progress()).toMatchObject({ label: `${gust}Let go! · Hits 0 / 1 · 8 left`, urgent: true });
     step(game, h);
     expect(game.inFlight).toBe(1);
     let f = 0;

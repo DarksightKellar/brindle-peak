@@ -160,9 +160,10 @@ export const QUESTS: readonly QuestDef[] = [
   q('pell-letter', 'The Blue House', 'pell', 'hamlet', 'One letter, four blue houses, and a postmaster losing sleep.',
     { offer: 'pell-root', waiting: 'pell-wait' }, [
       // Delivered is done: the walk back to say so was 700 units, and Pell hears it when Pip next comes
-      // by, as the opening of his second errand (pell-address's offer).
+      // by, as the opening of his second errand (pell-address's offer). Nana keeps the letter: it was
+      // hers, and critic round 25 asked why the addressee handed it back.
       talk('nana', "Give Pell's letter to Nana at the cabin in Hearth Hollow.", 'nana', 'nana-letter'),
-    ], { item: 'letter', bells: 10 }),
+    ], { bells: 10 }),
 
   q('gus-ledger', 'The Bell Ring', 'gus', 'hamlet', 'He sells bells but has never heard the big one.',
     { offer: 'gus-root', waiting: 'gus-wait', still: 'gus-still' }, [

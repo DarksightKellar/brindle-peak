@@ -25,6 +25,10 @@ const statHTML = (label: string, r: JournalModel['feathers'], value = esc(r.text
  */
 export const BELLS_FOUND_WORDS = 'found lying in the snow';
 
+/** What each count is for, under it: critic round 25 had 202 bells and 2 feathers and knew neither. */
+export const BELLS_FOR = "Spend them on Gus's feathers in the hamlet";
+export const FEATHERS_FOR = 'Each one: longer breath for running and flapping';
+
 /**
  * The bells box leads with the purse, the same number and glyph as the HUD chip; the count of the sixty
  * lying in the valley sits under it with the bar. A critic read "46" on the chip and "BELLS 8 / 60"
@@ -32,7 +36,7 @@ export const BELLS_FOUND_WORDS = 'found lying in the snow';
  */
 const bellsHTML = (m: JournalModel): string =>
   statHTML('Bells', m.bells, `${icon('bell', 12)}${m.purse}`,
-    `<span class="ui-stat__note">${esc(m.bells.text)} ${esc(BELLS_FOUND_WORDS)}</span>`);
+    `<span class="ui-stat__note">${esc(m.bells.text)} ${esc(BELLS_FOUND_WORDS)}. ${esc(BELLS_FOR)}</span>`);
 
 /** After the radio call every post is on; the note under it keeps Pip's own share. */
 const lanternsHTML = (m: JournalModel): string =>
@@ -60,7 +64,8 @@ export function notesHTML(m: JournalModel, prints: readonly { src: string; capti
     )
     .join('');
   return (
-    `<div class="ui-jgrid">${stats.map((r, i) => (r === m.bells ? bellsHTML(m) : r === m.lanterns ? lanternsHTML(m) : statHTML(labels[i], r))).join('')}</div>` +
+    `<div class="ui-jgrid">${stats.map((r, i) => (r === m.bells ? bellsHTML(m) : r === m.lanterns ? lanternsHTML(m)
+      : r === m.feathers ? statHTML(labels[i], r, esc(r.text), `<span class="ui-stat__note">${esc(FEATHERS_FOR)}</span>`) : statHTML(labels[i], r))).join('')}</div>` +
     (m.carrying.length > 0 ? `<p class="ui-journal__meta">Carrying: ${m.carrying.map(esc).join(' · ')}</p>` : '') +
     printsHTML(prints) +
     `<ul class="ui-zones">${zones}</ul>` +

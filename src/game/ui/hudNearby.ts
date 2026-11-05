@@ -67,7 +67,8 @@ export function createNearbyNotice(activities: readonly ActivityDef[]): {
       current = null;
       const things: Notable[] = activities
         .filter((a) => (s.counters[`activity:${a.id}`] ?? 0) === 0)
-        .map((a) => ({ id: `activity:${a.id}`, label: `${a.name} nearby`, pos: a.pos }));
+        // Says what Pip would do there: critic round 25 read "Snowman nearby" and looked for a snowman.
+        .map((a) => ({ id: `activity:${a.id}`, label: a.what ? `${a.name} nearby: ${a.what}` : `${a.name} nearby`, pos: a.pos }));
       for (const n of [...things, ...extra]) {
         if (named.has(n.id)) continue;
         const d = Math.hypot(n.pos.x - from.x, n.pos.z - from.z);

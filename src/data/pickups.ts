@@ -5,7 +5,9 @@
  * matches what the terrain sampler reports at `pos`, so a pickup cannot drift out of its zone
  * when the heightfield is retuned.
  *
- * Feather distribution: 1 in Hearth Hollow, 2 in Pinewind, 2 sold from Gus's counter in the hamlet,
+ * Feather distribution: 1 in Hearth Hollow, 2 in Pinewind, 2 sold by Gus in the hamlet, set out a few
+ * steps from where he stands, on the square's side, clear of the pines behind him (`price` bells each: critic round 25 had 202 bells after the story and never
+ * learned what they were for; they lay 30 u off in the snow then, nowhere near him),
  * 9 elsewhere — above 30 units of elevation, behind a quest, or (one) at the erratic in the Kettles.
  * The Hearth one lies on the walk from Nana to Bram's woodstore, so the first feather is met in the
  * first minute, where the HUD can say what feathers are for; none in the Frozen Reach. Five more lie
@@ -25,7 +27,12 @@ export interface PickupDef {
   kind: 'feather' | 'bell' | 'lantern';
   pos: Vec2;
   cluster?: string;
+  /** Bells it costs: picked up only with this many in the purse, which pays it. */
+  price?: number;
 }
+
+/** What one of Gus's feathers costs, in bells. */
+export const SHOP_FEATHER = 40;
 
 export const PICKUPS: readonly PickupDef[] = [
   // ---- Feathers (14) -------------------------------------------------------
@@ -35,8 +42,8 @@ export const PICKUPS: readonly PickupDef[] = [
   { id: 'feather-kettle-terrace', kind: 'feather', pos: { x: -64, z: 96 }, cluster: 'kettles:terrace' },
   { id: 'feather-kettle-pool', kind: 'feather', pos: { x: 22.5, z: -14 }, cluster: 'kettles:erratic' },
   { id: 'feather-hamlet-chest', kind: 'feather', pos: { x: 236, z: 102 }, cluster: 'hamlet:chest' },
-  { id: 'feather-shop-one', kind: 'feather', pos: { x: 300, z: 120 }, cluster: 'hamlet:shop' },
-  { id: 'feather-shop-two', kind: 'feather', pos: { x: 306, z: 126 }, cluster: 'hamlet:shop' },
+  { id: 'feather-shop-one', kind: 'feather', pos: { x: 268.5, z: 131.6 }, cluster: 'hamlet:shop', price: SHOP_FEATHER },
+  { id: 'feather-shop-two', kind: 'feather', pos: { x: 268.5, z: 134.6 }, cluster: 'hamlet:shop', price: SHOP_FEATHER },
   { id: 'feather-ridge-ledge', kind: 'feather', pos: { x: 214, z: -186 }, cluster: 'ridge:ledge' },
   { id: 'feather-ridge-scramble', kind: 'feather', pos: { x: 196, z: -230 }, cluster: 'ridge:scramble' },
   { id: 'feather-ridge-shelf', kind: 'feather', pos: { x: 71, z: -225 }, cluster: 'ridge:spur-top' },

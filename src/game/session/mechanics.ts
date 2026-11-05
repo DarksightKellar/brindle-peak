@@ -41,7 +41,8 @@ export interface MechanicsDeps {
 export interface Mechanics {
   /** Apply queued events to state and return every event applied since the last call, for feedback. */
   flush(): GameEvent[];
-  collect(id: string, kind: string): void;
+  /** Pick up `id`; a priced one (Gus's counter) is paid for out of the purse. */
+  collect(id: string, kind: string, price?: number): void;
   /**
    * Count a conversation with `npcId`, advance every quest it touches, and return the node to open.
    * A main-story offer is accepted at once. An errand is only offered (`offer`): the conversation ends
@@ -131,9 +132,13 @@ export function createMechanics(deps: MechanicsDeps): Mechanics {
     return out;
   };
 
-  const collect = (id: string, kind: string): void => {
+  const collect = (id: string, kind: string, price = 0): void => {
     state.flags[`picked:${id}`] = true;
     world.setCollected(id);
+    if (price > 0) {
+      state.bells = Math.max(0, state.bells - price);
+      bus.emit('toast', { text: `Bought a feather from Gus for ${price} bells: longer breath for running and flapping`, icon: 'feather', tier: 'discovery' });
+    }
     if (kind === 'feather') {
       const total = state.feathers + 1;
       // A feather is worth a flap's worth of capacity AND a little warmth right now, so the pickup

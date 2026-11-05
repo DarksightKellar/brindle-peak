@@ -145,6 +145,8 @@ export function createSession(opts: SessionOptions): Session {
   rig.setStructures(measureStructures(world.group, world.colliders, (x, z) => Math.hypot(x - PEAK.x, z - PEAK.z) < 6));
   prepareViewFade(world.group); // see-through corners bound from the first draw (render/viewFade.ts)
   const steep = createSteepNudge();
+  /** Priced pickups Pip is standing at without the bells, told once until Pip steps away. */
+  const priced = new Set<string>();
   const runner = createActivityRunner({
     create: (def) => (live = createActivity(def, FISH)),
     hostFor: (instance, input) => mech.hostFor(instance, input),
@@ -262,7 +264,14 @@ export function createSession(opts: SessionOptions): Session {
           continue;
         }
         if (state.flags[`picked:${p.id}`]) continue;
-        if (inPickupRange(player.pos, p)) mech.collect(p.id, p.kind);
+        if (!inPickupRange(player.pos, p)) {
+          if (p.price !== undefined) priced.delete(p.id);
+        } else if (p.price === undefined || state.bells >= p.price) mech.collect(p.id, p.kind, p.price);
+        else if (!priced.has(p.id)) {
+          // Said once each time Pip steps up to it: what it costs, and where bells come from.
+          priced.add(p.id);
+          bus.emit('toast', { text: `One of Gus's feathers: ${p.price} bells. You have ${state.bells}. Bells come from errands, games and the snow`, icon: 'feather', tier: 'discovery' });
+        }
       }
     }
 

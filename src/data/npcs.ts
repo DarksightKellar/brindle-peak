@@ -34,7 +34,7 @@ export const NPCS: readonly NpcDef[] = [
 
   // ---- Kettle Springs (3) --------------------------------------------------
   { id: 'ivy', name: 'Ivy', species: 'otter', zone: 'kettles', pos: { x: -52, z: 50 }, yaw: 0.8, idle: 'ivy-idle', body: '#57463a', accent: '#d6c0a6', radius: 4 },
-  { id: 'corm', name: 'Corm', species: 'raven', zone: 'kettles', pos: { x: -18, z: 74 }, yaw: -1.8, idle: 'corm-idle', body: '#31313a', accent: '#7b8794', radius: 4 },
+  { id: 'corm', name: 'Corm', species: 'raven', zone: 'kettles', pos: { x: -14, z: 70 }, yaw: -1.8, idle: 'corm-idle', body: '#31313a', accent: '#7b8794', radius: 4 },
   { id: 'jory', name: 'Jory', species: 'deer mouse', zone: 'kettles', pos: { x: -60, z: 86 }, yaw: 1.1, idle: 'jory-idle', body: '#9c8770', accent: '#e2d4be', radius: 4 },
 
   // ---- Windscar Ridge (2) --------------------------------------------------

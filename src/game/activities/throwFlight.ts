@@ -40,6 +40,8 @@ export interface Shot {
   age: number;
   /** Set once it has struck something or the ground; it then stops moving. */
   done: boolean;
+  /** A crosswind's push, u/s², carried by the shot from the moment it was let go (the bell's square). */
+  wind?: { x: number; z: number };
 }
 
 export interface Strikeable {
@@ -90,6 +92,7 @@ export function launch(
   targets: readonly (Strikeable | null)[],
   groundAt: (x: number, z: number) => number,
   reach = 1,
+  wind?: { x: number; z: number },
 ): Shot {
   const from = { x: feet.x, y: feet.y + FLIGHT.hand, z: feet.z };
   const i = aimedTarget(from, yaw, targets);
@@ -101,7 +104,7 @@ export function launch(
     const r = FLIGHT.idleRange;
     vel = loft(from, yaw, r, groundAt(from.x + Math.sin(yaw) * r, from.z + Math.cos(yaw) * r));
   }
-  return { pos: from, vel: { x: vel.x * reach, y: vel.y * reach, z: vel.z * reach }, age: 0, done: false };
+  return { pos: from, vel: { x: vel.x * reach, y: vel.y * reach, z: vel.z * reach }, age: 0, done: false, wind };
 }
 
 /**
@@ -123,6 +126,10 @@ export function stepShot(
     shot.pos.y += shot.vel.y * h;
     shot.pos.z += shot.vel.z * h;
     shot.vel.y -= FLIGHT.gravity * h;
+    if (shot.wind) {
+      shot.vel.x += shot.wind.x * h;
+      shot.vel.z += shot.wind.z * h;
+    }
     shot.age += h;
     for (let i = 0; i < targets.length; i++) {
       const t = targets[i];
@@ -151,6 +158,7 @@ export function previewArc(
   groundAt: (x: number, z: number) => number,
   count = 9,
   reach = 1,
+  wind?: { x: number; z: number },
 ): Vec3[] {
   const shot = launch(feet, yaw, targets, groundAt, reach);
   const aimed = aimedTarget(shot.pos, yaw, targets);
@@ -161,8 +169,9 @@ export function previewArc(
   for (let k = 1; k <= count; k++) {
     const s = (k / count) * (range / (FLIGHT.speed * reach));
     const y = shot.pos.y + shot.vel.y * s - 0.5 * FLIGHT.gravity * s * s;
-    const x = shot.pos.x + shot.vel.x * s;
-    const z = shot.pos.z + shot.vel.z * s;
+    // The dots bend with the wind, as the shot will.
+    const x = shot.pos.x + shot.vel.x * s + 0.5 * (wind?.x ?? 0) * s * s;
+    const z = shot.pos.z + shot.vel.z * s + 0.5 * (wind?.z ?? 0) * s * s;
     if (y < groundAt(x, z)) break;
     out.push({ x, y, z });
   }

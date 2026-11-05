@@ -1,5 +1,5 @@
 /**
- * Eleven things that fit in a pocket. Items are never consumed by the system that hands them
+ * Ten things that fit in a pocket. Items are never consumed by the system that hands them
  * out — they exist so a conversation can refer to something concrete later.
  *
  * `icon` is 12x12 stroke path data, drawn single-colour by the journal.
@@ -31,12 +31,6 @@ export const ITEMS: readonly ItemDef[] = [
     name: 'The Good Bait Tin',
     desc: 'Small hooks, smaller hopes. She said this one was the good tin.',
     icon: 'M2 4h8v6H2zM5 4V2h4',
-  },
-  {
-    id: 'letter',
-    name: 'The Blue House Letter',
-    desc: 'Nana read it twice, folded it a third time, and told you to keep it.',
-    icon: 'M2 3h8v6H2zM2 3l4 3 4-3',
   },
   {
     id: 'key',

@@ -77,12 +77,12 @@ export const DIALOGUE_FILLS: Readonly<Record<string, (s: GameState) => string[]>
   'ivy-dam': (s) => [
     (s.counters['activity:kettles-dam-build'] ?? 0) > 0
       ? "Wait. The dam's whole again? Somebody's put the stones back. You? Well. That's half of it."
-      : "Put the stones back in the dam. They're lying where they landed.",
+      : "Set the stones back in the dam, one at a time. The current tugs at them; hold each one over its gap.",
   ],
   'ivy-dam-wait': (s) => [
     (s.counters['activity:kettles-dam-build'] ?? 0) > 0
       ? "The dam's holding. I can hear it."
-      : 'The dam first. The stones are scattered round the low pool.',
+      : 'The dam first. Hold each stone over its gap against the current, then set it.',
   ],
   'nana-posts': (s) => {
     const lit = Object.keys(s.lanterns).length;

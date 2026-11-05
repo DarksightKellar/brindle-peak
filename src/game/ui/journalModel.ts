@@ -179,7 +179,9 @@ export function formatJournal(s: GameState, content: JournalContent = {}): Journ
     quests,
     carrying: Object.keys(s.items)
       .filter((id) => (s.items[id] ?? 0) > 0)
-      .map((id) => content.items?.find((i) => i.id === id) ?? { id, name: id })
+      // An item the game no longer has (Pell's letter, which Nana keeps since round 26) is not listed.
+      .map((id) => (content.items ? content.items.find((i) => i.id === id) : { id, name: id }))
+      .filter((it): it is NonNullable<typeof it> => it !== undefined)
       .filter((it) => !(it.handedOver && evaluate(it.handedOver, s)))
       .map((it) => ((s.items[it.id] ?? 0) > 1 ? `${it.name} ×${s.items[it.id]}` : it.name)),
     achievementsList,

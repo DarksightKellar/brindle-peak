@@ -94,21 +94,26 @@ export const RACE_COURSES: Readonly<Record<string, RaceCourse>> = {
    * hang on that line: each one is a point the real player stepper passed through, gliding from the
    * post (sprint 8 u, jump, hold, steering 95 -> 80 -> 60 -> 40 degrees every 40 u, no flaps), at body
    * height. Flaps buy height to spare; walking underneath counts for nothing (`heights` is checked).
+   *
+   * Then every hoop after the first was pushed 6 u off that line, left and right in turn: critic round
+   * 25 flew 8 of 8 holding forward. Now a glide that steers A / D for each threads them all and one held
+   * straight misses five. Weaving costs height, so the last hoop wants a flap or two on the way; the
+   * heights sit between a glide that never flaps and one that flaps whenever it is under 2.5 u up.
    */
   'peak-thermal-flight': {
     look: 'hoop',
     radius: GATE_RADIUS,
     gates: [
       { x: 369.4, z: -365.5 },
-      { x: 389.4, z: -367.3 },
-      { x: 409.2, z: -364.5 },
-      { x: 429.0, z: -361.0 },
-      { x: 446.7, z: -351.8 },
-      { x: 464.1, z: -341.8 },
-      { x: 477.5, z: -327.0 },
-      { x: 490.4, z: -311.6 },
+      { x: 389.2, z: -361.3 },
+      { x: 410.1, z: -370.4 },
+      { x: 427.1, z: -355.3 },
+      { x: 449.6, z: -357.1 },
+      { x: 460.3, z: -337.1 },
+      { x: 482.0, z: -330.9 },
+      { x: 485.8, z: -307.7 },
     ],
-    heights: [87.2, 82.4, 77.6, 72.8, 68.0, 63.2, 58.4, 53.6],
+    heights: [87.9, 83.0, 77.6, 72.0, 66.6, 61.1, 55.7, 53.6],
   },
 };
 

@@ -39,8 +39,10 @@ function pennant(b: GeoBuilder, x: number, z: number, h = 4.2): void {
   sheet(b, [top, low, mid], 'PIP_SCARF');
   sheet(b, [low, tip, mid], 'PIP_SCARF');
   sheet(b, [tip, top, mid], 'BRICK');
+  // A lit lamp on the pole's top: unlit by the scene, so it shows after dark. Critic round 25 lost the
+  // snowman, bell and chimney flags in the night palette, ten metres off.
   b.glow();
-  b.add(GEO.ico, propMatrix(x, h + 0.16, z, 0.17, 0.17, 0.17), 'SUN_HI');
+  b.add(GEO.ico, propMatrix(x, h + 0.3, z, 0.32, 0.32, 0.32), 'LANTERN');
   b.glow(false);
 }
 

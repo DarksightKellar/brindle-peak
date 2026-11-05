@@ -398,7 +398,7 @@
     "lines": [
       "You gave it to Nana? And it was the right house?",
       "One letter. One correct delivery. I'll take that.",
-      "She said you're to keep it? Then keep it. A job done right."
+      "By her stove, she's keeping it? That's where good letters go. A job done right."
     ],
     "next": "pell-b"
   },
@@ -553,7 +553,7 @@
     "lines": [
       "It carries the hamlet? The whole hamlet?",
       "Then the big bell could reach the valley. I've got to try it. Soon. Fairly soon.",
-      "Here, take these. Bells for your trouble. Ring them when you're happy."
+      "Here, take these. Bells for your trouble. Spend them on my feathers. They buy you breath."
     ]
   },
   {
@@ -572,7 +572,8 @@
     "lines": [
       "Bells! Bells for sale! ...Oh, it's you. Hello.",
       "I'm working up to the big bell. I've held the rope. That's a start.",
-      "One day I'll pull it, and the whole valley will hear. You'll see."
+      "One day I'll pull it, and the whole valley will hear. You'll see.",
+      "Those two feathers by my feet are forty bells each. Longer breath for the climb."
     ]
   }
 ]

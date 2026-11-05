@@ -179,10 +179,12 @@ describe('build', () => {
     }
   });
 
-  it('the dam sets a stone only while it sways over its gap (critic round 19: five presses, no way to miss)', () => {
+  it('the dam sets a stone only while it is held over its gap (critic round 19: five presses, no way to miss)', () => {
+    // Round 25: the stones swung on the woodpile's beat, and the critic called the two one minigame. Now
+    // the current carries each stone off its gap and the player steers it back.
     const d = def('build', 'kettles-dam-build', { x: -52, z: 42 });
     const mash = createBuildActivity(d);
-    const h = host({ x: d.pos.x + 2, y: 0, z: d.pos.z });
+    const h = host({ x: d.pos.x + 2, y: 0, z: d.pos.z }, 0.7);
     mash.start(h);
     let presses = 0;
     for (let f = 1; f < 60 * 30 && mash.placed < mash.stepCount; f++) {
@@ -190,15 +192,25 @@ describe('build', () => {
       if (press) presses++;
       step(mash, h, { interactPressed: press });
     }
-    expect(presses - mash.placed).toBeGreaterThanOrEqual(3);
+    expect(mash.placed).toBe(0);
+    expect(Math.abs(mash.stoneOff)).toBeGreaterThan(1);
+    expect(mash.progress()?.label).toMatch(/^(The current has it\. Hold [ADWS] to bring it over the gap|Not over the gap)/);
 
+    // Steering the way the line says brings it home, and a press there sets it.
     const watched = createBuildActivity(d);
     watched.start(h);
     step(watched, h);
+    const k = watched.steerFor(h.cameraYaw);
+    let last = -99;
     for (let f = 0; f < 60 * 60 && !watched.isComplete(); f++) {
-      const now = watched.squareNow;
-      if (now) expect(watched.progress()?.label).toMatch(/^Over the gap — press E · /);
-      step(watched, h, { interactPressed: now });
+      const said = watched.progress()?.label ?? '';
+      const key = /Hold ([AD]) /.exec(said)?.[1];
+      // Hold the named key while far off; near the gap, ease against the current.
+      const moveX = key ? (key === 'D' ? 1 : -1) : Math.max(-1, Math.min(1, (-watched.stoneOff * 4) / k.d));
+      const now = watched.squareNow && f - last > 30;
+      if (watched.squareNow) expect(said).toMatch(/^Over the gap — press E · /);
+      if (now) last = f;
+      step(watched, h, { moveX, interactPressed: now });
     }
     expect(watched.isComplete()).toBe(true);
   });
