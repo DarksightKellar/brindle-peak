@@ -33,6 +33,8 @@ const ARC_WAS = {
   long: { early: "the arc hadn't shrunk enough", late: 'the arc grew past it' },
 } as const;
 
+import type { VillagerBest } from '../../data/villagerBests';
+
 export const WORDS = {
   // Sled readout and result
   rings: (got: number, total: number): string => `Rings ${got} of ${total}`,
@@ -45,17 +47,30 @@ export const WORDS = {
     way === 'on' ? 'On line for the ring' : `Ring to your ${way}${keys ? `: hold ${way === 'left' ? 'A' : 'D'}` : ''}`,
   // "Your fastest yet" only beats an earlier run (critic round 8 was praised for a first run with one
   // ring), and a run that missed most rings says where they are instead.
-  sledResult: (seconds: number, got: number, total: number, best: boolean): string =>
-    `Down in ${clock(seconds)} · ${got} of ${total} rings${best ? ' · your fastest yet' : ''}`
+  sledResult: (seconds: number, got: number, total: number, best: boolean, par = ''): string =>
+    `Down in ${clock(seconds)} · ${got} of ${total} rings${par}${best ? ' · your fastest yet' : ''}`
     + (got * 2 < total ? '. The rings sit on the fast line: steer through them.' : ''),
   // Race results and the hoop readout
   // Critic round 9 found the finish a bare line of text: it now says how the run stands against the last.
-  raceResult: (seconds: number, best: number | null): string =>
-    `Over the line in ${clock(seconds)}`
+  raceResult: (seconds: number, best: number | null, par = ''): string =>
+    `Over the line in ${clock(seconds)}${par}`
     + (best === null ? '. Run it again to beat it.' : seconds < best ? ` · a new best, ${clock(best - seconds)} quicker` : ` · best ${clock(best)}`),
   lanternResult: (lit: number): string => `${lit} lanterns lit, all the way up the ridge`,
-  hoopResult: (seconds: number, through: number, total: number): string =>
-    `Down in ${clock(seconds)} · through ${through} of ${total} hoops`,
+  hoopResult: (seconds: number, through: number, total: number, par = ''): string =>
+    `Down in ${clock(seconds)} · through ${through} of ${total} hoops${par}`,
+  /** A villager's best (data/villagerBests.ts), said as the run starts. */
+  parStart: (b: VillagerBest): string =>
+    b.seconds !== undefined ? `${b.who}'s best is ${clock(b.seconds)}.` : `${b.who} gets ${b.count} ${b.noun}.`,
+  /** How a finished run stands against that best: a time beaten or not, a count matched or not. */
+  parAfter: (b: VillagerBest, seconds: number, count: number): string => {
+    if (b.seconds !== undefined) {
+      return seconds < b.seconds
+        ? ` · quicker than ${b.who}'s ${clock(b.seconds)}!`
+        : ` · ${b.who}'s ${clock(b.seconds)} is ${(seconds - b.seconds).toFixed(1)}s quicker`;
+    }
+    const c = b.count ?? 0;
+    return count > c ? ` · more than ${b.who}!` : count === c ? ` · as many as ${b.who}!` : ` · ${b.who} gets ${c}`;
+  },
   hoops: (next: number, total: number): string => `Hoop ${next} of ${total}`,
   gates: (next: number, total: number): string => `Gate ${next} of ${total}`,
   lanterns: (next: number, total: number): string => `Lantern ${next} of ${total}`,

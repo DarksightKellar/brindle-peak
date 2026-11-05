@@ -24,6 +24,7 @@ import type { PlacedMarker } from './markerLooks';
 import { courseFor, type RaceCourse } from './raceCourses';
 import { advanceGates, courseLength, gateYaw } from './raceGates';
 import { WORDS } from './activityWords';
+import { VILLAGER_BESTS } from '../../data/villagerBests';
 import { floorArrowTo, steadyWay, type Way } from './pointer';
 
 /** A hoop counts within this many metres of its centre height (so walking under one does not). */
@@ -212,8 +213,10 @@ export class RaceActivity implements ActivityInstance {
     if (this.stage !== 'done') return null;
     const total = this.course.gates.length;
     if (this.course.look === 'lantern') return WORDS.lanternResult(total);
-    if (this.course.look === 'hoop') return WORDS.hoopResult(this.elapsed, this.reached, total);
-    return WORDS.raceResult(this.elapsed, this.bestBefore);
+    const best = VILLAGER_BESTS[this.def.id];
+    const par = best ? WORDS.parAfter(best, this.elapsed, this.reached) : '';
+    if (this.course.look === 'hoop') return WORDS.hoopResult(this.elapsed, this.reached, total, par);
+    return WORDS.raceResult(this.elapsed, this.bestBefore, par);
   }
 
   isComplete(): boolean {

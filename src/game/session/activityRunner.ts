@@ -22,7 +22,8 @@ import { extras } from '../activities/hooks';
 import { KITE_IDS } from '../activities/kite';
 import { activityOffered } from '../activities/offered';
 import { standingSolids } from '../activities/startProps';
-import type { ActivityHud } from '../ui/activityHud';
+import { hintFor, type ActivityHud } from '../ui/activityHud';
+import { VILLAGER_BESTS } from '../../data/villagerBests';
 import type { ActivityMarkerLayer } from '../world/activityMarkers';
 
 export interface ActivityRunnerDeps {
@@ -147,7 +148,10 @@ export function createActivityRunner(d: ActivityRunnerDeps): ActivityRunner {
       if (framed) d.markers.hide(framed, true);
       running = extras(active).solids?.() ?? [];
       d.solids?.push(...running);
-      const hint = HINT_FOR_ID[def.id] ?? extras(active).instruction?.() ?? undefined;
+      const told = HINT_FOR_ID[def.id] ?? extras(active).instruction?.() ?? undefined;
+      // Someone's best to beat, from the first go (data/villagerBests.ts).
+      const best = VILLAGER_BESTS[def.id];
+      const hint = best ? `${told ?? hintFor(def.kind)} ${WORDS.parStart(best)}` : told;
       d.ui.activity.show({ name: def.name, kind: def.kind, prompt: def.prompt, hint });
     },
     update(dt, input): boolean {

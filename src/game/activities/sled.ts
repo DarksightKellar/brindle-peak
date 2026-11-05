@@ -19,6 +19,7 @@ import type {
   ActivityDef, ActivityHost, ActivityInstance, ActivityReadout, ActivityResult, MarkerSpec, TerrainSampler, Vec3,
 } from '../../core/contracts';
 import { WORDS } from './activityWords';
+import { VILLAGER_BESTS } from '../../data/villagerBests';
 import type { PlacedMarker } from './markerLooks';
 import { buildPath, pathAt, ringDistance, slideCourseFor, type SlideCourse, type SlidePath } from './slidePath';
 
@@ -230,7 +231,9 @@ export class SledActivity implements ActivityInstance {
   summary(): string | null {
     if (this.stage !== 'done') return null;
     const got = this.rings.filter((r) => r.got).length;
-    return WORDS.sledResult(this.finishedAt, got, this.rings.length, this.isPersonalBest && this.bestBefore !== null);
+    const best = VILLAGER_BESTS[this.def.id];
+    const par = best ? WORDS.parAfter(best, this.finishedAt, got) : '';
+    return WORDS.sledResult(this.finishedAt, got, this.rings.length, this.isPersonalBest && this.bestBefore !== null, par);
   }
 
   isComplete(): boolean {

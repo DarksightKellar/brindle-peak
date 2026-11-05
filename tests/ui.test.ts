@@ -14,6 +14,8 @@ import { CHARS_PER_SEC, Typewriter } from '../src/game/ui/dialogue';
 import { ICON_NAMES, icon } from '../src/game/ui/icons';
 import { FEATHERS_TOTAL, formatJournal, formatPlaytime } from '../src/game/ui/journal';
 import { ACHIEVEMENTS } from '../src/data/achievements';
+import { VILLAGER_BESTS } from '../src/data/villagerBests';
+import { WORDS } from '../src/game/activities/activityWords';
 import { NOTICE_MS, createNearbyNotice } from '../src/game/ui/hudNearby';
 
 const state = (): GameState => createGameState({ x: 0, y: 1.5, z: 0 }, 6);
@@ -166,6 +168,18 @@ describe('journal model', () => {
     expect(m.achievements.got).toBe(1);
     expect(m.playtime).toBe('1h 02m');
     expect(m.sledBest).toBe('41.2s');
+  });
+
+  it('names a villager best on every timed run and measures a finish against it (critic round 37)', () => {
+    for (const id of Object.keys(VILLAGER_BESTS)) expect(ACTIVITIES.some((a) => a.id === id)).toBe(true);
+    const ilsa = VILLAGER_BESTS['pinewind-deer-run'];
+    expect(WORDS.parStart(ilsa)).toBe("Ilsa's best is 15s.");
+    expect(WORDS.parAfter(ilsa, 12.4, 0)).toBe(" · quicker than Ilsa's 15s!");
+    expect(WORDS.parAfter(ilsa, 19.9, 0)).toBe(" · Ilsa's 15s is 4.9s quicker");
+    const ivy = VILLAGER_BESTS['kettles-otter-slide'];
+    expect(WORDS.parStart(ivy)).toBe('Ivy gets 10 rings.');
+    expect(WORDS.parAfter(ivy, 30, 9)).toBe(' · Ivy gets 10');
+    expect(WORDS.parAfter(ivy, 30, 11)).toBe(' · more than Ivy!');
   });
 
   it('keeps an offer Pip said "not now" to on the Quests page until it is taken (critic round 34)', () => {
