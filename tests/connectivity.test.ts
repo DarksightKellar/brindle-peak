@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createSampler, generateHeightfield } from '../src/core/terrain/heightfield';
 import { PEAK, SPAWN, WORLD_RES, WORLD_SEED, WORLD_SIZE, ZONES } from '../src/data/zones';
+import { HOP_SPOTS } from '../src/game/session/travel';
 
 const sampler = createSampler(generateHeightfield(WORLD_SEED, WORLD_SIZE, WORLD_RES, ZONES, PEAK), ZONES);
 
@@ -63,5 +64,15 @@ describe('spawn to summit connectivity', () => {
     }
 
     expect(reached, 'the peak must be reachable on foot from the spawn').toBe(true);
+  });
+});
+
+// A hop records its own arrival as by map (session.ts); a spot that sampled as another zone would be
+// recorded again by the frame's zone check, as a walk.
+describe('map hops', () => {
+  it('land inside the zone they are named for', () => {
+    for (const [zone, spot] of Object.entries(HOP_SPOTS)) {
+      expect(sampler.sampleAt(spot.at.x, spot.at.z).zone, zone).toBe(zone);
+    }
   });
 });

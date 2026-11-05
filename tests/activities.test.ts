@@ -271,14 +271,31 @@ describe('photo', () => {
     expect(off).toBeGreaterThan(0.17); // outside the centring cone
     expect(off).toBeLessThan(0.45); // inside the frame
     expect(photo.view()?.pitch).toBeGreaterThan(0);
-    // One second of D turns right (toward lower yaw) by about 70 degrees; W tilts up, clamped.
+    // One second of D turns right (toward lower yaw): 70 degrees a second, slower as it passes over the
+    // subject (critic round 33 overshot with short taps). W tilts up, clamped.
     for (let i = 0; i < 60; i++) step(photo, host, { moveX: 1 });
-    expect(photo.view()?.yaw).toBeCloseTo(open - (70 * Math.PI) / 180, 2);
+    const turned = open - (photo.view()?.yaw ?? 0);
+    expect(turned).toBeGreaterThan((45 * Math.PI) / 180);
+    expect(turned).toBeLessThan((70 * Math.PI) / 180);
     for (let i = 0; i < 600; i++) step(photo, host, { moveZ: 1 });
     expect(photo.view()?.pitch).toBeCloseTo((55 * Math.PI) / 180, 6);
     // The follow camera turning underneath does not move the aim.
+    const yaw = photo.view()?.yaw ?? 0;
     step(photo, host, { camYaw: 2 });
-    expect(photo.view()?.yaw).toBeCloseTo(open - (70 * Math.PI) / 180, 2);
+    expect(photo.view()?.yaw).toBeCloseTo(yaw, 6);
+  });
+
+  // Critic round 33 was a little off on both axes at once and read "Turn until it is centred", no key.
+  it('always names a key while the subject is off centre', () => {
+    const def = defOf('photo');
+    const photo = createPhotoActivity(def);
+    const host = makeHost({ playerPos: { x: def.pos.x, y: 0, z: def.pos.z }, camYaw: 0.5 });
+    begin(photo, host);
+    for (let i = 0; i < 600; i++) {
+      const label = photo.progress()?.label ?? '';
+      expect(label).not.toBe('Turn until it is centred');
+      step(photo, host, { moveX: i % 120 < 60 ? 1 : -1, moveZ: i % 90 < 45 ? 0.4 : -0.4 });
+    }
   });
 
 });

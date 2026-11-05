@@ -233,6 +233,26 @@ describe('build', () => {
     expect(watched.isComplete()).toBe(true);
   });
 
+  // Critic round 33 held the named key, saw "Over the gap", pressed, and was told it wasn't: at full steer
+  // the stone crossed its gap in half a second.
+  it('a dam stone held with the named key settles over its gap long enough to press', () => {
+    const d = def('build', 'kettles-dam-build', { x: -52, z: 42 });
+    const dam = createBuildActivity(d);
+    const h = host({ x: d.pos.x + 2, y: 0, z: d.pos.z }, 0.7);
+    dam.start(h);
+    step(dam, h);
+    let key: string | undefined;
+    let run = 0;
+    let longest = 0;
+    for (let f = 0; f < 60 * 6; f++) {
+      key = /Hold ([AD]) /.exec(dam.progress()?.label ?? '')?.[1] ?? key;
+      run = dam.squareNow ? run + 1 : 0;
+      longest = Math.max(longest, run);
+      step(dam, h, { moveX: key === 'D' ? 1 : key === 'A' ? -1 : 0 });
+    }
+    expect(longest / 60).toBeGreaterThan(1); // it sits there, not a half-second pass
+  });
+
   it('each square press moves a log from the crooked heap onto the crib; the last one lands before it counts', () => {
     const d = def('build', 'hearth-kindling', { x: -335.5, z: 296.4 });
     const build = createBuildActivity(d);

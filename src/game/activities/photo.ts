@@ -32,6 +32,13 @@ const TURN_WORDS = {
   down: 'Tilt down (S) until it is centred',
   any: 'Turn until it is centred',
 } as const;
+/**
+ * Close to the subject the turn slows, to NEAR_MIN of full speed when on it: at full speed a short tap of
+ * W swung the frame from "Centred" to "Tilt down" and back (critic round 33). Full speed past NEAR_SPAN
+ * radians off.
+ */
+const NEAR_MIN = 0.4;
+const NEAR_SPAN = 0.35;
 /** During the aurora's exposure, the aim must stay this close (radians) to where the shutter opened. */
 const STEADY = 0.06;
 
@@ -49,6 +56,8 @@ export class PhotoActivity implements ActivityInstance {
   private hint: 'aim' | 'tooClose' | 'tooFar' | 'turn' = 'aim';
   /** Which way the subject lies while the hint is 'turn'; null when the hint can't say. */
   private turn: 'left' | 'right' | 'up' | 'down' | null = null;
+  /** How far (radians) the frame was off the subject last frame. */
+  private offAim = 1;
   private lift: number = PHOTO.subjectHeight; // the aim point, above the subject's feet
   /** The aurora's long exposure (exposure.ts), and the aim the shutter opened on. */
   private readonly exposure = new Exposure();
@@ -76,6 +85,7 @@ export class PhotoActivity implements ActivityInstance {
     this.aimYaw = this.subjectAim(host.playerPos).yaw + OPEN_OFF;
     this.aimPitch = t.kind === 'sky' ? -0.06 : PHOTO.startPitch;
     this.exposure.reset();
+    this.offAim = 1;
     this.hint = 'aim';
     this.swallowPress = true;
   }
@@ -91,7 +101,7 @@ export class PhotoActivity implements ActivityInstance {
     this.swallowPress = false;
 
     // D / right turns right, which is toward lower yaw under forward = (sin yaw, cos yaw).
-    const fine = this.exposure.open ? EXPOSURE.fine : 1;
+    const fine = this.exposure.open ? EXPOSURE.fine : clamp(NEAR_MIN + this.offAim / NEAR_SPAN, NEAR_MIN, 1);
     const drift = this.exposure.open ? this.exposure.drift(dt) : { yaw: 0, pitch: 0 };
     this.aimYaw += drift.yaw - host.input.moveX * PHOTO.turnRate * dt * fine;
     this.aimPitch = clamp(this.aimPitch + drift.pitch + host.input.moveZ * PHOTO.tiltRate * dt * fine, PHOTO.pitchMin, PHOTO.pitchMax);
@@ -101,6 +111,7 @@ export class PhotoActivity implements ActivityInstance {
     }
 
     const { dot, distance } = this.measure(host.playerPos, this.aimYaw, this.aimPitch);
+    this.offAim = Math.acos(clamp(dot, -1, 1));
 
     // Refreshed every frame, not only on a press: written only on a press, a missed shot left the panel
     // claiming "Centred" while the subject was out of frame.
@@ -111,8 +122,10 @@ export class PhotoActivity implements ActivityInstance {
       // Which key brings it in: A raises yaw, W raises pitch (see the aim lines above).
       const want = this.subjectAim(host.playerPos);
       const dyaw = angleDelta(this.aimYaw, want.yaw), dpitch = want.pitch - this.aimPitch;
-      this.turn = Math.abs(dyaw) > TURN_SLACK ? (dyaw > 0 ? 'left' : 'right')
-        : Math.abs(dpitch) > TURN_SLACK ? (dpitch > 0 ? 'up' : 'down') : null;
+      // A little off on both at once, it names the larger: "Turn until it is centred", naming no key,
+      // left critic round 33 turning blind.
+      const yawFirst = Math.abs(dyaw) > TURN_SLACK || (Math.abs(dpitch) <= TURN_SLACK && Math.abs(dyaw) >= Math.abs(dpitch));
+      this.turn = yawFirst ? (dyaw > 0 ? 'left' : 'right') : dpitch > 0 ? 'up' : 'down';
     }
 
     if (!pressed) return;

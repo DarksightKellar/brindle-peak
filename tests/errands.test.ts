@@ -107,6 +107,20 @@ describe('errands', () => {
     expect(g.talk('margit')).toBe('margit-sled');
   });
 
+  // Critic round 33 hopped to Pinewind Wood from the map, and Jory's walk was done for it.
+  it('a hop from the map is not the walk Jory asked for; walking in is', () => {
+    const g = play();
+    g.talk('jory');
+    g.emit('activity:completed', 'kettles-spring-fish');
+    expect(g.state.quests['jory-first-step']?.step).toBe(1);
+    g.emit('zone:entered', 'pinewind', true);
+    expect(g.state.quests['jory-first-step']?.step).toBe(1);
+    expect(g.state.visited.pinewind).toBe(true);
+    g.emit('zone:entered', 'kettles');
+    g.emit('zone:entered', 'pinewind');
+    expect(g.state.quests['jory-first-step']?.step).toBe(2);
+  });
+
   it('two errands waiting on Hollis each get their own talk', () => {
     const g = play();
     g.talk('hollis');

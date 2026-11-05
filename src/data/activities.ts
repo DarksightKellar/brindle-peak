@@ -53,7 +53,9 @@ export const ACTIVITIES: readonly ActivityDef[] = [
   // ⭐ set-piece: the kite on the ridge
   { id: 'ridge-kite', name: 'Kite Line', kind: 'throw', zone: 'ridge', pos: { x: 205, z: -195 }, radius: 3.2, prompt: 'Launch', what: 'fly a kite over the crest' },
   // ⭐ set-piece: the lantern-lighting ascent
-  { id: 'ridge-lantern-ascent', name: 'Lantern Ascent', kind: 'race', zone: 'ridge', pos: { x: 168, z: -140 }, radius: 3.6, prompt: 'Light', what: 'run the lantern posts uphill' },
+  // "Run", not "Light": on the walk home Nana asks for the posts to be lit, and critic round 33 pressed E
+  // on this one's "Light" and was put in a timed race.
+  { id: 'ridge-lantern-ascent', name: 'Lantern Ascent', kind: 'race', zone: 'ridge', pos: { x: 168, z: -140 }, radius: 3.6, prompt: 'Run', what: 'run the lantern posts uphill' },
   { id: 'ridge-chimney-race', name: 'Chimney Scramble', kind: 'race', zone: 'ridge', pos: { x: 232, z: -206 }, radius: 3.4, prompt: 'Climb', what: 'race up the chimney' },
   { id: 'ridge-tarn-fish', name: 'High Tarn', kind: 'fish', zone: 'ridge', pos: { x: 304, z: -222 }, radius: 4.6, prompt: 'Fish', what: 'fish the high tarn' },
 

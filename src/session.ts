@@ -176,6 +176,11 @@ export function createSession(opts: SessionOptions): Session {
     go: (zone) => {
       ui.journal.toggle(state);
       hopTo(zone as ZoneId, player, (x, z) => sampler.heightAt(x, z));
+      // Arrived, not walked: recorded here so the frame's zone check sees no change (core/progress).
+      if (state.zone !== zone) {
+        state.zone = zone as ZoneId;
+        bus.emit('zone:entered', { id: zone as ZoneId, byMap: true });
+      }
       rig.settle(player.facing);
       audio.sfx('ui');
     },

@@ -69,9 +69,13 @@ export const KITE = {
   slide: 0.35,
   /** Half-width of the lifting column, in the same fraction. */
   lane: 0.4,
-  /** Seconds above the line that count as done, and how much faster the count drains below it. */
+  /**
+   * Seconds above the line that count as done, and how fast the count drains below it. At twice the fill
+   * a slip undid most of a hold, and critic round 33 flew for three and a half minutes: a slip costs a
+   * little now, it does not start the count again.
+   */
   hold: 8,
-  drain: 2,
+  drain: 0.5,
   /** Seconds over which the column's wander grows from almost nothing to its full swing. */
   settle: 6,
 } as const;

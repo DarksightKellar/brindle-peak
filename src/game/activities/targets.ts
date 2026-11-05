@@ -63,6 +63,9 @@ export const THROW = {
 
 interface Puff { pos: Vec3; age: number }
 
+/** Radians nearer another target must be before the aim words switch to it. */
+const AIM_KEEP = 0.12;
+
 /** Seconds of reaction allowed after "Let go!" lights: the cue is only up where a release that late lands too. */
 const LET_GO_SLACK = 0.08;
 
@@ -101,6 +104,8 @@ export class TargetActivity implements ActivityInstance {
   private hits = 0;
   /** progress() is saying "Let go!" this frame; it goes up as the big cue too. */
   private sayingNow = false;
+  /** Which target the aim words coached toward last (strikeables() index), or -1. */
+  private coached = -1;
   private cooldown = 0;
   /** Seconds E has been held for the throw being drawn; -1 when none is. */
   private draw = -1;
@@ -292,18 +297,20 @@ export class TargetActivity implements ActivityInstance {
 
   /** The standing target nearest the aim, by bearing from Pip's feet. */
   private nearestToAim(): { bearing: number; pos: Vec3 } | null {
-    let best: { bearing: number; pos: Vec3 } | null = null;
-    let err = Infinity;
-    for (const t of this.strikeables()) {
-      if (!t) continue;
+    const all = this.strikeables().map((t) => {
+      if (!t) return null;
       const bearing = Math.atan2(t.pos.x - this.feet.x, t.pos.z - this.feet.z);
-      const e = Math.abs(angleDelta(this.aim, bearing));
-      if (e < err) {
-        err = e;
-        best = { bearing, pos: t.pos };
-      }
-    }
-    return best;
+      return { bearing, pos: t.pos, err: Math.abs(angleDelta(this.aim, bearing)) };
+    });
+    let pick = -1;
+    for (const [i, t] of all.entries()) if (t && (pick < 0 || t.err < (all[pick]?.err ?? Infinity))) pick = i;
+    // The one coached toward last frame is kept unless another is clearly nearer: with the aim between
+    // two swaying snowmen, "Aim left" and "Aim right" took turns while E was held (critic round 33).
+    const kept = all[this.coached];
+    if (kept && pick >= 0 && kept.err < (all[pick]?.err ?? Infinity) + AIM_KEEP) pick = this.coached;
+    this.coached = pick;
+    const best = all[pick];
+    return best ? { bearing: best.bearing, pos: best.pos } : null;
   }
 
   /**

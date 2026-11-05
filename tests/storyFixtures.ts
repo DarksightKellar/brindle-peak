@@ -36,9 +36,9 @@ export function play() {
     player.pos.z = at.z;
     mech.flush();
   };
-  const emit = (name: 'activity:completed' | 'zone:entered', id: string): void => {
+  const emit = (name: 'activity:completed' | 'zone:entered', id: string, byMap = false): void => {
     if (name === 'activity:completed') bus.emit(name, { id, score: 1 });
-    else bus.emit(name, { id: id as ZoneId });
+    else bus.emit(name, { id: id as ZoneId, byMap });
     mech.flush();
   };
   // Talks as a player who says "i'll do it" to every errand offered: the node opened, as the game opens it.

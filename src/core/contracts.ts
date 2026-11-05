@@ -487,7 +487,8 @@ export type RewardTier = 'pickup' | 'discovery' | 'milestone' | 'finale';
 export interface GameEventPayloads {
   'feather:collected': { id: string; total: number };
   'bell:collected': { n: number };
-  'zone:entered': { id: ZoneId };
+  /** `byMap`: arrived by a hop from the map, which is a visit but not a walk (session/travel.ts). */
+  'zone:entered': { id: ZoneId; byMap?: boolean };
   'quest:started': { id: string };
   'quest:completed': { id: string };
   'fish:caught': { id: string; isNew: boolean };

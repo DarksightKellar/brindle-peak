@@ -93,7 +93,9 @@ function mutate(s: GameState, name: GameEventName, f: Fields): void {
       if (isZoneId(id)) {
         s.visited[id] = true;
         s.zone = id;
-        bump(s.counters, 'visit:' + id);
+        // A hop from the map is not a walk there: critic round 33 hopped to Pinewind Wood and Jory's
+        // "walk as far as the pines for me" was done, and he thanked Pip for going.
+        if (f['byMap'] !== true) bump(s.counters, 'visit:' + id);
       }
       break;
     }

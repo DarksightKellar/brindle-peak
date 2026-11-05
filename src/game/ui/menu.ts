@@ -61,6 +61,9 @@ export function createMenu(root: HTMLElement, onReset?: () => void): Menu {
     '<li><b>Esc</b><span>pause</span></li>' +
     '<li><b>Tab · J</b><span>journal</span></li>' +
     '<li><b>M</b><span>map</span></li>' +
+    // What the journal's pages do with the keys: critic round 33 found them only by reading the pages.
+    '<li><b>↑↓ E</b><span>map: travel</span></li>' +
+    '<li><b>↑↓ E</b><span>quests: follow</span></li>' +
     '</ul>' +
     '<p class="ui-menu__hint">↑↓ choose · ←→ change · Enter select · Esc close</p>' +
     // Far from Resume, and quiet: critic round 4 found it one row under the button a pause is for.

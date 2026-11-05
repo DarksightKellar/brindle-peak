@@ -23,6 +23,12 @@ export const DAM = {
   steer: 1.3,
   /** Within this many metres of its gap the stone drops in true. */
   gap: 0.22,
+  /**
+   * Over its gap, Pip's push counts for this share: the stone settles into the notch while the key is
+   * held, against the current, instead of sailing through it. At full steer it crossed the gap in half a
+   * second, and critic round 33 pressed at "Over the gap" and was told "Not over the gap".
+   */
+  notch: 0.35,
   /** Furthest the stone goes off its gap: over a neighbour, in either direction. */
   reach: 1.6,
   /** Where each stone comes up: downstream, where the water has carried it. */
@@ -80,7 +86,8 @@ export class DamHand {
       this.slipStart = -1;
       this.lift(now);
     }
-    const drift = currentAt(now - this.lifted, this.lifts) + Math.max(-1, Math.min(1, push)) * DAM.steer;
+    const steer = Math.abs(this.offset) <= DAM.gap ? DAM.steer * DAM.notch : DAM.steer;
+    const drift = currentAt(now - this.lifted, this.lifts) + Math.max(-1, Math.min(1, push)) * steer;
     this.offset = Math.max(-DAM.reach, Math.min(DAM.reach, this.offset + drift * dt));
     if (!pressed) return false;
     if (!mashed && this.over()) {
