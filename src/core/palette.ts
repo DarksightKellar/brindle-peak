@@ -219,7 +219,8 @@ export const PALETTE = {
   AURORA_V: '#B49BE8',
   AURORA_P: '#E6A8C8',
 
-  PIP_BODY: '#F2F4F0',
+  // Cream, not white: critic rounds 42 and 43 saw a white Pip vanish into the snow by day.
+  PIP_BODY: '#F3E2C2',
   PIP_WING: '#C99A6A',
   PIP_BEAK: '#4A4038',
   PIP_SCARF: '#C4574C',

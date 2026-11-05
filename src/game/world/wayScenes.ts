@@ -15,6 +15,11 @@
  *   s   ~880  on the shelf, Tuck's bridge over the gully (tuckBridge.ts), a stream frozen on its floor
  *             and icicles hung off its walls
  *   s  ~1060  rime-feathered rocks on the summit slope, and a cairn below the mast
+ *
+ * And across the Frozen Reach, on the valley trail between the hamlet and the springs (landmarks.ts
+ * TRAIL), which critics rounds 40 to 43 kept calling "500 u of nothing": an ice-fishing shelter with its
+ * lamp lit, a loaded sledge left out on the ice (the heave of ice slabs first put here read as one more ice
+ * block), and a marker cairn with a red pole, ~90 u apart.
  */
 
 import * as THREE from 'three';
@@ -122,6 +127,34 @@ function rimeRock(b: GeoBuilder, x: number, z: number, y: number, s: number, see
   }
 }
 
+/** A fishing shelter on runners, out on the ice: lamp in the window, stovepipe, a hole, a stool, a rod. */
+function fishShelter(b: GeoBuilder): void {
+  for (const sx of [-0.85, 0.85]) b.strut([sx, 0.06, -1.25], [sx, 0.06, 1.25], 0.06, 'WOOD_DK');
+  b.box(0, 0.12, 0, 2.0, 1.75, 1.8, 'WOOD_MID');
+  b.add(GEO.box, propMatrix(0, 2.0, 0, 2.4, 0.14, 2.2, 0, 0.22), 'WOOD_DK', 'SNOW_LT', 0.5);
+  b.add(GEO.box, propMatrix(0, 2.12, 0, 2.3, 0.1, 2.1, 0, 0.22), 'SNOW_LT', 'SNOW_HI', 0.5);
+  b.box(-0.45, 0.12, 0.91, 0.62, 1.3, 0.06, 'WOOD_DK');
+  b.cyl(0.6, 1.9, -0.5, 0.09, 0.8, 'ROCK_DK');
+  b.glow();
+  b.add(GEO.quad, propMatrix(0.45, 1.15, 0.94, 0.42, 0.36, 1), 'LANTERN');
+  b.glow(false);
+  // The hole by the door, the stool beside it, and a short rod propped over it.
+  b.add(GEO.cyl5, propMatrix(0.6, 0.02, 2.0, 0.4, 0.03, 0.4), 'WATER_DK');
+  b.add(GEO.cyl5, propMatrix(0.6, 0.06, 2.0, 0.52, 0.05, 0.52), 'SNOW_HI');
+  b.box(-0.4, 0, 1.9, 0.4, 0.42, 0.4, 'WOOD_LT', 'SNOW_LT');
+  b.strut([-0.2, 0.45, 1.8], [0.7, 0.95, 2.1], 0.025, 'WOOD_DK');
+  b.strut([0.7, 0.95, 2.1], [0.62, 0.05, 2.02], 0.008, 'ROCK_DK');
+}
+
+/** A cairn of flat stones with a pole in it and a red rag on the pole: the way across, marked. */
+function markerCairn(b: GeoBuilder): void {
+  [1.0, 0.85, 0.7, 0.5].forEach((r, i) => {
+    b.add(GEO.ico, propMatrix(0, 0.2 + i * 0.4, 0, r, 0.26, r * 0.9, i * 1.1), 'ROCK_MID', i === 3 ? 'SNOW_HI' : 'ROCK_SNOWCAP', 0.6);
+  });
+  b.cyl(0.1, 0.4, 0.05, 0.06, 3.0, 'WOOD_DK');
+  b.add(GEO.box, propMatrix(0.45, 3.05, 0.05, 0.7, 0.36, 0.04, 0, 0, -0.12), 'PIP_SCARF');
+}
+
 export interface WayScenes {
   group: THREE.Group;
   colliders: Collider[];
@@ -140,10 +173,15 @@ const BOTHY = { x: 128, z: -148 };
 const CASCADE: readonly (readonly [number, number])[] = [[GX, -209], [GX, -218], [GX, -227], [GX, -236], [GX, -247], [GX, -258]];
 const RIME: readonly (readonly [number, number, number])[] = [[268, -294, 1], [287, -300, 1.3], [291, -316, 0.9], [279, -285, 0.8]];
 const CAIRN = { x: 314.4, z: -333.2 };
+/** Across the Reach, beside the valley trail's legs south of the hamlet. */
+const SHELTER = { x: 186, z: 226.5, yaw: 2.3 };
+const ICE_SLEDGE = { x: 105, z: 275.5, yaw: 0.35 };
+const MARKER = { x: 84.5, z: 223.5 };
 
 export const SCENE_CLEARINGS: readonly { x: number; z: number; r: number }[] = [
   { ...SLEDGE, r: 5 }, { ...BRIDGE, r: 5 }, { ...ERRATIC, r: 7 }, { ...POND, r: 8 }, { ...BOTHY, r: 7 },
   ...RIME.map(([x, z]) => ({ x, z, r: 2.5 })), { ...CAIRN, r: 2 },
+  { ...SHELTER, r: 4 }, { ...ICE_SLEDGE, r: 5 }, { ...MARKER, r: 2.5 },
 ];
 
 export function buildWayScenes(sampler: TerrainSampler): WayScenes {
@@ -205,6 +243,16 @@ export function buildWayScenes(sampler: TerrainSampler): WayScenes {
   [0.9, 0.75, 0.6, 0.45].forEach((r, i) => {
     rime.add(GEO.ico, propMatrix(CAIRN.x, cy + 0.2 + i * 0.38, CAIRN.z, r, 0.24, r * 0.9, i * 1.3), 'ROCK_MID', i === 3 ? 'SNOW_HI' : 'ROCK_SNOWCAP', 0.6);
   });
+  const sh = new GeoBuilder();
+  fishShelter(sh);
+  place(sh, 'reach-shelter', SHELTER.x, SHELTER.z, SHELTER.yaw);
+  const sl = new GeoBuilder();
+  sledge(sl);
+  place(sl, 'reach-sledge', ICE_SLEDGE.x, ICE_SLEDGE.z, ICE_SLEDGE.yaw);
+  const mk = new GeoBuilder();
+  markerCairn(mk);
+  place(mk, 'reach-marker', MARKER.x, MARKER.z, 0);
+
   const rimeMesh = rime.finish('rime-rocks');
   rimeMesh.userData.noCollide = true;
   group.add(rimeMesh);
@@ -212,10 +260,12 @@ export function buildWayScenes(sampler: TerrainSampler): WayScenes {
   const colliders: Collider[] = [
     // The sledge, its stack of rounds and the chopping block, each its own box. One box over all three
     // walled off the gaps between them, and critic round 9 stood stuck against bare snow there.
-    ...([[0, 0.07, 0.75, 1.75], [-2.6, 0, 0.95, 0.75], [2.1, 0.6, 0.45, 0.45]] as const).map(([lx, lz, hw, hd]): Collider => {
-      const cos = Math.cos(SLEDGE.yaw), sin = Math.sin(SLEDGE.yaw);
-      return { kind: 'box', x: SLEDGE.x + lx * cos + lz * sin, z: SLEDGE.z - lx * sin + lz * cos, hw, hd, yaw: SLEDGE.yaw };
-    }),
+    ...[SLEDGE, ICE_SLEDGE].flatMap((at) =>
+      ([[0, 0.07, 0.75, 1.75], [-2.6, 0, 0.95, 0.75], [2.1, 0.6, 0.45, 0.45]] as const).map(([lx, lz, hw, hd]): Collider => {
+        const cos = Math.cos(at.yaw), sin = Math.sin(at.yaw);
+        return { kind: 'box', x: at.x + lx * cos + lz * sin, z: at.z - lx * sin + lz * cos, hw, hd, yaw: at.yaw };
+      }),
+    ),
     { kind: 'circle', x: ERRATIC.x, z: ERRATIC.z, r: 3.1 },
     { kind: 'box', x: BOTHY.x, z: BOTHY.z, hw: 2.3, hd: 1.8, yaw: Math.PI },
     // Its woodpile on the east wall and the bench by the door; the bothy is turned half round.
@@ -223,6 +273,8 @@ export function buildWayScenes(sampler: TerrainSampler): WayScenes {
     { kind: 'box', x: BOTHY.x - 1.0, z: BOTHY.z - 2.25, hw: 0.85, hd: 0.3, yaw: Math.PI },
     ...RIME.map(([x, z, k]): Collider => ({ kind: 'circle', x, z, r: 1.1 * k })),
     { kind: 'circle', ...CAIRN, r: 0.8 },
+    { kind: 'box', x: SHELTER.x, z: SHELTER.z, hw: 1.05, hd: 0.95, yaw: SHELTER.yaw },
+    { kind: 'circle', x: MARKER.x, z: MARKER.z, r: 0.9 },
   ];
   const occluders: Occluder[] = [
     { x: ERRATIC.x, z: ERRATIC.z, base: y(ERRATIC.x, ERRATIC.z), radius: 3, height: 5.2 },
