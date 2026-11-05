@@ -29,6 +29,7 @@ import { createHudStamina } from './hudStamina';
 import { createNearbyNotice, NOTICE_RANGE, nearbyTodo } from './hudNearby';
 import { hopBlocked, hopPlaces } from '../session/travel';
 import { ACTIVITIES } from '../../data/activities';
+import { PICKUPS } from '../../data/pickups';
 import { createFeatherNotice } from './hudFeather';
 import { keyToward } from '../activities/activityWords';
 
@@ -206,6 +207,10 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
         const notable = otherErrands
           .filter((o) => o.questId !== null && o.target !== null && (o.distance ?? Infinity) < NOTICE_RANGE)
           .map((o) => ({ id: `errand:${o.questId}:${o.stepIndex}`, label: `Errand nearby: ${o.questTitle}`, pos: o.target as Vec2 }));
+        // Gus's counter, once Pip can pay for a feather: critic round 36 had 201 bells, read "Spend them on
+        // Gus's feathers in the hamlet" and walked through the square without finding him.
+        const shop = PICKUPS.find((q) => q.price !== undefined && s.flags[`picked:${q.id}`] !== true && s.bells >= q.price);
+        if (shop) notable.push({ id: 'shop:gus', label: `Gus's feathers nearby: ${shop.price} bells each`, pos: { x: shop.pos.x, z: shop.pos.z } });
         const nearby = nextAllowed && feather.line === ''
           ? nearbyNotice?.update(s, lastFrom, performance.now(), notable) ?? ''
           : '';
