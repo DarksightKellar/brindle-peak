@@ -172,7 +172,9 @@ export const WORDS = {
 
 /** Hints for activities whose kind's hint would be wrong for them, by activity id. */
 export const HINT_FOR_ID: Readonly<Record<string, string>> = {
-  'peak-thermal-flight': 'Run off the edge and press Space to jump. Hold Space to glide. The hoops weave left and right: steer for each one.',
+  // Sinking is said up front: critic round 38 held Space in a thermal for 17 s and was told to ease off only
+  // once it was far above the hoops.
+  'peak-thermal-flight': 'Run off the edge and press Space to jump. Hold Space to glide; warm air lifts you, so let go of Space to sink to a hoop below. The hoops weave left and right: steer for each one.',
   'ridge-kite': 'A / D keep the kite in the rising snow. In it, the kite climbs. Hold it above the crest lights until they are all lit.',
   'kettles-otter-slide': 'A / D steer. Keep off the edges, and ride through the rings for speed.',
   'reach-sled-hill': 'A / D steer. Keep off the edges, and ride through the rings for speed.',

@@ -29,6 +29,11 @@ export const DAM = {
    * second, and critic round 33 pressed at "Over the gap" and was told "Not over the gap".
    */
   notch: 0.35,
+  /**
+   * Seconds a press still sets a stone that has just slid off its gap: a player reacting to "Over the gap"
+   * as it goes out. Critic round 38 saw "Over the gap — press E" turn to "Not over the gap" a frame later.
+   */
+  react: 0.25,
   /** Furthest the stone goes off its gap: over a neighbour, in either direction. */
   reach: 1.6,
   /** Where each stone comes up: downstream, where the water has carried it. */
@@ -47,6 +52,8 @@ export class DamHand {
   private slipStart = -1;
   private slipOffset = 0;
   private lastPress = Number.NEGATIVE_INFINITY;
+  /** When this stone was last over its gap (DAM.react). */
+  private overAt = Number.NEGATIVE_INFINITY;
   private missAt = -1;
   private missed: 'off' | 'mash' = 'off';
 
@@ -54,6 +61,7 @@ export class DamHand {
     this.lifts++;
     this.lifted = now;
     this.offset = DAM.start;
+    this.overAt = Number.NEGATIVE_INFINITY;
   }
 
   reset(now: number): void {
@@ -89,8 +97,9 @@ export class DamHand {
     const steer = Math.abs(this.offset) <= DAM.gap ? DAM.steer * DAM.notch : DAM.steer;
     const drift = currentAt(now - this.lifted, this.lifts) + Math.max(-1, Math.min(1, push)) * steer;
     this.offset = Math.max(-DAM.reach, Math.min(DAM.reach, this.offset + drift * dt));
+    if (this.over()) this.overAt = now;
     if (!pressed) return false;
-    if (!mashed && this.over()) {
+    if (!mashed && now - this.overAt <= DAM.react) {
       this.lift(now);
       return true;
     }

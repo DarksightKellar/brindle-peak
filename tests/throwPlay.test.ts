@@ -89,6 +89,36 @@ describe('throw', () => {
     expect(r.awards[0]).toMatchObject({ score: 3, bonus: 'clean-sweep' });
   });
 
+  it('drawing on each snowman, the words stay on letting go and "Let go!" lights for every one (critic round 38)', () => {
+    const d = def('throw', 'pinewind-pinecone-throw', { x: -206, z: 160 });
+    const lit: boolean[] = [];
+    for (let target = 0; target < 3; target++) {
+      const game = createTargetActivity(d);
+      const h = host({ x: d.pos.x, y: 0, z: d.pos.z });
+      game.start(h);
+      step(game, h);
+      const err = (): number => {
+        const t = game.hitVolumes[target]!;
+        const want = Math.atan2(t.pos.x - h.playerPos.x, t.pos.z - h.playerPos.z);
+        return Math.atan2(Math.sin(want - game.aimYaw), Math.cos(want - game.aimYaw));
+      };
+      // Turn onto it until the words say lined up, as a player does.
+      for (let i = 0; i < 600 && !/Lined up/.test(game.progress()?.label ?? ''); i++) {
+        step(game, h, { moveX: -Math.sign(err()) * Math.min(1, Math.abs(err()) * 20) });
+      }
+      step(game, h, { interactPressed: true, interactHeld: true });
+      let saw = false;
+      for (let f = 0; f < Math.ceil(THROW.drawPeriod / FRAME); f++) {
+        const label = game.progress()?.label ?? '';
+        expect(label, `snowman ${target}, frame ${f}`).not.toMatch(/Aim (left|right)/);
+        if (/Let go!/.test(label)) saw = true;
+        step(game, h, { interactHeld: true });
+      }
+      lit.push(saw);
+    }
+    expect(lit).toEqual([true, true, true]);
+  });
+
   it('a player letting go a reaction after "Let go!" still hits (critic round 35)', () => {
     // 14 frames is about a quarter of a second, a player's reaction to a word lighting up.
     const r = play(def('throw', 'pinewind-pinecone-throw', { x: -206, z: 160 }), true, 14);

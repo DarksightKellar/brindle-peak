@@ -301,15 +301,21 @@ export class TargetActivity implements ActivityInstance {
     return drawReach(held, this.bell ? BELL_SPREAD : 1);
   }
 
-  /** Nudge the aim, by the least that does it, back onto target `index` as it swings. */
+  /**
+   * Nudge the aim, by the least that does it, back onto target `index` as it swings: for the throw as it
+   * is drawn now, then for a middling one. Aimed only for the middling throw, a far snowman had swung on
+   * by the time a stronger or weaker one arrived, so "Let go!" never lit for it (critic round 38).
+   */
   private follow(index: number): void {
-    if (this.predict() === index) return;
     const from = this.aim;
-    for (const d of [0.01, -0.01, 0.025, -0.025, 0.05, -0.05, 0.09, -0.09]) {
-      this.aim = from + d;
-      if (this.predict() === index) return;
+    for (const reach of [this.reachAt(this.draw), 1]) {
+      if (this.predict(reach) === index) return;
+      for (const d of [0.01, -0.01, 0.025, -0.025, 0.05, -0.05, 0.09, -0.09]) {
+        this.aim = from + d;
+        if (this.predict(reach) === index) return;
+      }
+      this.aim = from;
     }
-    this.aim = from;
   }
 
   /** The standing target nearest the aim, by bearing from Pip's feet. */
@@ -469,7 +475,9 @@ export class TargetActivity implements ActivityInstance {
     let on = false;
     this.sayingNow = false;
     if (aiming && !fresh) {
-      on = this.predict() >= 0;
+      // Drawing on a locked target, the aim keeps itself on it: the words are only about letting go. They
+      // used to flick to "Aim right (D)" every few frames as the snowman swung (critic round 38).
+      on = (this.draw >= 0 && this.locked >= 0) || this.predict() >= 0;
       // Said for the whole round. Round 16 tried coaching to the first hit only, and critic round 16 was
       // left with a hit count and no idea which way to turn; round 13 hit nothing without the words.
       // The aim is coached, while drawing too (a snowman swings out of line); the strength is not:
