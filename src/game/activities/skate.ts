@@ -9,7 +9,7 @@
  * Round 8's critic stood on the ice for twenty seconds while the clock ran, under a name that promised
  * a race, and read "Balance right" as the way to press. Now Pip skates a lap of the Reach while the
  * meter is held (the session carries the bird, as it does a sled); the panel names the key that
- * rights you ("Tipping right — press A"); and a result card says how it went.
+ * rights you ("Tipping right — hold A"); and a result card says how it went.
  */
 
 import { clamp } from '../../core/contracts';
@@ -26,14 +26,19 @@ export const SKATE = {
   wobble: 1.6,
   wobbleRate: 0.7,
   /** Positive feedback: leaning costs more than it gives. */
-  lean: 0.9,
+  lean: 0.6,
   /** How hard a left/right press pushes the meter. */
   inputForce: 2.4,
-  damping: 1.6,
+  /**
+   * Critic round 17 fell in at 11 s, reacting to every cue. With 1.6 a player holding the named key a
+   * third of a second late overshot into the other edge; at 3.6 one up to two thirds of a second late
+   * crosses, while one held key or no input still tips over within three seconds.
+   */
+  damping: 3.6,
   /** |balance| beyond this counts as off centre. */
   offCentre: 0.72,
   /** Seconds off centre before the run ends. */
-  fallAfter: 1.6,
+  fallAfter: 2,
   /** Seconds of held balance that counts as crossing the pond. */
   goal: 20,
   /** Radius of the lap Pip skates in that time, starting at the post and curving away east. */

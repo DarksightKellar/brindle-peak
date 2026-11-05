@@ -306,7 +306,7 @@ export class TargetActivity implements ActivityInstance {
   /** The result card: critic round 4 used all eight throws and the panel just went away. */
   summary(): string | null {
     if (this.stage !== 'done') return null;
-    if (this.bell && this.hits === 0) return WORDS.bellSilent;
+    if (this.bell) return this.hits === 0 ? WORDS.bellSilent : WORDS.bellRang;
     return WORDS.throwResult(this.hits, this.setup.need);
   }
 

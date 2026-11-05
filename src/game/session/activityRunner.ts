@@ -16,7 +16,8 @@
 import type { ActivityDef, ActivityHost, ActivityInstance, InputFrame, Vec3 } from '../../core/contracts';
 import type { Collider } from '../../core/player/collide';
 import { emptyInput } from '../../core/contracts';
-import { HINT_FOR_ID } from '../activities/activityWords';
+import { ACTIVITY_BELLS } from '../../core/progress/progress';
+import { HINT_FOR_ID, WORDS } from '../activities/activityWords';
 import { extras } from '../activities/hooks';
 import { KITE_IDS } from '../activities/kite';
 import { activityOffered } from '../activities/offered';
@@ -75,6 +76,8 @@ export function createActivityRunner(d: ActivityRunnerDeps): ActivityRunner {
   let openingYaw: number | null = null;
   let openingLeft = 0;
   let resultLeft = 0;
+  /** No run of this activity has finished before: this one's result pays ACTIVITY_BELLS (progress.ts). */
+  let firstRun = false;
   let running: readonly Collider[] = [];
   d.solids?.push(...standingSolids());
 
@@ -97,7 +100,8 @@ export function createActivityRunner(d: ActivityRunnerDeps): ActivityRunner {
     if (framed) d.markers.hide(framed, false);
     framed = null;
     active = null;
-    const line = a.result() !== null ? extras(a).summary?.() ?? null : null;
+    const said = a.result() !== null ? extras(a).summary?.() ?? null : null;
+    const line = said && firstRun ? `${said} · ${WORDS.firstBells(ACTIVITY_BELLS)}` : said;
     if (line) {
       d.ui.activity.showResult(line);
       resultLeft = RESULT_HOLD;
@@ -124,6 +128,7 @@ export function createActivityRunner(d: ActivityRunnerDeps): ActivityRunner {
       // A finished build stays finished: pressing beside it must not knock it down and start again.
       if (!activityOffered(def, host.state)) return;
       active = instance;
+      firstRun = (host.state.counters[`activity:${def.id}`] ?? 0) === 0;
       active.start(host);
       seconds = 0;
       resultLeft = 0;

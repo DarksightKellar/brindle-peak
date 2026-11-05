@@ -33,6 +33,11 @@ export const WORDS = {
   hoops: (next: number, total: number): string => `Hoop ${next} of ${total}`,
   gates: (next: number, total: number): string => `Gate ${next} of ${total}`,
   lanterns: (next: number, total: number): string => `Lantern ${next} of ${total}`,
+  /** Added to a result card the first time an activity is played to its end. */
+  firstBells: (n: number): string => `+${n} bells for a first go`,
+  /** Where the next gate is, from the camera's view: critic round 17 lost the lantern line with it behind them. */
+  gateWay: (metres: number, way: 'ahead' | 'left' | 'right' | 'behind'): string =>
+    `${Math.round(metres)} u ${way === 'ahead' ? 'ahead' : way === 'behind' ? 'behind you' : `on your ${way}`}`,
   // Woodpile: a crooked press, before the log came square or after it swung past.
   woodEarly: 'Too soon. Let it swing square first',
   woodLate: 'Too late. Wait for it to swing back square',
@@ -57,6 +62,8 @@ export const WORDS = {
   exposeDrift: 'It drifted. Ease it back onto the star',
   // Throw result
   throwResult: (hits: number, need: number): string => `${Math.min(hits, need)} of ${need} hits`,
+  /** Critic round 17 rang it and read "1 of 1 hits", if anything: the bell is the point, not the count. */
+  bellRang: 'The bell rang out across the square. Heads turned at the bakery.',
   bellSilent: 'The bell never rang. Press E at the snowballs for another go.',
   // Called for a moment as each throw lands.
   throwHit: 'Hit!',
@@ -68,8 +75,8 @@ export const WORDS = {
   skateResult: (seconds: number): string => `Down on the ice after ${seconds.toFixed(1)}s. Up again whenever.`,
   skateLap: 'Round the Reach and upright the whole way.',
   // The meter's side, said as the key that rights it: "Balance right" read as the way to press.
-  skateTipRight: 'Tipping right — press A',
-  skateTipLeft: 'Tipping left — press D',
+  skateTipRight: 'Tipping right — hold A',
+  skateTipLeft: 'Tipping left — hold D',
   skateSteady: 'Steady',
   // Kite readouts and result
   kiteLow: 'Keep it in the rising snow',

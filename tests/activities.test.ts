@@ -397,6 +397,22 @@ describe('skate', () => {
     expect(SKATE.goal).toBeGreaterThan(1);
   });
 
+  it('a player who holds the key the panel names, a third of a second late, crosses the pond', () => {
+    // Critic round 17 fell in at 11 s: the panel said "press", and a tap barely moves the meter.
+    const skate = createSkateActivity(defOf('skate'));
+    const host = makeHost();
+    begin(skate, host);
+    const seen: string[] = [];
+    let guard = 0;
+    while (!skate.isComplete() && guard++ < 2000) {
+      seen.push(skate.progress()?.label ?? '');
+      const cue = seen[Math.max(0, seen.length - 1 - 20)];
+      step(skate, host, { moveX: cue.startsWith('Tipping right') ? -1 : cue.startsWith('Tipping left') ? 1 : 0 });
+    }
+    expect(seen[0]).toMatch(/hold [AD]/);
+    expect(skate.crossedPond).toBe(true);
+  });
+
   it('an untouched run ends on its own and still banks the time', () => {
     const skate = createSkateActivity(defOf('skate'));
     const host = makeHost();

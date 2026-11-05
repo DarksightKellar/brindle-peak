@@ -21,6 +21,7 @@ import type { GameState, PlayerState, Vec2, Vec3 } from '../../core/contracts';
 import type { GuideContent } from '../../core/guide/nextStep';
 import { formatNextStep, nextStepFor } from '../../core/guide/nextStep';
 import { goalTarget } from '../../core/guide/goal';
+import { routeAim } from '../../core/guide/route';
 import { errandLineFor, type ErrandLine } from './errandLine';
 import { goalLine } from './hudText';
 import { bearing, createHudCompass } from './hudCompass';
@@ -126,10 +127,15 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
   const errands = guide ? errandLineFor(guide) : null;
   const frameListeners: ((target: Vec2 | null, from: Vec3, held: boolean, side: Vec2 | null) => void)[] = [];
 
+  /** The walk left to the goal when it follows a route rather than the straight line (route.ts). */
+  let goalDistance: number | undefined;
+
   const liveTarget = (): Vec2 | null => {
     if (held) return heldTarget;
     const story = guide && lastState ? goalTarget(lastState, lastFrom, guide) : null;
-    return story ?? (nextAllowed ? errandTarget : null);
+    const routed = story && guide?.routes ? routeAim(guide.routes, lastFrom, story) : null;
+    goalDistance = routed?.distance;
+    return routed?.aim ?? story ?? (nextAllowed ? errandTarget : null);
   };
 
   /**
@@ -203,7 +209,7 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
         ? otherErrands.filter((o) => (o.distance ?? Infinity) < ERRAND_SEEN).map((o) => o.target as Vec2)
         : [];
       if (course) compass.update({ from: lastFrom, viewYaw, goal: course, side: null, feather: null, todo: [], errands: [] });
-      else compass.update({ from: lastFrom, viewYaw, goal: heldTarget, side, feather: feather.feather, todo, errands: errandMarks });
+      else compass.update({ from: lastFrom, viewYaw, goal: heldTarget, goalDistance, side, feather: feather.feather, todo, errands: errandMarks });
       for (const fn of frameListeners) fn(heldTarget, p.pos, held, side);
     },
 

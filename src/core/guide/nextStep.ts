@@ -22,6 +22,7 @@ import { evaluate, measure } from '../progress/conditions';
 import { doneOnce } from '../progress/quests';
 import type { CompassWord } from './compass';
 import { compassWord, formatDistance } from './compass';
+import type { GuideRoute } from './route';
 
 /** The content the guide is allowed to read. Structural, so tests need no full content records. */
 export interface GuideNpc {
@@ -58,6 +59,8 @@ export interface GuideContent {
   zones: readonly GuideZone[];
   places: readonly GuidePlace[];
   zoneNames: Readonly<Record<ZoneId, string>>;
+  /** Walked ways to goals the straight line cannot reach (route.ts). */
+  routes?: readonly GuideRoute[];
 }
 
 /** `quest` = a live quest step; `explore` = no quest is running, so point at unseen ground. */

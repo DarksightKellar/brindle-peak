@@ -16,7 +16,7 @@
  *   fish:caught         fish[id] += 1, counters['fish'] += 1
  *   photo:taken         photos[id] += 1, counters['photo'] += 1
  *   spring:soaked       counters['spring'] += 1, counters['spring:<id>'] += 1
- *   activity:completed  counters['activity:<id>'] += 1
+ *   activity:completed  counters['activity:<id>'] += 1; the first time, bells += ACTIVITY_BELLS
  *   summit:reached      flags['summit'] = true
  *   place:reached       counters['place:<id>'] += 1
  *   quest:started / quest:completed / achievement:unlocked / toast   (engine-owned, no mutation)
@@ -29,6 +29,12 @@ import type { GameEventName, GameState, ZoneId } from '../contracts';
 import { ZONE_IDS } from '../contracts';
 import type { AchievementEngine } from './achievements';
 import type { QuestEngine, StepPassed } from './quests';
+
+/**
+ * Bells for an activity played to its end the first time. Critic round 17 finished the toss, the kite and
+ * the bell ring and saw nothing come of them: only errands and the snow ever filled the purse.
+ */
+export const ACTIVITY_BELLS = 5;
 
 export interface ProgressEventOutcome {
   completedQuests: string[];
@@ -130,6 +136,7 @@ function mutate(s: GameState, name: GameEventName, f: Fields): void {
     }
     case 'activity:completed': {
       const id = readString(f, 'id');
+      if (id !== null && (s.counters['activity:' + id] ?? 0) === 0) s.bells += ACTIVITY_BELLS;
       if (id !== null) bump(s.counters, 'activity:' + id);
       break;
     }

@@ -34,7 +34,8 @@ export interface ActivityHud {
 }
 
 const HINTS: Readonly<Record<ActivityKind, string>> = {
-  build: 'Press E at the spot to set the next piece.',
+  // Critic round 17 asked where "the spot" was: the bobbing light is it.
+  build: 'Press E to set the next piece where the light bobs.',
   fish: 'Watch the float. Press E the moment it dips.',
   // The viewfinder overlay already lists the keys, so this line only states the goal.
   photo: 'Centre it in the frame, then press E.',
@@ -42,7 +43,7 @@ const HINTS: Readonly<Record<ActivityKind, string>> = {
   throw: 'A / D aims, the way the line below says. When it says Lined up, press E.',
   // The race is the one activity that leaves the controls with the player; the next gate is the bright one.
   race: 'Run for the bright gate; A / D to steer.',
-  skate: 'Skate a lap. Tipping one way? Press the other: A or D.',
+  skate: 'Skate a lap. Tipping one way? Hold the other, A or D, till it steadies.',
   sled: 'Steer down the hill with A / D.',
 };
 

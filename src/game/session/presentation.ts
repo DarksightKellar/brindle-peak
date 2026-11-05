@@ -29,6 +29,7 @@ import type { AudioKit } from '../audio/audio';
 import type { Naming, RouterDeps } from './router';
 import { suppressSaves } from './saveGuard';
 import { LANDMARKS, TRAIL } from '../world/landmarks';
+import { WAY_UP } from '../world/trail';
 import { VIEW_H, VIEW_W, worldX, worldZ, type MapDecor } from '../ui/journalMap';
 import { ICE_SURFACE_Y } from '../world/water';
 import { traceRelief } from '../ui/mapRelief';
@@ -90,6 +91,7 @@ export function createPresentation(uiRoot: HTMLElement, audio: AudioKit, heightA
    */
   const guide: GuideContent = {
     quests: QUESTS, npcs: NPCS, activities: ACTIVITIES, zones: ZONES, places: PLACES, zoneNames: ZONE_NAMES,
+    routes: [{ path: WAY_UP }],
   };
 
   const hud = createHud(uiRoot, guide);

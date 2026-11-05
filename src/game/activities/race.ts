@@ -32,6 +32,9 @@ const HOOP_LIFT = 3;
 /** The pointer hangs over Pip's head, nudged this far toward the next gate. */
 const ARROW_OUT = 0.5;
 const ARROW_UP = 2.3;
+/** The next gate within this of the view's heading (radians) is "ahead"; past WAY_BEHIND, "behind you". */
+const WAY_AHEAD = 0.5;
+const WAY_BEHIND = 2.3;
 
 export class RaceActivity implements ActivityInstance {
   readonly def: ActivityDef;
@@ -182,7 +185,11 @@ export class RaceActivity implements ActivityInstance {
     const shown = Math.min(this.next + 1, total);
     const label = this.course.look === 'hoop' ? WORDS.hoops(shown, total)
       : this.course.look === 'lantern' ? WORDS.lanterns(shown, total) : WORDS.gates(shown, total);
-    return { label, fraction: total === 0 ? 0 : this.next / total };
+    const g = this.course.gates[this.next], p = this.runner;
+    if (!g || !p) return { label, fraction: total === 0 ? 0 : this.next / total };
+    const turn = angleDelta(this.camYaw, Math.atan2(g.x - p.x, g.z - p.z));
+    const way = Math.abs(turn) < WAY_AHEAD ? 'ahead' : Math.abs(turn) > WAY_BEHIND ? 'behind' : turn > 0 ? 'left' : 'right';
+    return { label: `${label} · ${WORDS.gateWay(Math.hypot(g.x - p.x, g.z - p.z), way)}`, fraction: total === 0 ? 0 : this.next / total };
   }
 
   /** Turn to the first gate as the run opens: it is in front of you, not behind the camera. */

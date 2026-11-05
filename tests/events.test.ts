@@ -3,7 +3,7 @@ import type { GameEventName } from '../src/core/contracts';
 import { createEventBus } from '../src/core/progress/events';
 import { createQuestEngine } from '../src/core/progress/quests';
 import { createAchievementEngine } from '../src/core/progress/achievements';
-import { applyEvent } from '../src/core/progress/progress';
+import { ACTIVITY_BELLS, applyEvent } from '../src/core/progress/progress';
 import { achDef, fresh, questDef, step } from './progressFixtures';
 
 describe('event bus', () => {
@@ -96,11 +96,13 @@ describe('applyEvent', () => {
       unlockedAchievements: [],
     });
     const out = applyEvent(s, 'activity:completed', { id: 'skate', score: 9 }, engine, achievements);
-    expect(s.bells).toBe(3);
+    expect(s.bells).toBe(3 + ACTIVITY_BELLS); // the first go at an activity pays
     expect(s.counters['activity:skate']).toBe(1);
     expect(out.completedQuests).toEqual(['skater']);
     expect(out.unlockedAchievements).toEqual(['first-lap']);
     expect(s.quests['skater']?.status).toBe('complete');
+    applyEvent(s, 'activity:completed', { id: 'skate', score: 12 }, engine, achievements);
+    expect(s.bells).toBe(3 + ACTIVITY_BELLS); // and only the first
   });
 
   it('routes the remaining event kinds and survives junk payloads', () => {

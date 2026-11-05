@@ -27,6 +27,8 @@ export interface CompassView {
   viewYaw: number;
   /** The goal: the filled diamond and the distance. Null hides both. */
   goal: Point | null;
+  /** Distance to show for the goal when it is not the straight line to `goal` (a route's walk). */
+  goalDistance?: number;
   /** The tracked errand's step, when it is not the goal: a smaller, dimmer diamond under the strip. */
   side: Point | null;
   /** A feather worth noticing: a feather glyph on the strip. */
@@ -186,7 +188,7 @@ export function createHudCompass(layer: HTMLElement): HudCompass {
       // Behind, the pinned diamond alone reads as "over there, a bit": the chevrons say which way round.
       const behind = Math.abs(rel) > HALF;
       showTurn(!behind ? 0 : turnSide !== 0 && Math.abs(rel) > ASTERN ? turnSide : Math.sign(rel) || 1);
-      const text = `${Math.round(Math.hypot(v.goal.x - v.from.x, v.goal.z - v.from.z))} u${behind ? ' · behind you' : ''}`;
+      const text = `${Math.round(v.goalDistance ?? Math.hypot(v.goal.x - v.from.x, v.goal.z - v.from.z))} u${behind ? ' · behind you' : ''}`;
       if (text !== lastDist) {
         lastDist = text;
         dist.textContent = text;

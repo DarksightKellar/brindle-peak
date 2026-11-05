@@ -77,7 +77,8 @@ describe('race', () => {
     const h = host({ x: d.pos.x, y: 0, z: d.pos.z });
     race.start(h);
     step(race, h);
-    expect(race.progress()?.label).toBe(`Gate 1 of ${race.gates.length}`);
+    // The count, then where the gate is from the view (critic round 17 lost the lantern line).
+    expect(race.progress()?.label).toMatch(new RegExp(`^Gate 1 of ${race.gates.length} · \\d+ u (ahead|behind you|on your (left|right))$`));
     const arches = (race.markers() as PlacedMarker[]).filter((m) => m.look === 'arch');
     expect(arches).toHaveLength(1);
     expect(arches[0].strength).toBe(1);
