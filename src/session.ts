@@ -44,6 +44,7 @@ import { WORDS } from './game/activities/activityWords';
 import { advancePlayer } from './game/session/playerAdvance';
 import { createSteepNudge } from './game/session/steepNudge';
 import { TUNING } from './core/player/tuning';
+import { CLIMB_MIN_SLOPE } from './core/player/step';
 import { pushFrame } from './game/session/frameFeedback';
 import { disposeSession } from './game/session/dispose';
 import { createDialogueFlow } from './game/session/dialogueFlow';
@@ -225,10 +226,15 @@ export function createSession(opts: SessionOptions): Session {
       bus.emit('toast', { text: 'Climbing: keep pushing into the face. It spends breath, and letting go drops you.', icon: 'mountain', tier: 'discovery' });
     }
     if (!blocked && dt > 0) {
-      const pushing = Math.hypot(input.moveX, input.moveZ) > 0.5 && player.grounded;
+      const pushing = Math.hypot(input.moveX, input.moveZ) > 0.5 && player.mode !== 'sled';
       const ahead = sampler.sampleAt(player.pos.x + Math.sin(player.facing) * 0.7, player.pos.z + Math.cos(player.facing) * 0.7);
       const speed = Math.hypot(player.pos.x - before.x, player.pos.z - before.z) / dt;
-      const said = steep.update(dt, pushing && ahead.slope > TUNING.climbMaxSlope, speed);
+      // Out of breath the climb only twitches (a frame up, then off), so it counts whether grounded or not.
+      const into = !pushing ? null
+        : player.grounded && ahead.slope > TUNING.climbMaxSlope ? 'wall'
+        : ahead.slope > CLIMB_MIN_SLOPE && player.stamina < 1 ? 'breath'
+        : null;
+      const said = steep.update(dt, into, speed);
       if (said) bus.emit('toast', { text: said, icon: 'mountain', tier: 'discovery' });
     }
 

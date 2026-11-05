@@ -138,8 +138,9 @@ export const QUESTS: readonly QuestDef[] = [
   // ---- The Frozen Reach ----------------------------------------------------
   q('skiff-sled', 'The Long Hill', 'skiff', 'reach', 'A boat captain with no water and a sled in the rafters.',
     { offer: 'skiff-root', waiting: 'skiff-wait', still: 'skiff-still' }, [
-      // Fresh: a run ridden before Skiff asked used to finish his errand on the spot (critic round 10).
-      s('hill', 'Ride the sled down the boathouse hill in the Frozen Reach.', { kind: 'activity', id: 'reach-sled-hill' }, { fresh: true }),
+      // A run ridden before Skiff asked counts, and he says he saw it (skiff-hill): critic round 30 rode the
+      // hill first and was sent back to ride it again. Critic round 10 had it count unsaid, and was lost.
+      s('hill', 'Ride the sled down the boathouse hill in the Frozen Reach.', { kind: 'activity', id: 'reach-sled-hill' }),
       talk('margit', 'Ask Margit if the ice holds a sled.', 'margit', 'margit-sled'),
       talk('sled', 'Tell Skiff at his boat what Margit said, and take his sled.', 'skiff', 'skiff-done'),
     ], { ability: 'sled', bells: 12 }),

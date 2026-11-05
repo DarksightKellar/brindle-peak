@@ -45,8 +45,11 @@ export interface Ending {
   dismissable(): boolean;
 }
 
-/** How long the card ignores E and Escape after it appears; its "Press E" line shows when this ends. */
-export const ENDING_GRACE_MS = 1600;
+/**
+ * How long the card ignores E and Escape after it appears; its "Press E" line shows when this ends.
+ * 1.6 s was short enough that critic round 30, tapping through Nana's lines, closed it unread.
+ */
+export const ENDING_GRACE_MS = 2500;
 
 const esc = (s: string): string =>
   s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');

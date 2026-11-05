@@ -73,7 +73,8 @@ export const NANA_HEARD: Readonly<Record<string, string>> = {
   'margit-ice': "Margit has a new line in her record, and won't tell me what it is.",
   'orla-flour': "One of those soups in your bag is mine, I expect. Orla fusses. I'll pretend I needed it.",
   'pell-letter': "That letter. You brought it. I've read it six times now.",
-  'gus-ledger': "Gus came by to tell me how far his bell carries. Twice.",
+  // On the radio, not at her door: Gus keeps his shop in the hamlet, the far side of the valley (critic round 30).
+  'gus-ledger': "Gus was on the radio, telling the whole valley how far his bell carries. Twice.",
   'orla-night-bake': "Orla's sent a loaf up from the night bake. Still warm. She says you earned it.",
   'pell-address': "Pell's letters have names on now, not colours. He'll sleep, at last.",
   'ivy-springs': "Ivy says the pools are warm again, and that's as near as she'll come to thanks.",

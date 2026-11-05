@@ -9,6 +9,7 @@
 import type { GameState } from '../core/contracts';
 import { NANA_HEARD, NANA_POSTS, VALLEY_LINES } from './endingLines';
 import { PICKUPS } from './pickups';
+import { FISH } from './fish';
 
 /** Nana says "just one, tonight": she adds at most this many things she has heard. */
 const NANA_HEARD_MAX = 2;
@@ -68,6 +69,26 @@ export const DIALOGUE_FILLS: Readonly<Record<string, (s: GameState) => string[]>
     s.flags['picked:feather-shop-one'] === true || s.flags['picked:feather-shop-two'] === true
       ? ["Bells! Bells for sale! ...Oh, you've had a feather off me already. A customer! Hello."]
       : ["Bells! Bells for sale! ...Oh, you're not buying."],
+  // Margit's record names the fish: critic round 30 caught a Burbot at her hole and heard "one fish".
+  // The best of what the hole has given, by the activity's own tally of catches by kind.
+  'margit-catch': (s) => {
+    const caught = [...FISH].reverse().find((f) => (s.counters[`activity:reach-ice-fish:${f.id}`] ?? 0) > 0);
+    return [
+      "Off the old jetty? Skiff told you that? He's hoarded it for years.",
+      `${caught ? `One ${caught.name}` : 'One fish'} from my hole, and where the pike sit. That's two lines in the record.`,
+    ];
+  },
+  // Skiff's hill. Critic round 30 rode it before he asked and was sent to ride it again: he saw it.
+  'skiff-hill': (s) =>
+    (s.counters['activity:reach-sled-hill'] ?? 0) > 0
+      ? ["That was you on the boathouse hill, on the old hill sled? Good. So it still runs. Mind that birch, it doesn't move."]
+      : ["First try the old hill sled. It's left at the top of the boathouse hill. Ride it down once. Mind the birch at the bottom. It doesn't move."],
+  'skiff-wait-hill': (s) =>
+    (s.counters['activity:reach-sled-hill'] ?? 0) > 0
+      ? ['Back already? You rode the hill, I saw.']
+      : ['Back already? Or did the hill throw you? Ride it down once first.'],
+  'skiff-still-hill': (s) =>
+    (s.counters['activity:reach-sled-hill'] ?? 0) > 0 ? ["You've had the hill."] : ['Down the boathouse hill first.'],
   // When she sends Pip to Skiff. Critic round 27 had built the snowman already and was still asked for
   // one, and said yes to it: she has seen it, or asks for it, whichever is true. Said first.
   'orla-green': (s) =>

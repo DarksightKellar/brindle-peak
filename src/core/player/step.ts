@@ -20,7 +20,7 @@ import { applyAirControl, applyGlide } from './airControl';
 
 const GROUND_OFFSET = 0.02; // feet rest this far above the sampled surface
 const PROBE = 0.7; // how far ahead the wall and ledge probe looks
-const CLIMB_MIN_SLOPE = 0.35; // above this a face needs the climb verb, not walking
+export const CLIMB_MIN_SLOPE = 0.35; // above this a face needs the climb verb, not walking
 const SLED_MIN_SLOPE = 0.25; // below this a sled is just a tray
 const MANTLE_FORWARD = 1.0; // how far past the lip a mantle carries the body
 const MAX_FRAME = 1.0; // hard cap on simulated seconds per call

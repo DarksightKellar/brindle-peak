@@ -97,6 +97,16 @@ describe('errands', () => {
     expect(g.state.quests['hollis-mitten']?.step).toBe(2);
   });
 
+  // Critic round 30 rode the boathouse hill before Skiff asked, and was sent back to ride it again.
+  it('a ride down the boathouse hill before Skiff asks counts, and he says so', () => {
+    const g = play();
+    g.emit('activity:completed', 'reach-sled-hill');
+    g.talk('skiff');
+    g.emit('zone:entered', 'reach'); // the next thing that happens checks the steps
+    expect(g.state.quests['skiff-sled']?.step).toBe(1);
+    expect(g.talk('margit')).toBe('margit-sled');
+  });
+
   it('two errands waiting on Hollis each get their own talk', () => {
     const g = play();
     g.talk('hollis');

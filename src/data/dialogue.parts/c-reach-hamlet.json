@@ -32,8 +32,8 @@
   {
     "id": "skiff-errand",
     "speaker": "skiff",
+    "fill": "skiff-hill",
     "lines": [
-      "First try the old hill sled. It's left at the top of the boathouse hill. Ride it down once. Mind the birch at the bottom. It doesn't move.",
       "Then find Margit, the raven who counts the ice. She's out there now.",
       "Ask her if it'll hold a sled. And don't let her talk your ear off."
     ],
@@ -50,17 +50,18 @@
   {
     "id": "skiff-wait",
     "speaker": "skiff",
+    "fill": "skiff-wait-hill",
     "lines": [
-      "Back already? Or did the hill throw you?",
       "Ask the raven, Margit, if the ice holds. She's precise about it.",
-      "Come back when you've done both."
+      "Then come back and tell me."
     ]
   },
   {
     "id": "skiff-still",
     "speaker": "skiff",
+    "fill": "skiff-still-hill",
     "lines": [
-      "Down the boathouse hill first. Then ask the raven, Margit, if the ice holds a sled."
+      "Then ask the raven, Margit, if the ice holds a sled."
     ]
   },
   {
@@ -158,9 +159,8 @@
   {
     "id": "margit-done",
     "speaker": "margit",
+    "fill": "margit-catch",
     "lines": [
-      "Off the old jetty? Skiff told you that? He's hoarded it for years.",
-      "One fish from my hole, and where the pike sit. That's two lines in the record.",
       "Here's the good bait. Use it off the jetty. Then bring me the next number."
     ]
   },

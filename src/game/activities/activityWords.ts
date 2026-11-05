@@ -50,9 +50,10 @@ export const WORDS = {
   firstBells: (n: number): string => `+${n} bells for a first go`,
   /** Where the next gate is, from the camera's view: critic round 17 lost the lantern line with it behind them. */
   // Behind, it still says which shoulder: critic round 20 overshot a gate, read "behind you", and had no
-  // way to know which way round to come.
+  // way to know which way round to come. It names the key: critic round 30 read "over your right shoulder",
+  // turned the view with the camera keys, and walked on the wrong way.
   gateWay: (metres: number, way: 'ahead' | 'left' | 'right' | 'behind', side: 'left' | 'right' = 'left'): string =>
-    `${Math.round(metres)} u ${way === 'ahead' ? 'ahead' : way === 'behind' ? `behind you, over your ${side} shoulder` : `on your ${way}`}`,
+    `${Math.round(metres)} u ${way === 'ahead' ? 'ahead' : way === 'behind' ? `behind you, hold ${side === 'left' ? 'A' : 'D'} to come round` : `on your ${way}`}`,
   // Woodpile: a crooked press, before the log came square or after it swung past.
   woodEarly: 'Too soon. Let it swing square first',
   woodLate: 'Too late. Wait for it to swing back square',
