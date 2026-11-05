@@ -24,21 +24,17 @@ import type { PlacedMarker } from './markerLooks';
 import { courseFor, type RaceCourse } from './raceCourses';
 import { advanceGates, courseLength, gateYaw } from './raceGates';
 import { WORDS } from './activityWords';
+import { pointerTo } from './pointer';
 
 /** A hoop counts within this many metres of its centre height (so walking under one does not). */
 const HOOP_BAND = 2.2;
 /** The hoop mesh sits this far above its marker base (world/activityMarkers.ts PROTOTYPES.hoop.lift). */
 const HOOP_LIFT = 3;
-/** The pointer hangs over Pip's head, nudged this far toward the next gate. */
-const ARROW_OUT = 0.5;
-const ARROW_UP = 2.3;
 /** The next gate within this of the view's heading (radians) is "ahead"; past WAY_BEHIND, "behind you". */
 const WAY_AHEAD = 0.5;
 // Past a right angle, as the compass strip has it (hudCompass.ts): at 2.3 the panel said "27 u on your
 // left" while the compass over it said "behind you" (critic round 22).
 const WAY_BEHIND = Math.PI / 2;
-/** The pointer leans at most this far (radians) from up: down-left or down-right, never plain down. */
-const ARROW_MAX_ROLL = 2.4;
 
 export class RaceActivity implements ActivityInstance {
   readonly def: ActivityDef;
@@ -152,26 +148,9 @@ export class RaceActivity implements ActivityInstance {
     return out;
   }
 
-  /**
-   * An arrow over Pip's head pointing at the next gate, turned to face the camera and rolled toward
-   * the gate as the camera sees it: straight up is "ahead", sideways is "turn that way", down is
-   * "behind you". Gates in a wood are behind trunks more often than not, and the arrow is always in
-   * view. It shrinks as the gate comes close, when the gate itself is the better pointer.
-   */
+  /** The arrow over Pip's head to the next gate (pointer.ts): gates in a wood are behind trunks more often than not. */
   private pointer(target: Vec2): PlacedMarker[] {
-    const p = this.runner;
-    if (!p) return [];
-    const dx = target.x - p.x, dz = target.z - p.z;
-    const far = Math.hypot(dx, dz);
-    if (far < 3) return [];
-    const yaw = Math.atan2(dx, dz);
-    const size = 0.55 + 0.45 * Math.min(1, (far - 3) / 6);
-    const at = { x: p.x + Math.sin(yaw) * ARROW_OUT, y: p.y + ARROW_UP, z: p.z + Math.cos(yaw) * ARROW_OUT };
-    const face = this.camYaw + Math.PI;
-    // Never straight down: a gate behind still leans the arrow to the side to come round on.
-    const delta = angleDelta(this.camYaw, yaw);
-    const roll = Math.sign(delta) * Math.min(Math.abs(delta), ARROW_MAX_ROLL);
-    return (['arrow-rim', 'arrow'] as const).map((look) => ({ shape: 'float', look, ...at, yaw: face, tilt: roll, size }));
+    return this.runner ? pointerTo(this.runner, target, this.camYaw) : [];
   }
 
   /** The lamp-posts of a lantern line are solid while they stand; arches and hoops are run through. */

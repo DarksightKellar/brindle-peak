@@ -259,6 +259,8 @@ describe('build', () => {
       walk(at.x + 3, at.z + 12); // roll out into the open and grow it
       // Out there, the card says where the ring is (critic round 20 circled for it).
       expect(snow.progress()?.label).toMatch(/ · \d+ u (ahead|behind you, over your (left|right) shoulder|on your (left|right)) · /);
+      // and an arrow over Pip points back at it (critic round 24 rolled one 141 u off)
+      expect(snow.markers().some((m) => (m as { look?: string }).look === 'arrow')).toBe(true);
       walk(at.x + 3, at.z);
       walk(at.x, at.z); // push it home
       expect(snow.placed).toBeGreaterThanOrEqual(ball);

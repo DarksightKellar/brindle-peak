@@ -65,7 +65,7 @@ export function createEnding(root: HTMLElement): Ending {
     <div class="ui-ending__card">
     <p class="ui-ending__kicker">Hearth Hollow</p>
     <h1 class="ui-ending__title">Home, and the Valley Talking</h1>
-    <p class="ui-ending__body">The trail posts are lit all the way down the mountain, and Nana is at the blue door. Up on Brindle Peak, Edda's set is humming, and the valley has not stopped talking since: Bram with his count, the bakery, the boathouse, the springs, the pines, the bell shop, and the road crew bringing the plough up in the morning. Overhead, the green burns on.</p>
+    <p class="ui-ending__body">The trail posts are lit all the way down the mountain, and Nana is at the blue door. Up on Brindle Peak, Edda's set is humming, and the valley has not stopped talking since: Bram with his count, and voices from every corner of it, some you have met and some you haven't yet, and the road crew bringing the plough up in the morning. Overhead, the green burns on.</p>
     <p class="ui-ending__body ui-ending__valley"></p>
     <dl class="ui-ending__stats"></dl>
     <p class="ui-ending__foot">Press <b>E</b> to keep wandering</p>

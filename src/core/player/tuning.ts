@@ -58,7 +58,9 @@ export const TUNING: PlayerTuning = {
   drainFlap: 1.0,
   drainJump: 0.5,
   drainClimb: 1.6,
-  drainSprint: 0.9,
+  // Half what it was: critic round 24 ran the Frozen Reach and the Brindle approach into WINDED, on the
+  // long walks where running is the point. About 18 s of sprint from a fresh bar.
+  drainSprint: 0.45,
 
   regenIdle: 2.4,
   regenMoving: 1.2,

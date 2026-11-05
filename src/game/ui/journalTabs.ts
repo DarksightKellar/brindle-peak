@@ -125,6 +125,10 @@ export function questsHTML(
 
 /** How many of the nearest untried activities the Quests page lists. */
 const TRY_ROWS = 6;
+/** Within this, an activity counts as nearby. */
+const TRY_NEAR = 250;
+/** With nothing nearby, how many of the nearest are listed anyway. */
+const TRY_FAR_ROWS = 3;
 
 /**
  * Things to try: the nearest activities not yet done, with how far and which way. Critic round 9
@@ -137,14 +141,18 @@ export function tryHTML(activities: readonly ActivityDef[], s: GameState): strin
     .filter((a) => (s.counters[`activity:${a.id}`] ?? 0) === 0)
     .map((a) => ({ a, dx: a.pos.x - from.x, dz: a.pos.z - from.z }))
     .map((e) => ({ ...e, d: Math.hypot(e.dx, e.dz) }))
-    .sort((x, y) => x.d - y.d)
-    .slice(0, TRY_ROWS)
+    .sort((x, y) => x.d - y.d);
+  // "Nearby" means near: critic round 24 read the Otter Slide, 418 u off, under that heading. With
+  // nothing near, the few nearest are listed under a heading that says they are a walk away.
+  const near = rows.filter((e) => e.d <= TRY_NEAR);
+  const shown = (near.length > 0 ? near.slice(0, TRY_ROWS) : rows.slice(0, TRY_FAR_ROWS))
     .map((e) => {
       const where = e.d < 4 ? 'here' : `${formatDistance(e.d)} ${compassWord(e.dx, e.dz)}`;
       return `<li class="ui-try"><span class="ui-try__name">${esc(e.a.name)}</span><span class="ui-quest__where">${esc(where)}</span></li>`;
     });
-  if (rows.length === 0) return '';
-  return `<h3 class="ui-try__head">Things to try nearby</h3><ul class="ui-tries">${rows.join('')}</ul>`;
+  if (shown.length === 0) return '';
+  const head = near.length > 0 ? 'Things to try nearby' : 'Things still to try, a walk away';
+  return `<h3 class="ui-try__head">${head}</h3><ul class="ui-tries">${shown.join('')}</ul>`;
 }
 
 export function fishHTML(m: JournalModel, s: GameState, fish: readonly FishDef[] | undefined): string {

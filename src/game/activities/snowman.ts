@@ -23,6 +23,7 @@ import type { PlacedMarker } from './markerLooks';
 import { nounFor, placePiece, siteFor, stepsFor, type BuildSite, type Piece } from './buildSites';
 import { BUILD, settleAt } from './build';
 import { WORDS } from './activityWords';
+import { pointerTo } from './pointer';
 
 /** A full ball further than this (metres, rim to ring) from the spot raises a beam over it. */
 const BEAM_GAP = 5;
@@ -35,9 +36,10 @@ const WAY_BEHIND = Math.PI / 2;
 export const ROLL = {
   /**
    * Radius a fresh ball starts at, and how much it grows per metre rolled. At 0.04 the three balls took
-   * 23 m of rolling, and critic round 22 put one on and walked away; at 0.08 it is about 12.
+   * 23 m of rolling, and critic round 22 put one on and walked away; at 0.08 it is about 12. It starts
+   * at 0.24, not 0.16: critic round 24 saw "a tiny faceted shard" rather than a snowball.
    */
-  start: 0.16,
+  start: 0.24,
   grow: 0.08,
   /** Gap kept between Pip and the ball's surface. */
   gap: 0.35,
@@ -208,6 +210,9 @@ export class SnowmanActivity implements ActivityInstance {
         }
       }
     }
+    // While a ball is out, the arrow over Pip's head points at the ring, as the race's does at its gate:
+    // critic round 24 rolled a ball 141 u off and gave up looking for the way back.
+    if (b) out.push(...pointerTo({ x: this.last.x, y: this.groundAt(this.last.x, this.last.z), z: this.last.z }, at, this.camYaw));
     const lift = DOT_LIFT[this.stage] ?? 2.6;
     out.push({ shape: 'float', look: 'dot', x: at.x, y: this.ground + lift + 0.12 * Math.sin(this.elapsed * 4), z: at.z, size: full || !b ? 1.6 : 1.2, strength: 1 });
     return out;

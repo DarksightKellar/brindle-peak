@@ -216,6 +216,12 @@ export function createSession(opts: SessionOptions): Session {
       sfx: (name) => audio.sfx(name),
     });
 
+    // The first climb says what is happening: critic round 24 never learned it, and got up the ridge
+    // foot by holding W and jumping until something worked.
+    if (player.mode === 'climb' && state.flags['taught:climb'] !== true) {
+      state.flags['taught:climb'] = true;
+      bus.emit('toast', { text: 'Climbing: keep pushing into the face. It spends breath, and letting go drops you.', icon: 'mountain', tier: 'discovery' });
+    }
     if (!blocked && dt > 0) {
       const pushing = Math.hypot(input.moveX, input.moveZ) > 0.5 && player.grounded;
       const ahead = sampler.sampleAt(player.pos.x + Math.sin(player.facing) * 0.7, player.pos.z + Math.cos(player.facing) * 0.7);

@@ -89,7 +89,7 @@ describe('stamina', () => {
     const s = spawn(0, { stamina: 0.05 });
     s.sinceSpend = 0; // no regen for 0.35 s, so the drain empties the bar
     let fired = false;
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < 12; i++) {
       fired = stepPlayer(s, input({ moveX: 1, sprintHeld: true }), FRAME, TUNING, makeEnv()).exhausted || fired;
     }
     expect([s.stamina, fired]).toEqual([0, true]);
