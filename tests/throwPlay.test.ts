@@ -36,11 +36,15 @@ describe('throw flight', () => {
   });
 });
 
-/** Hold E and let go the moment the arc turns bold, as a player watching it would, steering as it swings. */
-function throwOnArc(game: TargetActivity, h: ReturnType<typeof host>, steer: () => number = () => 0): boolean {
+/**
+ * Hold E and let go the moment the arc turns bold, as a player watching it would, steering as it swings;
+ * or `late` frames after it, as a player reacting to the cue does.
+ */
+function throwOnArc(game: TargetActivity, h: ReturnType<typeof host>, steer: () => number = () => 0, late = 0): boolean {
   step(game, h, { interactPressed: true, interactHeld: true });
   for (let f = 0; f < 240 && !game.letGoHits; f++) step(game, h, { interactHeld: true, moveX: steer() });
   const bold = game.letGoHits;
+  for (let f = 0; f < late; f++) step(game, h, { interactHeld: true, moveX: steer() });
   step(game, h);
   return bold;
 }
@@ -54,7 +58,7 @@ function throwHeld(game: TargetActivity, h: ReturnType<typeof host>, frames: num
 
 describe('throw', () => {
   /** Hold the aim on the nearest standing target and throw whenever allowed. */
-  function play(d: ActivityDef, aimAt: boolean): { hits: number; awards: ActivityResult[]; frames: number } {
+  function play(d: ActivityDef, aimAt: boolean, late = 0): { hits: number; awards: ActivityResult[]; frames: number } {
     const game = createTargetActivity(d);
     const h = host({ x: d.pos.x, y: 0, z: d.pos.z });
     game.start(h);
@@ -71,7 +75,7 @@ describe('throw', () => {
     };
     while (!game.isComplete() && frames++ < 3000) {
       if (frames % 30 === 0 && frames > 125 && game.inFlight === 0) {
-        if (aimAt) throwOnArc(game, h, steer);
+        if (aimAt) throwOnArc(game, h, steer, late);
         else throwHeld(game, h, 27);
       } else step(game, h, { moveX: steer() });
     }
@@ -83,6 +87,12 @@ describe('throw', () => {
     expect(r.hits).toBe(3);
     expect(r.awards).toHaveLength(1);
     expect(r.awards[0]).toMatchObject({ score: 3, bonus: 'clean-sweep' });
+  });
+
+  it('a player letting go a reaction after "Let go!" still hits (critic round 35)', () => {
+    // 14 frames is about a quarter of a second, a player's reaction to a word lighting up.
+    const r = play(def('throw', 'pinewind-pinecone-throw', { x: -206, z: 160 }), true, 14);
+    expect(r.hits).toBe(3);
   });
 
   it('a throw let go while the arc is bold hits, with no steering during the draw (rounds 8, 20)', () => {

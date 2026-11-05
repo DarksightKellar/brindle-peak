@@ -156,7 +156,8 @@ export function formatJournal(s: GameState, content: JournalContent = {}): Journ
             title: q.title,
             status: 'available' as const,
             step: 0,
-            stepText: `${who} asked, and you said not now. Talk to ${who} again to take it on.`,
+            // Not "you said not now": Escape at the question leaves it too, and critic round 35 hadn't said it.
+            stepText: `${who} asked. Talk to ${who} again to take it on.`,
             nextText: null,
             epilogue: q.blurb,
             trackable: false,

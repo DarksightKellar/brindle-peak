@@ -12,6 +12,12 @@
 
 const KEY = 'first-snow.photo.';
 const WIDTH = 384;
+/**
+ * The print is the middle of the frame, this share of it each way: the viewfinder has the subject
+ * centred, and the whole frame left it small. Critic round 35's deer was a few brown pixels in a wide
+ * field of snow under "The deer, caught on camera". A half is a 2x lens, whole pixels.
+ */
+const LENS = 0.5;
 /** Seconds the print stays up before it slides away. */
 const SHOW_S = 4.5;
 
@@ -53,7 +59,8 @@ function capture(canvas: HTMLCanvasElement): string | null {
   const ctx = small.getContext('2d');
   if (!ctx) return null;
   ctx.imageSmoothingEnabled = false;
-  ctx.drawImage(canvas, 0, 0, small.width, small.height);
+  const sw = canvas.width * LENS, sh = canvas.height * LENS;
+  ctx.drawImage(canvas, (canvas.width - sw) / 2, (canvas.height - sh) / 2, sw, sh, 0, 0, small.width, small.height);
   try {
     return small.toDataURL('image/png');
   } catch {

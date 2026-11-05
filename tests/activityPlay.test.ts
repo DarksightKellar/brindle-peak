@@ -308,7 +308,7 @@ describe('build', () => {
     for (let ball = 1; snow.placed < 3 && ball <= 3; ball++) {
       walk(at.x + 3, at.z + 12); // roll out into the open and grow it
       // Out there, the card says where the ring is (critic round 20 circled for it).
-      expect(snow.progress()?.label).toMatch(/ · \d+ u (ahead|(behind you|on your (left|right)), hold (W|S|A|D|[WS] and [AD])) · /);
+      expect(snow.progress()?.label).toMatch(/ · \d+ u (ahead|behind you|on your (left|right)), hold (W|S|A|D|[WS] and [AD]) · /);
       // and an arrow on the snow beside Pip points back at it (critic round 24 rolled one 141 u off),
       // nose the real way to the ring.
       const floor = snow.markers().find((m) => (m as { look?: string }).look === 'arrow-floor') as { x: number; z: number; yaw: number } | undefined;

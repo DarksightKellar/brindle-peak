@@ -66,8 +66,12 @@ interface Puff { pos: Vec3; age: number }
 /** Radians nearer another target must be before the aim words switch to it. */
 const AIM_KEEP = 0.12;
 
-/** Seconds of reaction allowed after "Let go!" lights: the cue is only up where a release that late lands too. */
-const LET_GO_SLACK = 0.08;
+/**
+ * Seconds a player has to react to "Let go!": a release this soon after the arc was last bold is thrown
+ * as it was then. The cue used to be lit only where a release 0.08 s later still hit, which left a few
+ * frames of it and less than a reaction; critic round 35 let go on the cue and missed twice running.
+ */
+const LET_GO_REACT = 0.25;
 
 /**
  * The bell's swell is this share of the toss's. Up on its post and close by, the bell takes a lob that
@@ -109,6 +113,9 @@ export class TargetActivity implements ActivityInstance {
   private cooldown = 0;
   /** Seconds E has been held for the throw being drawn; -1 when none is. */
   private draw = -1;
+  /** The draw when letting go last would have hit, and `elapsed` then (LET_GO_REACT). */
+  private litDraw = -1;
+  private litAt = -Infinity;
   /** `elapsed` when the round was decided, or -1 while it is still open. */
   private decidedAt = -1;
   private stage: 'throwing' | 'done' | 'aborted' = 'throwing';
@@ -234,15 +241,25 @@ export class TargetActivity implements ActivityInstance {
       if (pressed && this.decidedAt < 0 && this.cooldown <= 0 && this.throwsLeft > 0 && this.shots.length === 0) {
         this.draw = 0;
         this.locked = this.predict();
+        this.litAt = -Infinity;
       }
     } else if (host.input.interactHeld) {
       this.draw += step;
+      if (this.letGoHits) {
+        this.litDraw = this.draw;
+        this.litAt = this.elapsed;
+      }
     } else {
       this.locked = -1;
       this.throwsLeft--;
       this.cooldown = THROW.cooldown;
+      // Let go a reaction after the cue, it goes as it would have on the cue.
+      let reach = this.reachAt(this.draw);
+      if (this.predict(reach) < 0 && this.elapsed - this.litAt <= LET_GO_REACT && this.predict(this.reachAt(this.litDraw)) >= 0) {
+        reach = this.reachAt(this.litDraw);
+      }
       this.released = { aimedOn: this.predict() >= 0, rising: this.draw % THROW.drawPeriod < THROW.drawPeriod / 2 };
-      this.shots.push(launch(this.feet, this.aim, this.strikeables(), this.groundAt, this.reachAt(this.draw), this.bell ? { ...this.wind } : undefined));
+      this.shots.push(launch(this.feet, this.aim, this.strikeables(), this.groundAt, reach, this.bell ? { ...this.wind } : undefined));
       this.draw = -1;
       // The wind shifts once the throw is away: the one in flight keeps the gust it was let go in.
       if (this.bell) {
@@ -547,11 +564,10 @@ export class TargetActivity implements ActivityInstance {
 
   /**
    * A throw is being drawn and letting go now would hit: the moment the arc turns bold and the words say
-   * "Let go!". It also asks that a release a beat later still hits, so a player who lets go on the cue,
-   * a reaction late, isn't sent short off the window's edge.
+   * "Let go!". A release up to LET_GO_REACT after it still goes as it would have then.
    */
   get letGoHits(): boolean {
-    return this.draw >= 0 && this.predict(this.reachAt(this.draw)) >= 0 && this.predict(this.reachAt(this.draw + LET_GO_SLACK)) >= 0;
+    return this.draw >= 0 && this.predict(this.reachAt(this.draw)) >= 0;
   }
 }
 

@@ -173,7 +173,7 @@ describe('journal model', () => {
     s.flags['declined:tuck-rope'] = true;
     const row = formatJournal(s, { quests: QUESTS }).quests.find((q) => q.id === 'tuck-rope');
     expect(row).toMatchObject({ title: 'The Good Rope', status: 'available', trackable: false });
-    expect(row?.stepText).toBe('Bram asked, and you said not now. Talk to Bram again to take it on.');
+    expect(row?.stepText).toBe('Bram asked. Talk to Bram again to take it on.');
     s.quests['tuck-rope'] = { status: 'active', step: 0 };
     expect(formatJournal(s, { quests: QUESTS }).quests.filter((q) => q.id === 'tuck-rope').map((q) => q.status)).toEqual(['active']);
   });

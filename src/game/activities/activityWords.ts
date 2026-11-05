@@ -64,8 +64,9 @@ export const WORDS = {
   /** Where the next gate is, from the camera's view: critic round 17 lost the lantern line with it behind them. */
   // Off to a side or behind, it names the keys that walk there (keyToward): "over your right
   // shoulder" (critic round 20) and "hold D to come round" (round 31) both left Pip walking off sideways.
+  // Every way names its key, ahead too: critic round 35 read "6 u ahead" with no key and took it for none.
   gateWay: (metres: number, way: 'ahead' | 'left' | 'right' | 'behind', turn: number): string =>
-    `${Math.round(metres)} u ${way === 'ahead' ? 'ahead' : `${way === 'behind' ? 'behind you' : `on your ${way}`}, hold ${keyToward(turn, true)}`}`,
+    `${Math.round(metres)} u ${way === 'ahead' ? 'ahead' : way === 'behind' ? 'behind you' : `on your ${way}`}, hold ${keyToward(turn, way !== 'ahead')}`,
   // Woodpile: a crooked press, before the log came square or after it swung past.
   woodEarly: 'Too soon. Let it swing square first',
   woodLate: 'Too late. Wait for it to swing back square',
@@ -98,7 +99,11 @@ export const WORDS = {
   // It says which way: critic round 31 missed, saw the star drift off the frame, and found it by eye.
   exposeDrift: (key: 'A' | 'D' | 'W' | 'S'): string => `It drifted. Ease it back onto the star: hold ${key}`,
   // Throw result
-  throwResult: (hits: number, need: number): string => `${Math.min(hits, need)} of ${need} hits`,
+  // A full round says so; a short one says how close and how to go again, as the bell does. Critic round
+  // 35 was left with a bare "1 of 3 hits".
+  throwResult: (hits: number, need: number): string => hits >= need
+    ? `All ${need} down. Not a snowman left standing.`
+    : `${hits} of ${need} down${hits > 0 ? ', close' : ''}. Press E at the flag for another go.`,
   /** Critic round 17 rang it and read "1 of 1 hits", if anything: the bell is the point, not the count. */
   /** The bell's crosswind, said from the thrower's side: where it comes from and how hard. */
   bellWind: (from: 'left' | 'right', strength: number): string =>
