@@ -7,6 +7,10 @@
  * way back down). While Pip is near the path, the goal aims a little way along it instead, so the pin
  * turns where the trail turns, and the distance is what is left to walk.
  *
+ * Only where the path has left the straight line (`leaves`), and never within END_REACH of the target:
+ * critic round 18 stood beside Bram, then Edda, with TALK up and the compass reading "73 u, behind you",
+ * the walk round by the trail's far end to someone a step away.
+ *
  * Pure: the path comes in as data (the trail itself lives in game/world/trail.ts).
  */
 
@@ -14,6 +18,8 @@ import type { Vec2 } from '../contracts';
 
 export interface GuideRoute {
   path: readonly (readonly [number, number])[];
+  /** The vertex where the path leaves the straight line; before it the straight goal already follows it. */
+  leaves?: number;
 }
 
 /** A target this close to a path's end is what the path leads to: the mast, Edda, and the aurora 50 u past them. */
@@ -41,6 +47,7 @@ export function routeAim(routes: readonly GuideRoute[], from: Vec2, target: Vec2
     const up = Math.hypot(target.x - ex, target.z - ez) <= END_REACH;
     const down = !up && Math.hypot(target.x - sx, target.z - sz) <= END_REACH;
     if (!up && !down) continue;
+    if (Math.hypot(target.x - from.x, target.z - from.z) <= END_REACH) continue;
 
     // Pip's nearest point on the path, as distance along it.
     const lengths: number[] = [];
@@ -60,11 +67,12 @@ export function routeAim(routes: readonly GuideRoute[], from: Vec2, target: Vec2
       total += len;
     }
     if (best > NEAR) continue;
+    const bends: number[] = [0];
+    for (const len of lengths) bends.push(bends[bends.length - 1] + len);
+    if (at < (bends[r.leaves ?? 0] ?? 0) - AHEAD) continue;
 
     // The aim waits at the next bend until Pip is nearly there: past it, a stake on the spur stood in
     // the corner it cut, and Pip pushed at it.
-    const bends: number[] = [0];
-    for (const len of lengths) bends.push(bends[bends.length - 1] + len);
     const bend = up ? bends.find((b) => b > at + AT_BEND) ?? total : [...bends].reverse().find((b) => b < at - AT_BEND) ?? 0;
     const goal = up ? Math.min(at + AHEAD, bend) : Math.max(at - AHEAD, bend);
     const distance = best + (up ? total - at : at) + Math.hypot(target.x - (up ? ex : sx), target.z - (up ? ez : sz));

@@ -248,6 +248,14 @@ describe('build', () => {
     expect(Object.keys(BUILD_SITES).sort()).toEqual(ACTIVITIES.filter((a) => a.kind === 'build').map((a) => a.id).sort());
   });
 
+  it('the aurora photo waits until Edda has asked, when the aurora is in the sky (critic round 18)', () => {
+    const d = ACTIVITIES.find((a) => a.id === 'peak-aurora-photo')!;
+    const state = host().state;
+    expect(activityOffered(d, state)).toBe(false);
+    state.quests['the-mast'] = { status: 'active', step: 0 };
+    expect(activityOffered(d, state)).toBe(true);
+  });
+
   it('a finished build does not start again, unless a quest step is waiting on it', () => {
     const d = ACTIVITIES.find((a) => a.id === 'hearth-kindling')!;
     const state = host().state;

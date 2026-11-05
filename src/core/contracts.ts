@@ -490,7 +490,8 @@ export interface GameEventPayloads {
   'fish:caught': { id: string; isNew: boolean };
   'photo:taken': { id: string; isNew: boolean };
   'lantern:lit': { id: string; lit: number };
-  'activity:completed': { id: string; score: number };
+  /** `bonus` is the run's ActivityResult bonus, such as 'pond-crossed' for a full skating lap. */
+  'activity:completed': { id: string; score: number; bonus?: string };
   'achievement:unlocked': { id: string };
   'spring:soaked': { id: string };
   'summit:reached': { id: string };

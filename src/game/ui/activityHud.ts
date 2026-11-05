@@ -42,7 +42,7 @@ const HINTS: Readonly<Record<ActivityKind, string>> = {
   // Round 8's critic could not tell what "brightens": the arc grows bold and reaches the target.
   throw: 'A / D aims, the way the line below says. When it says Lined up, press E.',
   // The race is the one activity that leaves the controls with the player; the next gate is the bright one.
-  race: 'Run for the bright gate; A / D to steer.',
+  race: 'Hold W to run for the bright gate; A / D to steer.',
   skate: 'Skate a lap. Tipping one way? Hold the other, A or D, till it steadies.',
   sled: 'Steer down the hill with A / D.',
 };

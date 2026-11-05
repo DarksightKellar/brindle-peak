@@ -131,7 +131,7 @@ export function heapLeft(site: BuildSite, placedSteps: number): readonly Piece[]
   return HEAP.slice(Math.min(HEAP.length, taken));
 }
 
-/** Base, middle, head, then a face and two twig arms on the last press. */
+/** Base, middle, head, then a face, two twig arms, a scarf and a hat on the last press. */
 const SNOWMAN: readonly Piece[][] = [
   [{ look: 'snowball', x: 0, y: -0.03, z: 0, size: 0.62 }],
   [{ look: 'snowball', x: 0, y: 1.0, z: 0, size: 0.46, yaw: 0.6 }],
@@ -142,6 +142,8 @@ const SNOWMAN: readonly Piece[][] = [
     { look: 'coal', x: 0.13, y: 2.16, z: 0.26 },
     { look: 'twig', x: 0.36, y: 1.5, z: 0, yaw: 0.15, tilt: 0.45 },
     { look: 'twig', x: -0.36, y: 1.5, z: 0, yaw: Math.PI - 0.1, tilt: 0.3 },
+    { look: 'scarf', x: 0, y: 1.84, z: 0 },
+    { look: 'hat', x: 0.02, y: 2.33, z: 0, yaw: 0.2 },
   ],
 ];
 

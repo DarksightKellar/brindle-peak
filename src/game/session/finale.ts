@@ -28,7 +28,7 @@ export function createFinale(
     state.flags.endingShown = true;
     ending.show(endingStats(state, {
       feathers: PICKUPS.filter((p) => p.kind === 'feather').length,
-      quests: QUESTS.length,
+      errands: QUESTS.filter((q) => q.main !== true).map((q) => q.id),
       zones: ZONES.length,
     }));
   };

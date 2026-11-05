@@ -336,6 +336,21 @@ describe('sled', () => {
     expect(DEFAULT_COURSE).toBeGreaterThan(80);
   });
 
+  it('a rider who holds the key the ring cue names, a third of a second late, gets most rings', () => {
+    const sled = createSledActivity(defOf('sled'), { length: 120 });
+    const host = makeHost();
+    begin(sled, host);
+    const seen: string[] = [];
+    let guard = 0;
+    while (!sled.isComplete() && guard++ < 6000) {
+      seen.push(sled.progress()?.label ?? '');
+      const cue = seen[Math.max(0, seen.length - 1 - 20)];
+      step(sled, host, { moveX: cue.startsWith('Ring to your right') ? 1 : cue.startsWith('Ring to your left') ? -1 : 0 });
+    }
+    expect(seen.some((l) => /Ring to your (left|right): hold [AD]/.test(l))).toBe(true);
+    expect(sled.ringsGot).toBeGreaterThanOrEqual(Math.ceil(sled.ringsTotal * 0.6));
+  });
+
   it('records a personal best without a rank', () => {
     const state = createGameState({ x: 0, y: 0, z: 0 }, 8);
     state.sledBests['test-sled'] = 999;

@@ -103,6 +103,9 @@ describe('applyEvent', () => {
     expect(s.quests['skater']?.status).toBe('complete');
     applyEvent(s, 'activity:completed', { id: 'skate', score: 12 }, engine, achievements);
     expect(s.bells).toBe(3 + ACTIVITY_BELLS); // and only the first
+    expect(s.counters['activity:skate:pond-crossed']).toBeUndefined();
+    applyEvent(s, 'activity:completed', { id: 'skate', score: 20, bonus: 'pond-crossed' }, engine, achievements);
+    expect(s.counters['activity:skate:pond-crossed']).toBe(1);
   });
 
   it('routes the remaining event kinds and survives junk payloads', () => {

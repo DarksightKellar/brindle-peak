@@ -180,7 +180,7 @@ export function createMechanics(deps: MechanicsDeps): Mechanics {
     cameraYaw: deps.cameraYaw(),
     emit: (name, data) => bus.emit(name, data),
     award: (result) => {
-      bus.emit('activity:completed', { id: instance.def.id, score: result.score });
+      bus.emit('activity:completed', { id: instance.def.id, score: result.score, bonus: result.bonus });
       // Best times, by course: the sleds, and since round 10 the races under `race:<id>` (the field keeps
       // its first name; the journal's sled stat skips those).
       if (instance.def.kind === 'sled' || instance.def.kind === 'race') {

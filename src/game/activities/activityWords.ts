@@ -17,6 +17,9 @@ export function clock(seconds: number): string {
 export const WORDS = {
   // Sled readout and result
   rings: (got: number, total: number): string => `Rings ${got} of ${total}`,
+  /** Which way the next ring is: critic round 18 took 0 of 5 and 3 of 12 steering by eye, and called the rings luck. */
+  sledRing: (way: 'left' | 'right' | 'on'): string =>
+    way === 'on' ? 'On line for the ring' : `Ring to your ${way}: hold ${way === 'left' ? 'A' : 'D'}`,
   // "Your fastest yet" only beats an earlier run (critic round 8 was praised for a first run with one
   // ring), and a run that missed most rings says where they are instead.
   sledResult: (seconds: number, got: number, total: number, best: boolean): string =>

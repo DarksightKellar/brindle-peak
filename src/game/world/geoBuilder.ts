@@ -39,6 +39,7 @@ export const GEO = {
   cyl5: plain(new THREE.CylinderGeometry(1, 1, 1, 5, 1, true)), // 10
   stump: plain(new THREE.CylinderGeometry(1, 1, 1, 5, 1, false)), // 20
   ico: plain(new THREE.IcosahedronGeometry(1, 0)), // 20
+  ico1: plain(new THREE.IcosahedronGeometry(1, 1)), // 80: round enough to read as rolled snow, not a gem
   octa: plain(new THREE.OctahedronGeometry(1, 0)), // 8
   tetra: plain(new THREE.TetrahedronGeometry(1, 0)), // 4
 };

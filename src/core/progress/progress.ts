@@ -16,7 +16,8 @@
  *   fish:caught         fish[id] += 1, counters['fish'] += 1
  *   photo:taken         photos[id] += 1, counters['photo'] += 1
  *   spring:soaked       counters['spring'] += 1, counters['spring:<id>'] += 1
- *   activity:completed  counters['activity:<id>'] += 1; the first time, bells += ACTIVITY_BELLS
+ *   activity:completed  counters['activity:<id>'] += 1, and 'activity:<id>:<bonus>' with a bonus; the
+ *                       first time, bells += ACTIVITY_BELLS
  *   summit:reached      flags['summit'] = true
  *   place:reached       counters['place:<id>'] += 1
  *   quest:started / quest:completed / achievement:unlocked / toast   (engine-owned, no mutation)
@@ -138,6 +139,9 @@ function mutate(s: GameState, name: GameEventName, f: Fields): void {
       const id = readString(f, 'id');
       if (id !== null && (s.counters['activity:' + id] ?? 0) === 0) s.bells += ACTIVITY_BELLS;
       if (id !== null) bump(s.counters, 'activity:' + id);
+      // How it went, where that is more than done: 'activity:reach-skate-race:pond-crossed' is a full lap.
+      const bonus = readString(f, 'bonus');
+      if (id !== null && bonus !== null) bump(s.counters, `activity:${id}:${bonus}`);
       break;
     }
     case 'summit:reached':

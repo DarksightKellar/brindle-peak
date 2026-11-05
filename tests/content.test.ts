@@ -152,6 +152,8 @@ describe('references', () => {
     const counters = new Set([
       'fish', 'fish:species', 'photo', 'spring', 'lantern',
       ...ACTIVITIES.map((a) => `activity:${a.id}`),
+      // Written from a run's bonus: a full skating lap, not any run that ended (critic round 18 fell at 3 s).
+      'activity:reach-skate-race:pond-crossed',
       ...PLACES.map((p) => `place:${p.id}`),
     ]);
     for (const a of ACHIEVEMENTS) {

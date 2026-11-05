@@ -216,7 +216,15 @@ export class SledActivity implements ActivityInstance {
 
   progress(): ActivityReadout | null {
     const got = this.rings.filter((r) => r.got).length;
-    return { label: WORDS.rings(got, this.rings.length), fraction: Math.min(1, this.run.distance / this.path.length) };
+    const next = this.finishedAt < 0 ? this.rings.find((r) => !r.got && r.at > this.run.distance) : undefined;
+    // + lateral is the rider's right, where D steers.
+    const off = next ? next.side - this.run.lateral : 0;
+    const cue = next ? `${WORDS.sledRing(Math.abs(off) <= SLED.ringReach * 0.6 ? 'on' : off > 0 ? 'right' : 'left')} · ` : '';
+    return {
+      label: `${cue}${WORDS.rings(got, this.rings.length)}`,
+      fraction: Math.min(1, this.run.distance / this.path.length),
+      urgent: next !== undefined && Math.abs(off) <= SLED.ringReach * 0.6,
+    };
   }
 
   summary(): string | null {
@@ -254,6 +262,7 @@ export class SledActivity implements ActivityInstance {
   get distance(): number { return this.run.distance; }
   get lateral(): number { return this.run.lateral; }
   get ringsGot(): number { return this.rings.filter((r) => r.got).length; }
+  get ringsTotal(): number { return this.rings.length; }
   /** Where the sled is right now. */
   get position(): Vec3 { return this.pointAt(this.run.distance, this.run.lateral); }
   get isPersonalBest(): boolean { return this.outcome?.bonus === 'personal-best'; }

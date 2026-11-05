@@ -119,16 +119,18 @@ export function valleyText(lines: readonly string[], more: number): string {
 /** Gather the numbers the ending reports. Kept out of the UI so the panel stays dumb. */
 export function endingStats(
   state: GameState,
-  totals: { feathers: number; quests: number; zones: number },
+  totals: { feathers: number; errands: readonly string[]; zones: number },
 ): EndingStats {
-  const questsDone = Object.values(state.quests).filter((q) => q.status === 'complete').length;
+  // Errands only, not the story's chapters: critic round 18 read "7 of 22" here, the story counted in
+  // and its last chapter not yet closed, and then 8 done in the journal.
+  const questsDone = totals.errands.filter((id) => state.quests[id]?.status === 'complete').length;
   const valley = valleyLines((id) => state.quests[id]?.status === 'complete');
   return {
     feathers: state.feathers,
     feathersTotal: totals.feathers,
     bells: state.bells,
     questsDone,
-    questsTotal: totals.quests,
+    questsTotal: totals.errands.length,
     zonesSeen: Object.values(state.visited).filter(Boolean).length,
     zonesTotal: totals.zones,
     playtime: state.playtime,

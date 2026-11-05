@@ -110,8 +110,18 @@ const BUILDERS: Readonly<Record<Solid, (b: GeoBuilder) => void>> = {
   pool,
   hole,
   deer,
-  // Unit radius, resting on its base: centre one radius up.
-  snowball: (b) => b.add(GEO.ico, propMatrix(0, 0.92, 0, 1, 0.94, 1), 'SNOW_LT', 'SNOW_HI', 0.25),
+  // Unit radius, resting on its base: centre one radius up. Critic round 18 read the 20-face balls as
+  // gems or boulders; rolled snow is rounder than a rock.
+  snowball: (b) => b.add(GEO.ico1, propMatrix(0, 0.92, 0, 1, 0.94, 1), 'SNOW_LT', 'SNOW_HI', 0.25),
+  // The toss targets' hat and scarf (snowmanTarget), for the snowman Pip builds: they are what read on snow.
+  hat: (b) => {
+    b.add(GEO.stump, propMatrix(0, 0, 0, 0.3, 0.05, 0.3), 'PIP_GLASS');
+    b.add(GEO.stump, propMatrix(0, 0.15, 0, 0.2, 0.26, 0.2), 'PIP_GLASS');
+  },
+  scarf: (b) => {
+    b.add(GEO.stump, propMatrix(0, 0, 0, 0.32, 0.1, 0.32), 'PIP_SCARF');
+    b.add(GEO.box, propMatrix(0.18, -0.15, 0.22, 0.12, 0.3, 0.05, -0.4), 'PIP_SCARF');
+  },
   stone: (b) => b.add(GEO.ico, propMatrix(0, 0.5, 0, 1, 0.62, 0.85, 0.4), 'ROCK_MID', 'ROCK_SNOWCAP', 0.5),
   // Points along +Z: the snowman's face is its local forward.
   carrot: (b) => b.add(GEO.cone5, propMatrix(0, 0, 0.16, 0.07, 0.34, 0.07, 0, Math.PI / 2), 'AMBER'),

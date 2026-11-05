@@ -16,8 +16,15 @@ describe('a goal along a route (critic round 17, the pin through the north face)
     expect(at?.aim.z).toBeCloseTo(12); // 2 to the corner, 12 up the second leg
   });
 
-  it('points at the target itself near the end', () => {
-    expect(routeAim(routes, { x: 100, z: 90 }, top)?.aim).toEqual(top);
+  it('points straight within reach of the target (critic round 18: "73 u, behind you" beside Bram)', () => {
+    expect(routeAim(routes, { x: 100, z: 90 }, top)).toBeNull();
+    expect(routeAim(routes, { x: 20, z: 3 }, foot)).toBeNull();
+  });
+
+  it('points straight while the path still runs along the straight line', () => {
+    const bent = [{ path: routes[0].path, leaves: 1 }];
+    expect(routeAim(bent, { x: 30, z: 0 }, top)).toBeNull(); // 70 short of the bend
+    expect(routeAim(bent, { x: 90, z: 0 }, top)?.aim).toEqual({ x: 100, z: 0 });
   });
 
   it('leads back down the same path to a target at its start', () => {
