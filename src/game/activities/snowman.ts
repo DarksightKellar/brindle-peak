@@ -255,7 +255,7 @@ export class SnowmanActivity implements ActivityInstance {
     const turn = angleDelta(this.camYaw, Math.atan2(at.x - b.x, at.z - b.z));
     const way = this.way = steadyWay(turn, this.way);
     // Said right up to the ring: critic round 35 pushed a full ball beside it for minutes with no key named.
-    const where = ` · ${WORDS.gateWay(Math.max(1, far), way, turn)}`;
+    const where = ` · ${WORDS.gateWay(Math.max(1, far), way)}`;
     return { label: `${full ? WORDS.snowPush : WORDS.snowRoll}${where} · ${count}`, fraction: (this.stage + grown) / total, urgent: full };
   }
 

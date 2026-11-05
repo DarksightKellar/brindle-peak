@@ -43,7 +43,7 @@ const HINTS: Readonly<Record<ActivityKind, string>> = {
   throw: 'A / D aims, the way the line below says. Then hold E: the arc swells and shrinks. Let go as it reaches the target.',
   // The race is the one activity that leaves the controls with the player; the next gate is the bright one.
   // Shift too: a race spends no breath, and critic round 37 ran every race at a walk.
-  race: 'Hold W to run for the bright gate; A / D to steer. Shift sprints, and a race spends no breath.',
+  race: 'Run for the bright gate. Shift sprints, and a race spends no breath.',
   skate: 'Skate a lap. Tipping one way? Hold the other, A or D, till it steadies.',
   sled: 'Steer down the hill with A / D.',
 };

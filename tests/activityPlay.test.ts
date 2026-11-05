@@ -79,7 +79,7 @@ describe('race', () => {
     race.start(h);
     step(race, h);
     // The count, then where the gate is from the view (critic round 17 lost the lantern line).
-    expect(race.progress()?.label).toMatch(new RegExp(`^Gate 1 of ${race.gates.length} · \\d+ u (ahead|(behind you|on your (left|right)), hold (W|S|A|D|[WS] and [AD]))$`));
+    expect(race.progress()?.label).toMatch(new RegExp(`^Gate 1 of ${race.gates.length} · \\d+ u (ahead|behind you|on your (left|right))$`));
     const arches = (race.markers() as PlacedMarker[]).filter((m) => m.look === 'arch');
     expect(arches).toHaveLength(1);
     expect(arches[0].strength).toBe(1);
@@ -208,7 +208,7 @@ describe('build', () => {
     }
     expect(mash.placed).toBe(0);
     expect(Math.abs(mash.stoneOff)).toBeGreaterThan(1);
-    expect(mash.progress()?.label).toMatch(/^(The current has it\. Hold [ADWS] to bring it over the gap|Not over the gap)/);
+    expect(mash.progress()?.label).toMatch(/^(The current has it\. Bring it back over the gap, (to your (left|right)|away from you|toward you)|Not over the gap)/);
 
     // Steering the way the line says brings it home, and a press there sets it.
     const watched = createBuildActivity(d);
@@ -218,14 +218,14 @@ describe('build', () => {
     let last = -99;
     for (let f = 0; f < 60 * 60 && !watched.isComplete(); f++) {
       const said = watched.progress()?.label ?? '';
-      const key = /Hold ([AD]) /.exec(said)?.[1];
-      // Hold the named key while far off; near the gap, ease against the current.
-      const moveX = key ? (key === 'D' ? 1 : -1) : Math.max(-1, Math.min(1, (-watched.stoneOff * 4) / k.d));
+      const way = /to your (left|right)/.exec(said)?.[1];
+      // Steer the way it names while far off; near the gap, ease against the current.
+      const moveX = way ? (way === 'right' ? 1 : -1) : Math.max(-1, Math.min(1, (-watched.stoneOff * 4) / k.d));
       const now = watched.squareNow && f - last > 30;
       if (watched.squareNow) expect(said).toMatch(/^Over the gap — press E · /);
-      // Every stone names its key while off the gap (critic round 28 stalled at stone 2 without it).
+      // Every stone says which way while off the gap (critic round 28 stalled at stone 2 without it).
       if (!watched.squareNow && Math.abs(watched.stoneOff) > 0.3 && !/^Not over|^Easy/.test(said)) {
-        expect(said).toMatch(/^The current has it\. Hold [ADWS] to bring it over the gap · /);
+        expect(said).toMatch(/^The current has it\. Bring it back over the gap, (to your (left|right)|away from you|toward you) · /);
       }
       if (now) last = f;
       step(watched, h, { moveX, interactPressed: now });
@@ -235,20 +235,20 @@ describe('build', () => {
 
   // Critic round 33 held the named key, saw "Over the gap", pressed, and was told it wasn't: at full steer
   // the stone crossed its gap in half a second.
-  it('a dam stone held with the named key settles over its gap long enough to press', () => {
+  it('a dam stone steered the way the words name settles over its gap long enough to press', () => {
     const d = def('build', 'kettles-dam-build', { x: -52, z: 42 });
     const dam = createBuildActivity(d);
     const h = host({ x: d.pos.x + 2, y: 0, z: d.pos.z }, 0.7);
     dam.start(h);
     step(dam, h);
-    let key: string | undefined;
+    let way: string | undefined;
     let run = 0;
     let longest = 0;
     for (let f = 0; f < 60 * 6; f++) {
-      key = /Hold ([AD]) /.exec(dam.progress()?.label ?? '')?.[1] ?? key;
+      way = /to your (left|right)/.exec(dam.progress()?.label ?? '')?.[1] ?? way;
       run = dam.squareNow ? run + 1 : 0;
       longest = Math.max(longest, run);
-      step(dam, h, { moveX: key === 'D' ? 1 : key === 'A' ? -1 : 0 });
+      step(dam, h, { moveX: way === 'right' ? 1 : way === 'left' ? -1 : 0 });
     }
     expect(longest / 60).toBeGreaterThan(1); // it sits there, not a half-second pass
   });
@@ -308,7 +308,7 @@ describe('build', () => {
     for (let ball = 1; snow.placed < 3 && ball <= 3; ball++) {
       walk(at.x + 3, at.z + 12); // roll out into the open and grow it
       // Out there, the card says where the ring is (critic round 20 circled for it).
-      expect(snow.progress()?.label).toMatch(/ · \d+ u (ahead|behind you|on your (left|right)), hold (W|S|A|D|[WS] and [AD]) · /);
+      expect(snow.progress()?.label).toMatch(/ · \d+ u (ahead|behind you|on your (left|right)) · /);
       // and an arrow on the snow beside Pip points back at it (critic round 24 rolled one 141 u off),
       // nose the real way to the ring.
       const floor = snow.markers().find((m) => (m as { look?: string }).look === 'arrow-floor') as { x: number; z: number; yaw: number } | undefined;
@@ -403,10 +403,11 @@ describe('aurora framing', () => {
     const photo = createPhotoActivity(d);
     const h = host({ x: d.pos.x, y: 0, z: d.pos.z });
     photo.start(h);
+    // The words say a way, not a key: left and right turn, up and down tilt.
     const keyOf = (label: string): { moveX: number; moveZ: number } => {
-      const k = /\(([ADWS])\)|hold ([ADWS])/.exec(label);
-      const key = k?.[1] ?? k?.[2] ?? '';
-      return { moveX: key === 'D' ? 1 : key === 'A' ? -1 : 0, moveZ: key === 'W' ? 1 : key === 'S' ? -1 : 0 };
+      const way = /(?:Turn |to the )(left|right)|(?:Tilt |back )(up|down)/.exec(label);
+      const w = way?.[1] ?? way?.[2] ?? '';
+      return { moveX: w === 'right' ? 1 : w === 'left' ? -1 : 0, moveZ: w === 'up' ? 1 : w === 'down' ? -1 : 0 };
     };
     let drifted = 0;
     for (let i = 0; i < 60 * 30 && !photo.isComplete(); i++) {

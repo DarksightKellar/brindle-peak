@@ -31,7 +31,6 @@ import { hopBlocked, hopPlaces } from '../session/travel';
 import { ACTIVITIES } from '../../data/activities';
 import { PICKUPS } from '../../data/pickups';
 import { createFeatherNotice } from './hudFeather';
-import { keyToward } from '../activities/activityWords';
 
 export interface Hud {
   update(s: GameState, p: PlayerState): void;
@@ -53,8 +52,6 @@ export interface Hud {
   setNextVisible(visible: boolean): void;
   /** Point the compass strip at a running activity's own target (a race's next gate); null for the goal. */
   setCourse(at: Vec2 | null): void;
-  /** An activity is running: its keys are its own, so the compass names none. */
-  setPlaying(playing: boolean): void;
   /** Hold the goal, the next line and the target where they are (a conversation is open). */
   setHeld(held: boolean): void;
   /**
@@ -138,8 +135,6 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
 
   /** The walk left to the goal when it follows a route rather than the straight line (route.ts). */
   let goalDistance: number | undefined;
-  /** An activity is running (setPlaying). */
-  let playing = false;
 
   const liveTarget = (): Vec2 | null => {
     if (held) return heldTarget;
@@ -158,16 +153,15 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
   /**
    * Where the errand lies when its mark is off the compass strip. Critic round 11 saw the errand's
    * diamond pinned to the strip's edge, read no way to turn, and walked away from it. The goal's own
-   * distance says "behind you"; the errand's line now says the same, and the key that walks there
-   * (keyToward): "turn right" (critic round 30) and "hold D to come round" (round 31) both left Pip
-   * walking off sideways while the errand stayed behind.
+   * distance says "behind you"; the errand's line now says the same. No key named: the director's call
+   * (round 47), the opening teaches walking.
    */
   const offStrip = (at: Vec2 | null): string => {
     if (!at) return '';
     const rel = bearing(at.x - lastFrom.x, at.z - lastFrom.z, viewYaw);
     // The strip's own rule (hudCompass.ts): off its half of the horizon is "behind you".
     if (Math.abs(rel) <= Math.PI / 2) return '';
-    return ` · behind you, hold ${keyToward(-rel)}`; // bearing() is right positive
+    return ' · behind you';
   };
 
   const writeNext = (text: string, step: ReturnType<typeof nextStepFor>): void => {
@@ -243,8 +237,8 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
       const errandMarks = nextAllowed && !held
         ? otherErrands.filter((o) => (o.distance ?? Infinity) < ERRAND_SEEN).map((o) => o.target as Vec2)
         : [];
-      if (course) compass.update({ from: lastFrom, viewYaw, goal: course, side: null, feather: null, todo: [], errands: [], keys: false });
-      else compass.update({ from: lastFrom, viewYaw, goal: heldTarget, goalDistance, side, feather: feather.feather, todo, errands: errandMarks, keys: !playing });
+      if (course) compass.update({ from: lastFrom, viewYaw, goal: course, side: null, feather: null, todo: [], errands: [] });
+      else compass.update({ from: lastFrom, viewYaw, goal: heldTarget, goalDistance, side, feather: feather.feather, todo, errands: errandMarks });
       for (const fn of frameListeners) fn(heldTarget, p.pos, held, side);
     },
 
@@ -286,10 +280,6 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
 
     setCourse(at: Vec2 | null): void {
       course = at;
-    },
-
-    setPlaying(next: boolean): void {
-      playing = next;
     },
 
     setNextVisible(visible: boolean): void {

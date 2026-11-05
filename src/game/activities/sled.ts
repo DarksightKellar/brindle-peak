@@ -220,7 +220,7 @@ export class SledActivity implements ActivityInstance {
     const next = this.finishedAt < 0 ? this.rings.find((r) => !r.got && r.at > this.run.distance) : undefined;
     // + lateral is the rider's right, where D steers.
     const off = next ? next.side - this.run.lateral : 0;
-    const cue = next ? `${WORDS.sledRing(Math.abs(off) <= SLED.ringReach * 0.6 ? 'on' : off > 0 ? 'right' : 'left', got < 2)} · ` : '';
+    const cue = next ? `${WORDS.sledRing(Math.abs(off) <= SLED.ringReach * 0.6 ? 'on' : off > 0 ? 'right' : 'left')} · ` : '';
     return {
       label: `${cue}${WORDS.rings(got, this.rings.length)}`,
       fraction: Math.min(1, this.run.distance / this.path.length),

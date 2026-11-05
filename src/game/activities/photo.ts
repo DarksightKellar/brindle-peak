@@ -22,14 +22,14 @@ import { Exposure, EXPOSURE } from './exposure';
 
 /** How far off the subject the viewfinder opens: inside the frame, outside the centring cone. */
 const OPEN_OFF = 0.3;
-/** Off the subject by more than this (radians) in yaw, the turn hint names the key; then pitch. */
+/** Off the subject by more than this (radians) in yaw, the turn hint says turn; then tilt. */
 const TURN_SLACK = 0.12;
-/** The turn hint names the key that brings the subject in (critic round 12: "nothing told me which way"). */
+/** The turn hint says which way brings the subject in (critic round 12: "nothing told me which way"). No key: the director's call, round 47. */
 const TURN_WORDS = {
-  left: 'Turn left (A) until it is centred',
-  right: 'Turn right (D) until it is centred',
-  up: 'Tilt up (W) until it is centred',
-  down: 'Tilt down (S) until it is centred',
+  left: 'Turn left until it is centred',
+  right: 'Turn right until it is centred',
+  up: 'Tilt up until it is centred',
+  down: 'Tilt down until it is centred',
   any: 'Turn until it is centred',
 } as const;
 /**

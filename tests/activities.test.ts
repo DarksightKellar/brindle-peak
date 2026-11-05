@@ -366,7 +366,7 @@ describe('sled', () => {
     expect(DEFAULT_COURSE).toBeGreaterThan(80);
   });
 
-  it('a rider who holds the key the ring cue names, a third of a second late, gets most rings', () => {
+  it('a rider who steers the way the ring cue says, a third of a second late, gets most rings', () => {
     const sled = createSledActivity(defOf('sled'), { length: 120 });
     const host = makeHost();
     begin(sled, host);
@@ -377,7 +377,7 @@ describe('sled', () => {
       const cue = seen[Math.max(0, seen.length - 1 - 20)];
       step(sled, host, { moveX: cue.startsWith('Ring to your right') ? 1 : cue.startsWith('Ring to your left') ? -1 : 0 });
     }
-    expect(seen.some((l) => /Ring to your (left|right): hold [AD]/.test(l))).toBe(true);
+    expect(seen.some((l) => /^Ring to your (left|right) · /.test(l))).toBe(true);
     expect(sled.ringsGot).toBeGreaterThanOrEqual(Math.ceil(sled.ringsTotal * 0.6));
   });
 
@@ -442,7 +442,7 @@ describe('skate', () => {
     expect(SKATE.goal).toBeGreaterThan(1);
   });
 
-  it('a player who holds the key the panel names, a third of a second late, crosses the pond', () => {
+  it('a player who leans against the tip the panel names, a third of a second late, crosses the pond', () => {
     // Critic round 17 fell in at 11 s: the panel said "press", and a tap barely moves the meter.
     const skate = createSkateActivity(defOf('skate'));
     const host = makeHost();
@@ -454,7 +454,7 @@ describe('skate', () => {
       const cue = seen[Math.max(0, seen.length - 1 - 20)];
       step(skate, host, { moveX: cue.startsWith('Tipping right') ? -1 : cue.startsWith('Tipping left') ? 1 : 0 });
     }
-    expect(seen[0]).toMatch(/hold [AD]/);
+    expect(seen[0]).toMatch(/^Tipping (right|left) · /);
     expect(skate.crossedPond).toBe(true);
   });
 
@@ -475,7 +475,7 @@ describe('skate', () => {
     expect(skate.crossedPond).toBe(true);
   });
 
-  it('names the key every time it tips, and says it large before a fall (critic round 34)', () => {
+  it('says which way it tips every time, and says it large before a fall (critic round 34)', () => {
     const skate = createSkateActivity(defOf('skate'));
     const host = makeHost();
     begin(skate, host);
@@ -489,9 +489,9 @@ describe('skate', () => {
       step(skate, host);
     }
     expect(tips.length).toBeGreaterThan(0);
-    expect(tips.every((l) => /Tipping (right — hold A|left — hold D)/.test(l))).toBe(true);
+    expect(tips.every((l) => /(^|· )Tipping (right|left)( · |$)/.test(l))).toBe(true);
     expect(cues.length).toBeGreaterThan(0);
-    expect(cues.every((c) => c === 'Hold A!' || c === 'Hold D!')).toBe(true);
+    expect(cues.every((c) => c === 'Tipping right!' || c === 'Tipping left!')).toBe(true);
   });
 
   it('an untouched run ends on its own and still banks the time', () => {

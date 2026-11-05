@@ -233,7 +233,7 @@ describe('throw', () => {
     const err = (): number => Math.atan2(Math.sin(want - game.aimYaw), Math.cos(want - game.aimYaw));
     const gust = 'Wind from the right, strong · ';
     expect(Math.abs(err())).toBeGreaterThan(0.1);
-    expect(game.progress()?.label).toBe(`${gust}${err() > 0 ? 'Aim left (A)' : 'Aim right (D)'} · Hits 0 / 1 · 8 left`);
+    expect(game.progress()?.label).toBe(`${gust}${err() > 0 ? 'Aim left' : 'Aim right'} · Hits 0 / 1 · 8 left`);
     for (let i = 0; i < 400 && Math.abs(err()) > 0.01; i++) step(game, h, { moveX: -Math.sign(err()) * Math.min(1, Math.abs(err()) * 20) });
     expect(game.progress()).toMatchObject({ label: `${gust}Lined up: hold E · Hits 0 / 1 · 8 left`, urgent: true });
     step(game, h, { interactPressed: true, interactHeld: true });

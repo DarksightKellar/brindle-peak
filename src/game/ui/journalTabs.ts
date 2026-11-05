@@ -111,7 +111,9 @@ export function questsHTML(
     // Critic round 10 read "following" on an errand while the goal and compass named the story, and
     // took them to disagree. They don't: the story is the goal at the top, the followed errand the line
     // under it. The page now says so in those words.
-    const status = on ? (q.main ? 'the goal only' : 'line under the goal') : q.main && q.status === 'active' ? 'the goal'
+    // Critic round 46 met "line under the goal", "the goal only" and "active" on the same page and could
+    // not tell which was being followed: whatever E picked now says "following", story or errand.
+    const status = on ? 'following' : q.main && q.status === 'active' ? 'the goal'
       : q.status === 'available' ? 'on offer' : q.status;
     const pick = q.trackable ? ` is-pickable${q.id === cursor ? ' is-cursor' : ''}${on ? ' is-tracked' : ''}` : '';
     return (
@@ -126,7 +128,7 @@ export function questsHTML(
   const hint = m.quests.some((q) => q.trackable)
     // Critic round 41 read the old "E puts an errand on the line under the goal, or on the story, follows
     // it alone" twice and still could not tell what E would do.
-    ? '<p class="ui-journal__meta">↑↓ choose · E follows it: the line under the goal names it, and the compass points there</p>'
+    ? '<p class="ui-journal__meta">↑↓ choose · E follows it, and the compass points there · E again lets it go</p>'
     : '';
   return `${hint}<ul class="ui-quests">${rows.join('')}</ul>`;
 }

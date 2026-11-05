@@ -6,19 +6,6 @@
  * them are the copy. Results show for about three seconds, so each is one short line.
  */
 
-/**
- * The keys that walk toward something at `turn` radians from the view's heading, left positive. A held
- * key walks one straight line, fixed in the world when it goes down (core/player/move.ts): nothing
- * curves, so the words name the nearest of the eight lines two keys can walk, always within about 22
- * degrees of the target. Behind, that ends in S, straight back; the view comes round behind Pip as it goes.
- */
-export function keyToward(turn: number, offAhead = false): string {
-  // 0 ahead .. 4 straight back; a target the words call "on your left" is never "hold W".
-  const eighth = Math.max(offAhead ? 1 : 0, Math.round(Math.abs(turn) / (Math.PI / 4)));
-  const side = turn > 0 ? 'A' : 'D';
-  return ['W', `W and ${side}`, side, `S and ${side}`, 'S'][Math.min(4, eighth)];
-}
-
 /** "1:05" or "24s": the same clock the activity panel shows. */
 export function clock(seconds: number): string {
   const whole = Math.max(0, Math.round(seconds));
@@ -40,11 +27,9 @@ export const WORDS = {
   rings: (got: number, total: number): string => `Rings ${got} of ${total}`,
   /**
    * Which way the next ring is: critic round 18 took 0 of 5 and 3 of 12 steering by eye, and called the
-   * rings luck. The key is named until it has been used (`keys` false after two rings): critic round 26
-   * steered by the words and never looked at the rings.
+   * rings luck. No key: the director's call (round 47), the opening teaches walking and steering.
    */
-  sledRing: (way: 'left' | 'right' | 'on', keys = true): string =>
-    way === 'on' ? 'On line for the ring' : `Ring to your ${way}${keys ? `: hold ${way === 'left' ? 'A' : 'D'}` : ''}`,
+  sledRing: (way: 'left' | 'right' | 'on'): string => (way === 'on' ? 'On line for the ring' : `Ring to your ${way}`),
   // "Your fastest yet" only beats an earlier run (critic round 8 was praised for a first run with one
   // ring), and a run that missed most rings says where they are instead.
   sledResult: (seconds: number, got: number, total: number, best: boolean, par = ''): string =>
@@ -78,11 +63,10 @@ export const WORDS = {
   /** Added to a result card the first time an activity is played to its end. */
   firstBells: (n: number): string => `+${n} bells for a first go`,
   /** Where the next gate is, from the camera's view: critic round 17 lost the lantern line with it behind them. */
-  // Off to a side or behind, it names the keys that walk there (keyToward): "over your right
-  // shoulder" (critic round 20) and "hold D to come round" (round 31) both left Pip walking off sideways.
-  // Every way names its key, ahead too: critic round 35 read "6 u ahead" with no key and took it for none.
-  gateWay: (metres: number, way: 'ahead' | 'left' | 'right' | 'behind', turn: number): string =>
-    `${Math.round(metres)} u ${way === 'ahead' ? 'ahead' : way === 'behind' ? 'behind you' : `on your ${way}`}, hold ${keyToward(turn, way !== 'ahead')}`,
+  // The way, not the keys: the director's call (round 47). The opening teaches walking; live "hold D"
+  // words on every gate were hand-holding.
+  gateWay: (metres: number, way: 'ahead' | 'left' | 'right' | 'behind'): string =>
+    `${Math.round(metres)} u ${way === 'ahead' ? 'ahead' : way === 'behind' ? 'behind you' : `on your ${way}`}`,
   // Woodpile: a crooked press, before the log came square or after it swung past.
   woodEarly: 'Too soon. Let it swing square first',
   woodLate: 'Too late. Wait for it to swing back square',
@@ -90,7 +74,8 @@ export const WORDS = {
   woodNow: 'Square — press E',
   stoneNow: 'Over the gap — press E',
   /** The dam (damHand.ts): the current pushes the stone off its gap and Pip holds it there. */
-  stoneSteer: (key: 'A' | 'D' | 'W' | 'S'): string => `The current has it. Hold ${key} to bring it over the gap`,
+  stoneSteer: (key: 'A' | 'D' | 'W' | 'S'): string =>
+    `The current has it. Bring it back over the gap, ${{ A: 'to your left', D: 'to your right', W: 'away from you', S: 'toward you' }[key]}`,
   stoneHold: 'The current has it. Steer it back over the gap',
   stoneOff: 'Not over the gap. Hold it there first, then press E',
   stoneMash: 'Easy: one press, once it sits over the gap',
@@ -113,7 +98,8 @@ export const WORDS = {
   // The aurora's long exposure: holding the frame still; the frame has drifted off.
   exposeHold: 'Shutter open. Hold it still on the star',
   // It says which way: critic round 31 missed, saw the star drift off the frame, and found it by eye.
-  exposeDrift: (key: 'A' | 'D' | 'W' | 'S'): string => `It drifted. Ease it back onto the star: hold ${key}`,
+  exposeDrift: (key: 'A' | 'D' | 'W' | 'S'): string =>
+    `It drifted. Ease it back ${{ A: 'to the left', D: 'to the right', W: 'up', S: 'down' }[key]}, onto the star`,
   // Throw result
   // A full round says so; a short one says how close and how to go again, as the bell does. Critic round
   // 35 was left with a bare "1 of 3 hits".
@@ -135,7 +121,7 @@ export const WORDS = {
       ? `${side === 'short' ? 'Fell short' : 'Sailed over'}${timing ? `: ${ARC_WAS[side][timing]}. Let go ${timing === 'early' ? 'later' : 'sooner'}` : ''}`
       : side ? `Missed, wide ${side}` : 'Missed, by a whisker',
   // The aim line's cue, until the throw is lined up; A turns the aim left, D right.
-  throwTurn: (way: 'left' | 'right'): string => `Aim ${way} (${way === 'left' ? 'A' : 'D'})`,
+  throwTurn: (way: 'left' | 'right'): string => `Aim ${way}`,
   throwOn: 'Lined up: hold E',
   /** While E is held: the strength is the player's to judge, by the arc. */
   throwDrawing: 'Let go as the arc reaches it',
@@ -150,19 +136,17 @@ export const WORDS = {
   // Skate result
   skateResult: (seconds: number): string => `Down on the ice after ${seconds.toFixed(1)}s. Up again whenever.`,
   skateLap: 'Round the Reach and upright the whole way.',
-  // The meter's side, said as the key that rights it: "Balance right" read as the way to press. Once the
-  // lap is under way the key steps back, and comes back when a fall is close.
-  skateTip: (side: 'left' | 'right'): string => `Tipping ${side} — hold ${side === 'right' ? 'A' : 'D'}`,
+  // The way Pip is tipping; righting it is the player's to do (no key named, the director's call, round 47).
+  skateTip: (side: 'left' | 'right'): string => `Tipping ${side}`,
   /** Off the edge on the ice, large in the middle of the view. */
-  cueSkate: (side: 'left' | 'right'): string => `Hold ${side === 'right' ? 'A' : 'D'}!`,
+  cueSkate: (side: 'left' | 'right'): string => `Tipping ${side}!`,
   skateSteady: 'Steady',
   /** Pip rode out a wobble that would have been a fall; `left` more of those before one is. */
   skateCaught: (left: number): string => `Whoa, caught it${left === 0 ? '. Next one is a fall' : ''}`,
   // Kite readouts and result
   kiteLow: 'Keep it in the rising snow',
-  // Out of the lift: which way it is, and the key that walks the kite there. Critic round 34 lost the
-  // key once the kite had risen and was left with "Lift is left".
-  kiteLift: (side: 'left' | 'right'): string => `Lift is ${side} — hold ${side === 'left' ? 'A' : 'D'}`,
+  // Out of the lift: which way it is. No key named (the director's call, round 47).
+  kiteLift: (side: 'left' | 'right'): string => `Lift is ${side}`,
   // Shown while the kite is inside the rising snow and climbing.
   kiteRising: 'In the lift. Up it goes',
   // Counts the hold down: critic round 29 read "Hold it there" with no idea for how long.

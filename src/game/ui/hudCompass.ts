@@ -18,7 +18,6 @@
  */
 
 import { icon } from './icons';
-import { keyToward } from '../activities/activityWords';
 
 type Point = { x: number; z: number };
 
@@ -44,11 +43,6 @@ export interface CompassView {
    * diamond each under the strip, beside the followed errand's filled one. In front of the view only.
    */
   errands?: readonly Point[];
-  /**
-   * Whether "behind you" names the key that walks there. Off while an activity runs: critic round 42 read
-   * "behind you, hold A" over the pinecone toss, where A aims.
-   */
-  keys?: boolean;
 }
 
 export interface HudCompass {
@@ -200,10 +194,9 @@ export function createHudCompass(layer: HTMLElement): HudCompass {
       // Behind, the pinned diamond alone reads as "over there, a bit": the chevrons say which way round.
       const behind = Math.abs(rel) > HALF;
       showTurn(!behind ? 0 : turnSide !== 0 && Math.abs(rel) > ASTERN ? turnSide : Math.sign(rel) || 1);
-      // Behind, it names the key that walks there, as the errand's line does: critic round 40 read
-      // "behind you" on the way to the mast with no key, and pushed W into the ridge.
+      // Behind, it says so, as the errand's line does. No key named: the director's call (round 47).
       saidBehind = Math.abs(rel) > HALF + (saidBehind ? -BEHIND_GIVE : BEHIND_GIVE);
-      const text = `${Math.round(v.goalDistance ?? Math.hypot(v.goal.x - v.from.x, v.goal.z - v.from.z))} u${saidBehind ? (v.keys === false ? ' · behind you' : ` · behind you, hold ${keyToward(-rel)}`) : ''}`;
+      const text = `${Math.round(v.goalDistance ?? Math.hypot(v.goal.x - v.from.x, v.goal.z - v.from.z))} u${saidBehind ? ' · behind you' : ''}`;
       if (text !== lastDist) {
         lastDist = text;
         dist.textContent = text;
