@@ -15,7 +15,14 @@ import type { ActivityRunner } from './activityRunner';
 import type { DialogueFlow } from './dialogueFlow';
 import type { Mechanics } from './mechanics';
 import { NPCS } from '../../data/npcs';
+import { PICKUPS } from '../../data/pickups';
 import { SPECIES_SIZE } from '../world/npcSpecies';
+
+/** What the counter says when Pip cannot pay. */
+const WORDS_SHOP = {
+  short: (price: number, have: number): string =>
+    `One of Gus's feathers: ${price} bells. You have ${have}. Bells come from errands, games and the snow`,
+};
 
 /** Pip's own half-width, and the gap kept between the two bodies while they talk. */
 const PIP_BULK = 0.45;
@@ -78,6 +85,15 @@ export function interact(d: InteractVerbDeps): void {
       p.vel.x = p.vel.y = p.vel.z = 0;
     }
     d.runner.start(def);
+    return;
+  }
+
+  // Something for sale (Gus's feathers): bought on the press, or told what it costs and where bells come from.
+  if (target.kind === 'pickup') {
+    const p = PICKUPS.find((x) => x.id === target.id);
+    if (!p || p.price === undefined || d.state.flags[`picked:${p.id}`]) return;
+    if (d.state.bells >= p.price) d.mech.collect(p.id, p.kind, p.price);
+    else d.bus.emit('toast', { text: WORDS_SHOP.short(p.price, d.state.bells), icon: 'feather', tier: 'discovery' });
     return;
   }
 

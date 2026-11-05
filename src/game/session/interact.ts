@@ -28,7 +28,11 @@ export const LANTERN_PASS = 6;
 /** The reach E has on this villager. The tutorial's talk hint shows only inside it. */
 export const talkReach = (n: Pick<NpcDef, 'radius'>): number => Math.max(n.radius ?? 0, NPC_RADIUS);
 
-/** Everything the player can press E on. Pickups are collected by proximity, not by pressing. */
+/**
+ * Everything the player can press E on. Pickups are collected by proximity, not by pressing, except one
+ * with a price: Gus's feathers are bought with E. Critic round 26 walked onto one, lost 40 bells without
+ * a prompt, and only noticed afterwards.
+ */
 export function buildInteractables(
   sampler: TerrainSampler,
   npcs: readonly NpcDef[],
@@ -60,6 +64,16 @@ export function buildInteractables(
     }
   }
   for (const p of pickups) {
+    if (p.price !== undefined) {
+      out.push({
+        kind: 'pickup',
+        id: p.id,
+        pos: { x: p.pos.x, y: sampler.heightAt(p.pos.x, p.pos.z), z: p.pos.z },
+        radius: PICKUP_RADIUS + 0.6,
+        prompt: `Buy · ${p.price} bells`,
+      });
+      continue;
+    }
     if (p.kind !== 'lantern') continue;
     out.push({
       kind: 'lantern',

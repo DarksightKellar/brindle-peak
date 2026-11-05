@@ -20,13 +20,15 @@ import { FINALE_QUEST } from '../../data/quests';
  * The lantern sentence rides along once the lantern is owned, the call has not gone out and the goal
  * lies in another zone: before the lantern it pointed at posts the player could not light.
  */
-export function goalLine(s: GameState, main: GuideStep | null): string {
+export function goalLine(s: GameState, main: GuideStep | null, unmet: { name: string; zone: string } | null = null): string {
   if (main) {
     // Only on the way: standing in the step's own zone, "the way up" is behind you.
     const lanterns = s.abilities.lantern && s.quests[FINALE_QUEST]?.status !== 'complete' && s.zone !== main.zone;
     return lanterns ? `${main.stepText} The lantern posts mark the way up.` : main.stepText;
   }
-  // No story step live: either it has not begun (Nana starts it) or every chapter is done.
+  // No story step live: either it has not begun (Nana starts it) or every chapter is done. Done, it sends
+  // Pip to someone not yet met (core/guide/goal.ts), the way Edda's "go and say hello" does.
+  if (unmet) return `The valley's talking again. Go and say hello to ${unmet.name}, in ${unmet.zone}.`;
   return s.talked.nana
     // It names the errands, so the line under it (an errand still open) reads as the same advice. Critic
     // round 22 read "finish the field notes" over "Ask Skiff about the flour" and took them to disagree.

@@ -139,13 +139,33 @@ export class RaceActivity implements ActivityInstance {
         out.push({ shape: 'ring', look: look === 'hoop' ? 'hoop' : 'arch', x: g.x, y: this.baseOf(i), z: g.z, yaw, strength });
       }
     }
-    const target = gates[this.next];
+    const aim = this.aimIndex();
+    const target = gates[aim];
     if (target) {
-      const y = this.baseOf(this.next) + (look === 'hoop' ? 2 : 0);
+      const y = this.baseOf(aim) + (look === 'hoop' ? 2 : 0);
       out.push({ shape: 'ring', look: 'beam', x: target.x, y, z: target.z, yaw: 0, size: 1 });
       out.push(...this.pointer(target));
     }
     return out;
+  }
+
+  /**
+   * The gate the arrow and the words point at: the next one, or for hoops in the air the first not yet
+   * flown past. A missed hoop is skipped by flying the next (`advanceGates`' skip), but the arrow kept
+   * pointing back at it: critic round 26 missed hoop 1 and was told "behind you" all the way down.
+   */
+  private aimIndex(): number {
+    const { gates } = this.course;
+    let i = this.next;
+    if (this.course.look !== 'hoop' || !this.runner) return i;
+    const p = this.runner;
+    while (i < gates.length - 1) {
+      const yaw = gateYaw(this.def.pos, gates, i);
+      const past = (p.x - gates[i].x) * Math.sin(yaw) + (p.z - gates[i].z) * Math.cos(yaw);
+      if (past < 1.5) break;
+      i++;
+    }
+    return i;
   }
 
   /** The arrow over Pip's head to the next gate (pointer.ts): gates in a wood are behind trunks more often than not. */
@@ -170,11 +190,16 @@ export class RaceActivity implements ActivityInstance {
     const shown = Math.min(this.next + 1, total);
     const label = this.course.look === 'hoop' ? WORDS.hoops(shown, total)
       : this.course.look === 'lantern' ? WORDS.lanterns(shown, total) : WORDS.gates(shown, total);
-    const g = this.course.gates[this.next], p = this.runner;
+    const aim = this.aimIndex();
+    const g = this.course.gates[aim], p = this.runner;
     if (!g || !p) return { label, fraction: total === 0 ? 0 : this.next / total };
     const turn = angleDelta(this.camYaw, Math.atan2(g.x - p.x, g.z - p.z));
     const way = Math.abs(turn) < WAY_AHEAD ? 'ahead' : Math.abs(turn) > WAY_BEHIND ? 'behind' : turn > 0 ? 'left' : 'right';
-    return { label: `${label} · ${WORDS.gateWay(Math.hypot(g.x - p.x, g.z - p.z), way, turn > 0 ? 'left' : 'right')}`, fraction: total === 0 ? 0 : this.next / total };
+    // A hoop above or below the glide says so: the round-26 critic had a distance and no height.
+    const h = this.course.heights?.[aim];
+    const rise = h !== undefined && Math.abs(h - p.y) > HOOP_BAND ? ` · ${WORDS.hoopHeight(h - p.y)}` : '';
+    const lead = aim > this.next ? WORDS.hoops(aim + 1, total) : label;
+    return { label: `${lead} · ${WORDS.gateWay(Math.hypot(g.x - p.x, g.z - p.z), way, turn > 0 ? 'left' : 'right')}${rise}`, fraction: total === 0 ? 0 : this.next / total };
   }
 
   /** Turn to the first gate as the run opens: it is in front of you, not behind the camera. */

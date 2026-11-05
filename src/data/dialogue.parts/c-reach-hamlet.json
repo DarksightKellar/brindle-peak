@@ -299,24 +299,26 @@
   {
     "id": "orla-berrand",
     "speaker": "orla",
+    "fill": "orla-lamps",
     "lines": [
-      "Photograph the market lamps. Then fetch Gus from his shop, and his bell.",
+      "Then go and get Gus from his shop, and his bell.",
       "Then come back and tell me the queue's fed."
     ]
   },
   {
     "id": "orla-bwait",
     "speaker": "orla",
+    "fill": "orla-lamps-wait",
     "lines": [
-      "You're back. The queue's still out the door.",
-      "The market lamps first, on the camera. Then Gus, from the bell shop, and his bell."
+      "Then go and get Gus from the bell shop, with his bell."
     ]
   },
   {
     "id": "orla-bstill",
     "speaker": "orla",
+    "fill": "orla-lamps-still",
     "lines": [
-      "The market lamps on the camera, love. Then Gus, from the bell shop, and his loud bell."
+      "Then go and get Gus from the bell shop, with his loud bell."
     ]
   },
   {
@@ -527,24 +529,25 @@
   {
     "id": "gus-errand",
     "speaker": "gus",
+    "fill": "gus-ring",
     "lines": [
-      "Ring the shop bell. One clean strike. No rattle.",
       "Then ask Pell how far the sound travelled. He'll know. He hears every door."
     ]
   },
   {
     "id": "gus-wait",
     "speaker": "gus",
+    "fill": "gus-ring-wait",
     "lines": [
-      "You're back! The shop bell's right there. One clean strike.",
       "Then ask Pell, out on his round, how far it carried."
     ]
   },
   {
     "id": "gus-still",
     "speaker": "gus",
+    "fill": "gus-ring-still",
     "lines": [
-      "The shop bell! One clean strike! Then ask Pell, the postmaster, how far it carried."
+      "Then ask Pell, the postmaster, how far it carried."
     ]
   },
   {

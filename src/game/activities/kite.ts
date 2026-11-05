@@ -99,6 +99,8 @@ export class KiteActivity implements ActivityInstance {
   private hand = { x: 0, y: 0, z: 0 };
   /** A / D as last pressed, eased, so the kite banks into the turn. */
   private steer = 0;
+  /** The kite has climbed in the lift once: the words stop naming the key for it. */
+  private rose = false;
   private stage: 'fly' | 'done' | 'aborted' = 'fly';
   private outcome: ActivityResult | null = null;
   private paid = false;
@@ -114,6 +116,7 @@ export class KiteActivity implements ActivityInstance {
     // Just right of the column: one press of A and the kite is in it and climbing.
     this.side = liftAt(0) + KITE.lane * 1.3;
     this.steer = 0;
+    this.rose = false;
     this.height = KITE.start;
     this.held = 0;
     this.outcome = null;
@@ -133,6 +136,7 @@ export class KiteActivity implements ActivityInstance {
     const off = this.inLift() > 0 ? 0 : Math.sign(this.side - liftAt(this.t)) * KITE.slide;
     this.side = clamp(this.side + (host.input.moveX * KITE.steer + off) * step, -1, 1);
     this.steer += (host.input.moveX - this.steer) * Math.min(1, step * 10);
+    if (this.inLift() > 0.25) this.rose = true;
     const lift = Math.min(1, this.inLift() * 1.8);
     const sink = this.height >= KITE.line ? KITE.sinkAbove : KITE.sink;
     this.height = clamp(this.height + (KITE.climb * lift - sink) * step, KITE.floor, KITE.ceiling);
@@ -249,7 +253,7 @@ export class KiteActivity implements ActivityInstance {
     const above = this.height >= KITE.line;
     const fraction = above ? 0.8 + 0.2 * (this.held / KITE.hold) : 0.8 * ((this.height - KITE.floor) / (KITE.line - KITE.floor));
     const label = above ? WORDS.kiteHigh : this.inLift() > 0.25 ? WORDS.kiteRising
-      : liftAt(this.t) < this.side ? WORDS.kiteLeft : WORDS.kiteRight;
+      : WORDS.kiteLift(liftAt(this.t) < this.side ? 'left' : 'right', !this.rose);
     return { label, fraction: clamp(fraction, 0, 1), urgent: above };
   }
 

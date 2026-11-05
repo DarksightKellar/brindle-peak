@@ -102,6 +102,19 @@ describe('race', () => {
     expect(race.isComplete()).toBe(false);
   });
 
+  it('a hoop flown past unthreaded is not pointed back at; the next one is, with its height (critic round 26)', () => {
+    const d = def('race', 'peak-thermal-flight', { x: 352, z: -364 });
+    const race = createRaceActivity(d);
+    const h = host({ x: d.pos.x, y: 90, z: d.pos.z });
+    race.start(h);
+    const [first, second] = RACE_COURSES['peak-thermal-flight'].gates;
+    // Well past hoop 1 along the line to hoop 2, and far above both.
+    h.playerPos = { x: first.x + (second.x - first.x) * 0.4, y: 95, z: first.z + (second.z - first.z) * 0.4 };
+    step(race, h);
+    expect(race.gatesPassed).toBe(0);
+    expect(race.progress()?.label).toMatch(/^Hoop 2 of 8 · .* · \d+ u below you: ease off Space to sink$/);
+  });
+
   it('keeps every lantern post up and lights the ones passed', () => {
     const d = def('race', 'ridge-lantern-ascent', { x: 168, z: -140 });
     const race = createRaceActivity(d);
@@ -209,6 +222,10 @@ describe('build', () => {
       const moveX = key ? (key === 'D' ? 1 : -1) : Math.max(-1, Math.min(1, (-watched.stoneOff * 4) / k.d));
       const now = watched.squareNow && f - last > 30;
       if (watched.squareNow) expect(said).toMatch(/^Over the gap — press E · /);
+      // After two stones the key steps back (round 27), unless a stone sits at the end of its reach.
+      if (!watched.squareNow && watched.placed >= 2 && Math.abs(watched.stoneOff) < 1.4 && !/^Not over|^Easy/.test(said)) {
+        expect(said).toMatch(/^The current has it\. Steer it back over the gap · /);
+      }
       if (now) last = f;
       step(watched, h, { moveX, interactPressed: now });
     }

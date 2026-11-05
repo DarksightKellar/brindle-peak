@@ -18,7 +18,7 @@ import type {
 import type { PlacedMarker } from './markerLooks';
 import { heapLeft, nounFor, placePiece, siteFor, stepsFor, type BuildSite, type Piece } from './buildSites';
 import { WORDS } from './activityWords';
-import { DamHand } from './damHand';
+import { DAM, DamHand } from './damHand';
 import { LogHand } from './logHand';
 
 export const BUILD = {
@@ -238,7 +238,8 @@ export class BuildActivity implements ActivityInstance {
     const miss = this.stone.miss(this.elapsed);
     if (miss) return miss === 'mash' ? WORDS.stoneMash : WORDS.stoneOff;
     if (this.squareNow) return WORDS.stoneNow;
-    const key = this.homeKey();
+    // The key is named for the first two stones, and again when a stone sits at the end of its reach.
+    const key = this.stage < 2 || Math.abs(this.stone.off) >= DAM.reach - 0.05 ? this.homeKey() : null;
     return key ? WORDS.stoneSteer(key) : WORDS.stoneHold;
   }
 

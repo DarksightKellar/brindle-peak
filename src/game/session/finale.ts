@@ -13,6 +13,7 @@
  */
 
 import type { GameState } from '../../core/contracts';
+import { ACTIVITIES } from '../../data/activities';
 import { PICKUPS } from '../../data/pickups';
 import { QUESTS } from '../../data/quests';
 import { ZONES } from '../../data/zones';
@@ -29,6 +30,7 @@ export function createFinale(
     ending.show(endingStats(state, {
       feathers: PICKUPS.filter((p) => p.kind === 'feather').length,
       errands: QUESTS.filter((q) => q.main !== true).map((q) => q.id),
+      activities: ACTIVITIES.map((a) => a.id),
       zones: ZONES.length,
     }));
   };

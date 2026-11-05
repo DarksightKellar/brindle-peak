@@ -18,6 +18,9 @@ import type {
 } from '../../core/contracts';
 import { WORDS } from './activityWords';
 
+/** Seconds into a lap after which the balance words stop naming the key, unless a fall is close. */
+const SKATE_TAUGHT = 8;
+
 export const SKATE = {
   /**
    * The ice breathes: a slow, wide wander big enough to need a correction about once a
@@ -175,7 +178,9 @@ export class SkateActivity implements ActivityInstance {
   progress(): ActivityReadout | null {
     const b = this.balanceState;
     const off = isOffCentre(b.balance);
-    const tip = b.balance > SKATE.steady ? WORDS.skateTipRight : b.balance < -SKATE.steady ? WORDS.skateTipLeft : WORDS.skateSteady;
+    // The keys are said for the first stretch of the lap and again when a fall is close.
+    const keys = this.elapsed < SKATE_TAUGHT || (off && b.offCentreFor > SKATE.fallAfter * 0.5);
+    const tip = b.balance > SKATE.steady ? WORDS.skateTip('right', keys) : b.balance < -SKATE.steady ? WORDS.skateTip('left', keys) : WORDS.skateSteady;
     const warn = off ? ` · falling in ${Math.max(0, SKATE.fallAfter - b.offCentreFor).toFixed(1)}s` : '';
     const caught = this.elapsed - this.caughtAt < SKATE.caughtFor ? `${WORDS.skateCaught(this.catchesLeft)} · ` : '';
     return {

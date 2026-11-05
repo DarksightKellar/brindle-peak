@@ -20,7 +20,7 @@
 import type { GameState, PlayerState, Vec2, Vec3 } from '../../core/contracts';
 import type { GuideContent } from '../../core/guide/nextStep';
 import { formatNextStep, nextStepFor } from '../../core/guide/nextStep';
-import { goalTarget } from '../../core/guide/goal';
+import { goalTarget, unmetAfterStory } from '../../core/guide/goal';
 import { routeAim } from '../../core/guide/route';
 import { errandLineFor, type ErrandLine } from './errandLine';
 import { goalLine } from './hudText';
@@ -178,7 +178,8 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
 
       if (!held) {
         const main = guide ? nextStepFor(s, p.pos, guide, 'main') : null;
-        const goal = goalLine(s, main);
+        const unmet = guide && !main ? unmetAfterStory(s, p.pos, guide) : null;
+        const goal = goalLine(s, main, unmet?.name ? { name: unmet.name, zone: guide?.zoneNames[unmet.zone] ?? '' } : null);
         if (goal !== lastGoal) {
           lastGoal = goal;
           goalEl.textContent = goal;

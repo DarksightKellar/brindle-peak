@@ -23,9 +23,13 @@ const ARC_WAS = {
 export const WORDS = {
   // Sled readout and result
   rings: (got: number, total: number): string => `Rings ${got} of ${total}`,
-  /** Which way the next ring is: critic round 18 took 0 of 5 and 3 of 12 steering by eye, and called the rings luck. */
-  sledRing: (way: 'left' | 'right' | 'on'): string =>
-    way === 'on' ? 'On line for the ring' : `Ring to your ${way}: hold ${way === 'left' ? 'A' : 'D'}`,
+  /**
+   * Which way the next ring is: critic round 18 took 0 of 5 and 3 of 12 steering by eye, and called the
+   * rings luck. The key is named until it has been used (`keys` false after two rings): critic round 26
+   * steered by the words and never looked at the rings.
+   */
+  sledRing: (way: 'left' | 'right' | 'on', keys = true): string =>
+    way === 'on' ? 'On line for the ring' : `Ring to your ${way}${keys ? `: hold ${way === 'left' ? 'A' : 'D'}` : ''}`,
   // "Your fastest yet" only beats an earlier run (critic round 8 was praised for a first run with one
   // ring), and a run that missed most rings says where they are instead.
   sledResult: (seconds: number, got: number, total: number, best: boolean): string =>
@@ -102,20 +106,23 @@ export const WORDS = {
   throwDrawing: 'Let go as the arc reaches it',
   /** While E is held and the arc is bold: letting go now hits. */
   throwNow: 'Let go!',
+  /** A hoop well above or below the glide: flap to climb, or let the glide go a moment to sink. */
+  hoopHeight: (dy: number): string => (dy > 0 ? `${Math.round(dy)} u above you: flap (Space)` : `${Math.round(-dy)} u below you: ease off Space to sink`),
   // Skate result
   skateResult: (seconds: number): string => `Down on the ice after ${seconds.toFixed(1)}s. Up again whenever.`,
   skateLap: 'Round the Reach and upright the whole way.',
-  // The meter's side, said as the key that rights it: "Balance right" read as the way to press.
-  skateTipRight: 'Tipping right — hold A',
-  skateTipLeft: 'Tipping left — hold D',
+  // The meter's side, said as the key that rights it: "Balance right" read as the way to press. Once the
+  // lap is under way the key steps back, and comes back when a fall is close.
+  skateTip: (side: 'left' | 'right', keys: boolean): string =>
+    `Tipping ${side}${keys ? ` — hold ${side === 'right' ? 'A' : 'D'}` : ''}`,
   skateSteady: 'Steady',
   /** Pip rode out a wobble that would have been a fall; `left` more of those before one is. */
   skateCaught: (left: number): string => `Whoa, caught it${left === 0 ? '. Next one is a fall' : ''}`,
   // Kite readouts and result
   kiteLow: 'Keep it in the rising snow',
-  // Out of the lift: which way it is, as the key to press.
-  kiteLeft: 'Lift is left — hold A',
-  kiteRight: 'Lift is right — hold D',
+  // Out of the lift: which way it is, as the key to press until the kite has risen in it once.
+  kiteLift: (side: 'left' | 'right', keys: boolean): string =>
+    `Lift is ${side}${keys ? ` — hold ${side === 'left' ? 'A' : 'D'}` : ''}`,
   // Shown while the kite is inside the rising snow and climbing.
   kiteRising: 'In the lift. Up it goes',
   kiteHigh: 'Over the crest lights. Hold it there',

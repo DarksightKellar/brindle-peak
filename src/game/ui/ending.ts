@@ -21,6 +21,9 @@ export interface EndingStats {
   bells: number;
   questsDone: number;
   questsTotal: number;
+  /** Activities played to a result at least once, of all of them. */
+  triedDone: number;
+  triedTotal: number;
   zonesSeen: number;
   zonesTotal: number;
   playtime: number;
@@ -89,7 +92,10 @@ export function createEnding(root: HTMLElement): Ending {
       statsEl.innerHTML = [
         row('Feathers', `${stats.feathers} of ${stats.feathersTotal}`),
         row('Bells', String(stats.bells)),
-        row('Side errands finished', `${stats.questsDone} of ${stats.questsTotal}`),
+        // Two rows, two things: critic round 26 read "1 of 18" errands beside seven activities played and
+        // took the card to be counting what they had done, stingily.
+        row('Errands for villagers', `${stats.questsDone} of ${stats.questsTotal}`),
+        row('Things tried', `${stats.triedDone} of ${stats.triedTotal}`),
         row('Zones walked', `${stats.zonesSeen} of ${stats.zonesTotal}`),
         row('Time on the mountain', spokenTime(stats.playtime)),
       ].join('');
@@ -119,7 +125,7 @@ export function valleyText(lines: readonly string[], more: number): string {
 /** Gather the numbers the ending reports. Kept out of the UI so the panel stays dumb. */
 export function endingStats(
   state: GameState,
-  totals: { feathers: number; errands: readonly string[]; zones: number },
+  totals: { feathers: number; errands: readonly string[]; activities?: readonly string[]; zones: number },
 ): EndingStats {
   // Errands only, not the story's chapters: critic round 18 read "7 of 22" here, the story counted in
   // and its last chapter not yet closed, and then 8 done in the journal.
@@ -131,6 +137,8 @@ export function endingStats(
     bells: state.bells,
     questsDone,
     questsTotal: totals.errands.length,
+    triedDone: (totals.activities ?? []).filter((id) => (state.counters[`activity:${id}`] ?? 0) > 0).length,
+    triedTotal: (totals.activities ?? []).length,
     zonesSeen: Object.values(state.visited).filter(Boolean).length,
     zonesTotal: totals.zones,
     playtime: state.playtime,

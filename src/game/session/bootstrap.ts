@@ -151,6 +151,7 @@ export function bootstrap(opts: BootOptions): Booted {
   const activityById = new Map(ACTIVITIES.map((a) => [a.id, a]));
   const interactions = createInteractionSystem((i) => {
     if (i.kind === 'lantern') return state.abilities.lantern && !state.lanterns[i.id] && !wayHome.lit(i.id);
+    if (i.kind === 'pickup') return state.flags[`picked:${i.id}`] !== true;
     const def = i.kind === 'activity' ? activityById.get(i.id) : undefined;
     return def === undefined || activityOffered(def, state);
   }, (i) => i.kind === 'activity' && questWants(i.id, state));

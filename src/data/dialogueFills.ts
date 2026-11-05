@@ -43,6 +43,11 @@ export const DIALOGUE_SKIPS: Readonly<Record<string, (s: GameState) => boolean>>
   Object.entries(RADIO_VOICES).map(([node, npc]) => [node, (s: GameState) => s.talked[npc] !== true]),
 );
 
+/** Gus's shop bell has been rung clean, whoever asked. */
+const rung = (s: GameState): boolean => (s.counters['activity:hamlet-bell-throw:clean'] ?? 0) > 0;
+/** The market lamp is on the camera. */
+const lamps = (s: GameState): boolean => (s.counters['activity:hamlet-market-photo'] ?? 0) > 0;
+
 export const DIALOGUE_FILLS: Readonly<Record<string, (s: GameState) => string[]>> = {
   // Edda signs off knowing who stayed quiet because Pip has not met them, and says where they are: the
   // roll-call ends by pointing at the valley still to see.
@@ -73,6 +78,14 @@ export const DIALOGUE_FILLS: Readonly<Record<string, (s: GameState) => string[]>
       ? "Kettle Springs here. Dam's whole again, and the pools are steaming."
       : "Kettle Springs here. Pools are cooling, but there's warm enough yet.",
   ],
+  // Done before it was asked for: the errand moves on, and the words now know it (critic round 26 rang the
+  // bell, then heard Gus ask for it to be rung; photographed the lamps, then heard Orla ask for the photo).
+  'gus-ring': (s) => [rung(s) ? "You've rung it already? I thought I heard something. Clean, was it?" : 'Ring the shop bell. One clean strike. No rattle.'],
+  'gus-ring-wait': (s) => [rung(s) ? "You're back! You rang it, I know. Now, did it carry?" : "You're back! The shop bell's right there. One clean strike."],
+  'gus-ring-still': (s) => [rung(s) ? 'You rang it! I heard!' : 'The shop bell! One clean strike!'],
+  'orla-lamps': (s) => [lamps(s) ? "You've the lamps on the camera already? Then that's done." : 'Photograph the market lamps.'],
+  'orla-lamps-wait': (s) => [lamps(s) ? "You're back. The queue's still out the door. The lamps are done, I saw." : "You're back. The queue's still out the door. The market lamps first, on the camera."],
+  'orla-lamps-still': (s) => [lamps(s) ? 'The lamps are in the window now, love.' : 'The market lamps on the camera, love.'],
   // Critic round 19 rebuilt the dam before meeting Ivy, and she still asked for the stones back.
   'ivy-dam': (s) => [
     (s.counters['activity:kettles-dam-build'] ?? 0) > 0

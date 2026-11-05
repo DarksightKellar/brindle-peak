@@ -29,6 +29,8 @@ export interface GuideNpc {
   id: string;
   zone: ZoneId;
   pos: Vec2;
+  /** Said by the goal line after the story, to send Pip to someone not yet met. */
+  name?: string;
 }
 
 export interface GuideActivity {

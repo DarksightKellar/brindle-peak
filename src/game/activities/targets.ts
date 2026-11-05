@@ -34,6 +34,10 @@ export { targetAngle } from './throwSetups';
  * throw still rings; strong ones carry it past the bell unless the aim leans into them.
  */
 const BELL_WIND = [0.9, -0.5, -1, 0.35, 0.75, -0.85, 1, -0.6] as const;
+/** Within this many radians of the mark, A / D turn the aim at FINE_TURN of full speed. */
+const FINE_AIM = 0.12;
+const FINE_TURN = 0.4;
+
 /** How far a full gust carries a straight throw sideways by the time it reaches the bell, metres. */
 const WIND_DRIFT = 2;
 
@@ -211,7 +215,13 @@ export class TargetActivity implements ActivityInstance {
     this.feet = { ...host.playerPos };
     this.camYaw = host.cameraYaw;
     if (this.draw >= 0 && this.locked >= 0) this.follow(this.locked);
-    else this.aim = turnAim(this.aim, host.input.moveX, step);
+    else {
+      // Slower near the mark, so a tap settles on it: critic round 26 watched the cue flip between "Aim
+      // right" and "Lined up" with every press.
+      const goal = this.bell ? this.bellAim() : this.nearestToAim()?.bearing ?? null;
+      const fine = goal !== null && Math.abs(angleDelta(this.aim, goal)) < FINE_AIM;
+      this.aim = turnAim(this.aim, host.input.moveX * (fine ? FINE_TURN : 1), step);
+    }
 
     if (this.draw < 0) {
       if (pressed && this.decidedAt < 0 && this.cooldown <= 0 && this.throwsLeft > 0 && this.shots.length === 0) {
