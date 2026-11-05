@@ -52,6 +52,12 @@ export const DIALOGUE_FILLS: Readonly<Record<string, (s: GameState) => string[]>
     const list = unmet.length === 1 ? unmet[0] : `${unmet.slice(0, -1).join(', ')} and ${unmet[unmet.length - 1]}`;
     return [`There's more of the valley than came on tonight. ${list[0].toUpperCase()}${list.slice(1)}, for a start.`, "Go and say hello. They'll want to meet the bird who fixed the line."];
   },
+  // Orla asks for a snowman with the flour. Critic round 15 had built one 20 u from her bakery and was
+  // still told not to forget it: she has seen it, or reminds Pip, whichever is true. Said first.
+  'orla-snowman': (s) =>
+    (s.counters['activity:hamlet-snowman'] ?? 0) > 0
+      ? ["Was that your snowman on the green? It leans. I like it."]
+      : ["Still no snowman on the green, I see. Somebody ought to enjoy the snow."],
   // In the card's order, so the threads between two people come first.
   'nana-heard': (s) =>
     VALLEY_LINES.map(([quest]) => quest)

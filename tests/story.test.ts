@@ -169,6 +169,16 @@ describe('a conversation that hands between speakers', () => {
   });
 });
 
+describe('Orla and the snowman', () => {
+  it('reminds Pip until there is one on the green, then says she has seen it', () => {
+    const s = createGameState({ x: 0, y: 0, z: 0 }, 6);
+    expect(DIALOGUE_FILLS['orla-snowman']?.(s)[0]).toMatch(/^Still no snowman/);
+    s.counters['activity:hamlet-snowman'] = 1;
+    expect(DIALOGUE_FILLS['orla-snowman']?.(s)[0]).toMatch(/your snowman/);
+    expect(DIALOGUE['orla-wait']?.fill).toBe('orla-snowman');
+  });
+});
+
 describe('the homecoming hears about errands', () => {
   it('lets Nana mention up to two finished errands before her last lines, and none on a bare run', () => {
     const s = createGameState({ x: 0, y: 0, z: 0 }, 6);

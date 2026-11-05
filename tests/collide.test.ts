@@ -166,4 +166,22 @@ describe('slipping round small props (critic round 11)', () => {
     expect(Math.abs(p.x)).toBeLessThan(0.01);
     expect(p.z).toBeLessThan(-0.5);
   });
+
+  it('keeps sliding one way along a fence met at a shallow angle (critic round 15, the bridge funnel)', () => {
+    // A guide fence 23 degrees off the walk: Pip should slide steadily along it, never back.
+    const fence: Collider = { kind: 'segment', ax: -6, az: -1, bx: 6, bz: 4, r: 0.12, guide: true };
+    const p = { x: 0, z: -3 };
+    const slip = { side: 1, frames: 0 };
+    let last = p.x;
+    let back = 0;
+    for (let i = 0; i < 240; i++) {
+      const from = { x: p.x, z: p.z };
+      p.z += 0.08;
+      resolveWithSlip(from, p, PLAYER, [fence], -Infinity, slip);
+      if (p.x < last - 1e-6) back++;
+      last = p.x;
+    }
+    expect(back).toBe(0);
+    expect(p.x).toBeGreaterThan(5);
+  });
 });

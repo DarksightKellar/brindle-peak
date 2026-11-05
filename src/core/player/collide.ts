@@ -87,6 +87,8 @@ export function resolveCollisions(
 const SLIP_MAX_R = 2.5;
 /** Progress along the step, as a share of it, below which the body counts as stopped. */
 const STOPPED = 0.25;
+/** Distance along a wall, as a share of the step, above which a body that still gains ground is sliding. */
+const SLIDING = 0.3;
 
 function touchesWall(p: { x: number; z: number }, radius: number, colliders: readonly Collider[], height: number): boolean {
   for (const c of colliders) {
@@ -145,7 +147,11 @@ export function resolveWithSlip(
   const ux = mx / m, uz = mz / m;
   const ax = p.x - from.x, az = p.z - from.z;
   const going = slip.frames > 0;
-  if (!going && ax * ux + az * uz > STOPPED * m) return hit;
+  const ahead = ax * ux + az * uz;
+  // Sliding along a slanted fence makes little headway but is still getting somewhere: critic round 15
+  // walked into the bridge's funnel at a shallow angle, a slip took over and walked Pip back down it.
+  const sliding = ahead > 0 && Math.hypot(ax, az) > SLIDING * m;
+  if (!going && (ahead > STOPPED * m || sliding)) return hit;
   if (touchesWall(p, radius, colliders, height)) {
     slip.frames = 0;
     return hit;

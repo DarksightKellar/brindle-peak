@@ -40,9 +40,12 @@ const FRAYED = 2;
 const LIP = 5.9;
 /** Fence near the bridge, snowbank beyond: within this many units of the deck, along the gully. */
 const FENCE_REACH = 16;
-/** The lip fence's funnel beside the bridge: how far out past the bridge posts, and how far along. */
-const FUNNEL_OUT = 4;
-const FUNNEL_ALONG = 6;
+/**
+ * The lip fence's funnel beside the bridge: how far out past the bridge posts, and how far along. Critic
+ * round 15 walked at the fence 9 m up the lip, past a 6 m funnel, and stood against it again.
+ */
+const FUNNEL_OUT = 6;
+const FUNNEL_ALONG = 14;
 /** A walking bird is held back; a bird this far above the ground is over it. */
 const LIP_TOP = 0.9;
 
@@ -210,10 +213,11 @@ export function buildTuckBridge(valley: TerrainSampler): TuckBridge {
   for (const side of [-1, 1]) {
     const w0 = xAt(0) - 0.45, w1 = xAt(0) + 1.2, e1 = xAt(1) - 1.2, e0 = xAt(1) + 0.45;
     const zr = zc + side * RAIL, zp = zc + side * POST_OUT;
+    // The flared entry ropes guide like the lip fence does: a walker caught on a post steps round it.
     colliders.push(
-      { kind: 'segment', ax: w0, az: zp, bx: w1, bz: zr, r: 0.08 },
+      { kind: 'segment', ax: w0, az: zp, bx: w1, bz: zr, r: 0.08, guide: true },
       { kind: 'segment', ax: w1, az: zr, bx: e1, bz: zr, r: 0.08 },
-      { kind: 'segment', ax: e1, az: zr, bx: e0, bz: zp, r: 0.08 },
+      { kind: 'segment', ax: e1, az: zr, bx: e0, bz: zp, r: 0.08, guide: true },
     );
   }
   for (const p of posts) colliders.push({ kind: 'circle', x: p.x, z: p.z, r: 0.3 });

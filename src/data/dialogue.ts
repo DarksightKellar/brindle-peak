@@ -119,7 +119,7 @@ export const DIALOGUE: Readonly<Record<string, DialogueNode>> = {
   'orla-chat': n('orla-chat', 'orla', ["Skiff ferries it up the lake each autumn. This year the ice won.","So the sacks sit in his hold, frozen in, and my oven eats wood.","He'll know if any of it's dry. Ask nicely. He sulks about that boat."], { next: 'orla-errand' }),
   'orla-errand': n('orla-errand', 'orla', ["Skiff's boat is iced in, down on the Frozen Reach. He'll know what's aboard.","And the snowman, on the green. Somebody ought to enjoy the snow."], { next: 'orla-pip' }),
   'orla-pip': n('orla-pip', 'pip', ["i'll ask him about the flour.","and build a snowman while i'm at it."]),
-  'orla-wait': n('orla-wait', 'orla', ["No flour? Skiff's telling you about the one that got away, I expect.","Take your time. The oven's holding. Don't forget the snowman."]),
+  'orla-wait': n('orla-wait', 'orla', ["No flour? Skiff's telling you about the one that got away, I expect.","Take your time. The oven's holding."], { fill: 'orla-snowman' }),
   'orla-done': n('orla-done', 'orla', ["The flour's coming? Tonight? Then the oven stays on.","Here. Two tins of soup. One for you, one for Nana.","And Skiff wants the first loaf, does he? He'll get it. Thank you, love."]),
   'orla-news': n('orla-news', 'orla', ["Corm, the raven, says we're closed? I've been open since five.","Flour or no flour, the oven's lit. That's open.","Tell him to come and eat something. Then tell him to check his facts."]),
   'orla-blue': n('orla-blue', 'orla', ["Which house is blue? Mine. Look at the door. I painted it in spring.","Pell asks me this every winter. Then he asks somebody else.","Tell him the bakery. Blue door, flour on the step. He can't miss it."]),

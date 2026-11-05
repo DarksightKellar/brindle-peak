@@ -234,8 +234,9 @@
     "speaker": "orla",
     "lines": [
       "No flour? Skiff's telling you about the one that got away, I expect.",
-      "Take your time. The oven's holding. Don't forget the snowman."
-    ]
+      "Take your time. The oven's holding."
+    ],
+    "fill": "orla-snowman"
   },
   {
     "id": "orla-done",

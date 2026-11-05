@@ -17,7 +17,7 @@ import type {
   TerrainSampler, Vec3,
 } from '../../core/contracts';
 import type { PlacedMarker } from './markerLooks';
-import { launch, previewArc, stepShot, turnAim, type Shot, type Strikeable } from './throwFlight';
+import { aimedTarget, launch, previewArc, stepShot, turnAim, type Shot, type Strikeable } from './throwFlight';
 import { bellTarget, FAN, makeFan, setupFor, targetFoot, type ThrowSetup, type ThrowTarget } from './throwSetups';
 import { WORDS } from './activityWords';
 
@@ -291,8 +291,12 @@ export class TargetActivity implements ActivityInstance {
     let on = false;
     if (aiming && !fresh) {
       on = this.predict() >= 0;
-      const t = on ? null : this.nearestToAim();
-      cue = on ? `${WORDS.throwOn} · ` : t ? `${WORDS.throwTurn(angleDelta(this.aim, t.bearing) > 0 ? 'left' : 'right')} · ` : '';
+      // Coached to the first hit: which way to turn, then "Lined up". After it, the turn is said only
+      // while the aim is well off every target, and the last of the aiming is by eye, the bold arc and
+      // the panel's amber. Critic round 15 hit 3 of 3 reading the words; round 13 hit none without them.
+      const coached = this.hits === 0;
+      const t = on || (!coached && aimedTarget(this.feet, this.aim, this.strikeables()) >= 0) ? null : this.nearestToAim();
+      cue = on ? (coached ? `${WORDS.throwOn} · ` : '') : t ? `${WORDS.throwTurn(angleDelta(this.aim, t.bearing) > 0 ? 'left' : 'right')} · ` : '';
     }
     return {
       label: `${said}${cue}Hits ${Math.min(this.hits, need)} / ${need} · ${this.throwsLeft} left`,
