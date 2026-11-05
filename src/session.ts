@@ -37,7 +37,7 @@ import { DIALOGUE as DIALOGUE_NODES } from './data/dialogue';
 import { bootstrap } from './game/session/bootstrap';
 import { createActivityRunner } from './game/session/activityRunner';
 import { createFrameInput } from './game/session/frameInput';
-import { createPolaroid } from './game/ui/polaroid';
+import { createPolaroid, LENS } from './game/ui/polaroid';
 import { setTuckRopeTied } from './game/world/tuckBridge';
 import { PHOTO_SUBJECTS } from './game/activities/photoSubjects';
 import { WORDS } from './game/activities/activityWords';
@@ -126,7 +126,8 @@ export function createSession(opts: SessionOptions): Session {
     // without the activity's guides before it is copied.
     markers.clear();
     pipeline.render();
-    polaroid.take(id, WORDS.photoResult(PHOTO_SUBJECTS[id]?.what ?? 'view'));
+    const subject = PHOTO_SUBJECTS[id];
+    polaroid.take(id, WORDS.photoResult(subject?.what ?? 'view'), subject?.kind === 'ground' ? LENS : 1);
   });
   const promptAt = createPromptAnchor(kit.camera, opts.canvas, world.npcs);
   // The live instance, kept so its optional first-person view() can steer the camera rig.

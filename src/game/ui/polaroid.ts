@@ -13,11 +13,13 @@
 const KEY = 'first-snow.photo.';
 const WIDTH = 384;
 /**
- * The print is the middle of the frame, this share of it each way: the viewfinder has the subject
- * centred, and the whole frame left it small. Critic round 35's deer was a few brown pixels in a wide
- * field of snow under "The deer, caught on camera". A half is a 2x lens, whole pixels.
+ * A print of a thing on the ground is the middle of the frame, this share of it each way: the viewfinder
+ * has the subject centred, and the whole frame left it small. Critic round 35's deer was a few brown
+ * pixels in a wide field of snow under "The deer, caught on camera". A half is a 2x lens, whole pixels.
+ * The sky keeps the whole frame: the aurora's bright hems run across the top of it, and critic round 36
+ * got a pale lilac middle under "The aurora, caught on camera".
  */
-const LENS = 0.5;
+export const LENS = 0.5;
 /** Seconds the print stays up before it slides away. */
 const SHOW_S = 4.5;
 
@@ -51,7 +53,7 @@ export function forgetPhotos(ids: readonly string[]): void {
   }
 }
 
-function capture(canvas: HTMLCanvasElement): string | null {
+function capture(canvas: HTMLCanvasElement, lens: number): string | null {
   if (canvas.width === 0 || canvas.height === 0) return null;
   const small = document.createElement('canvas');
   small.width = WIDTH;
@@ -59,7 +61,7 @@ function capture(canvas: HTMLCanvasElement): string | null {
   const ctx = small.getContext('2d');
   if (!ctx) return null;
   ctx.imageSmoothingEnabled = false;
-  const sw = canvas.width * LENS, sh = canvas.height * LENS;
+  const sw = canvas.width * lens, sh = canvas.height * lens;
   ctx.drawImage(canvas, (canvas.width - sw) / 2, (canvas.height - sh) / 2, sw, sh, 0, 0, small.width, small.height);
   try {
     return small.toDataURL('image/png');
@@ -69,8 +71,8 @@ function capture(canvas: HTMLCanvasElement): string | null {
 }
 
 export interface Polaroid {
-  /** Print what the canvas shows now, captioned, and keep it under `id`. */
-  take(id: string, caption: string): void;
+  /** Print what the canvas shows now (its middle `lens` of it each way), captioned, and keep it under `id`. */
+  take(id: string, caption: string, lens?: number): void;
   /** Send a print that is up on its way early (Esc), true when one was up. */
   dismiss(): boolean;
   destroy(): void;
@@ -92,8 +94,8 @@ export function createPolaroid(root: HTMLElement, canvas: HTMLCanvasElement): Po
   };
 
   return {
-    take(id, caption): void {
-      const src = capture(canvas);
+    take(id, caption, lens = 1): void {
+      const src = capture(canvas, lens);
       if (!src) return;
       try {
         localStorage.setItem(KEY + id, src);
