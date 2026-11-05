@@ -25,7 +25,8 @@ export class LogHand {
   private lastPress = Number.NEGATIVE_INFINITY;
   /** Clock at the last crooked press (-1: none), and which side of square it missed on. */
   private missAt = -1;
-  private missed: 'early' | 'late' = 'early';
+  /** 'mash': pressed again too soon after the last press, whatever the swing. */
+  private missed: 'early' | 'late' | 'mash' = 'early';
   /** Logs lifted so far: each starts its swing somewhere else (`lift`), and swings at its own pace. */
   private lifts = 0;
   private pace = 1;
@@ -84,12 +85,14 @@ export class LogHand {
     this.slipStart = now;
     this.slipAngle = angle;
     this.missAt = now;
-    this.missed = missSide(t, layer);
+    // A mash is said as one: critic round 23 hammered E for a minute, was told "Too late" every time,
+    // and never learned that one press per swing was the way.
+    this.missed = mashed ? 'mash' : missSide(t, layer);
     return null;
   }
 
   /** Which way the last press missed, for as long as its log is rolling off and coming back. */
-  miss(now: number): 'early' | 'late' | null {
+  miss(now: number): 'early' | 'late' | 'mash' | null {
     return this.missAt >= 0 && now - this.missAt < SWING.slip + 0.5 ? this.missed : null;
   }
 

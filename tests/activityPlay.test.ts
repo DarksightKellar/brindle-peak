@@ -150,8 +150,14 @@ describe('build', () => {
       const build = createBuildActivity(d);
       const h = host({ x: d.pos.x + 2, y: 0, z: d.pos.z });
       build.start(h);
-      for (let f = 0; f < 60 * 12; f++) step(build, h, { interactPressed: f % every === 0 });
+      const said = new Set<string>();
+      for (let f = 0; f < 60 * 12; f++) {
+        step(build, h, { interactPressed: f % every === 0 });
+        said.add(build.progress()?.label.split(' · ')[0] ?? '');
+      }
       expect(build.placed).toBe(0);
+      // and says why, rather than "Too late" over and over (critic round 23)
+      expect([...said].some((l) => l.startsWith('Easy: one press per swing'))).toBe(true);
     }
   });
 

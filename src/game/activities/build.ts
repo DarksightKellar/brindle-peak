@@ -192,7 +192,7 @@ export class BuildActivity implements ActivityInstance {
     // The moment is said for every log. Round 16 said it for the first only, and critic round 16 read
     // that as the hint vanishing; the skill is in the swing now, each log at its own pace (logHand.ts).
     const label = miss
-      ? `${this.sway > 0 ? (miss === 'early' ? WORDS.stoneEarly : WORDS.stoneLate) : miss === 'early' ? WORDS.woodEarly : WORDS.woodLate} · ${count}`
+      ? `${miss === 'mash' ? WORDS.buildMash : this.sway > 0 ? (miss === 'early' ? WORDS.stoneEarly : WORDS.stoneLate) : miss === 'early' ? WORDS.woodEarly : WORDS.woodLate} · ${count}`
       : this.squareNow ? `${this.sway > 0 ? WORDS.stoneNow : WORDS.woodNow} · ${count}` : count;
     return { label, fraction: placed / total, urgent: this.squareNow };
   }

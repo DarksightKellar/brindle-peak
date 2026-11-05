@@ -42,7 +42,9 @@ export function buildInteractables(
       id: n.id,
       pos: { x: n.pos.x, y: sampler.heightAt(n.pos.x, n.pos.z), z: n.pos.z },
       radius: talkReach(n),
-      prompt: 'Talk',
+      // Named: at dusk a raven and an otter in scarves are two dark shapes, and critic round 23 talked to
+      // Corm thinking he was Ivy. The pill says who.
+      prompt: `Talk to ${n.name}`,
     });
   }
   for (const a of activities) {

@@ -85,7 +85,10 @@ export function questsHTML(
   // Each errand that can be followed says how far its next place is, and the nearest says so.
   const far = new Map<string, { text: string; d: number }>();
   for (const q of m.quests) {
-    const at = q.trackable && q.status === 'active' ? where?.(q.id) ?? null : null;
+    // Errands only: the story's distance is the compass's, measured along the trail (core/guide/route.ts).
+    // Picked up here once the story became a row you can pick, it measured something else entirely:
+    // critic round 23 read "203 u northeast" under the goal while the compass said 57 u south.
+    const at = q.trackable && q.status === 'active' && !q.main ? where?.(q.id) ?? null : null;
     if (at) far.set(q.id, at);
   }
   let nearest: string | null = null;

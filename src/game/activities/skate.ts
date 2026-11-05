@@ -179,7 +179,8 @@ export class SkateActivity implements ActivityInstance {
     const warn = off ? ` · falling in ${Math.max(0, SKATE.fallAfter - b.offCentreFor).toFixed(1)}s` : '';
     const caught = this.elapsed - this.caughtAt < SKATE.caughtFor ? `${WORDS.skateCaught(this.catchesLeft)} · ` : '';
     return {
-      label: `${caught}${tip}${warn} · ${this.elapsed.toFixed(0)} / ${SKATE.goal}s`,
+      // How far round the lap, not a clock: critic round 23 read "1 / 20s" and could not tell it was a lap.
+      label: `${caught}${tip}${warn} · Lap ${Math.min(100, Math.floor((100 * this.elapsed) / SKATE.goal))}%`,
       fraction: Math.min(1, this.elapsed / SKATE.goal),
       urgent: off && b.offCentreFor > SKATE.fallAfter * 0.5,
     };

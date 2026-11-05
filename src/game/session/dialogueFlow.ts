@@ -68,6 +68,15 @@ const PIP = { id: 'pip', name: 'Pip', species: 'snow bunting' };
 const TAKE = '§take';
 const LEAVE = '§leave';
 const ASK = '§ask';
+const LATER = '§later';
+
+/**
+ * The villager's word after "not now.": critic round 23 said it to Orla and the talk just shut, which
+ * read as a door closed rather than an offer kept open.
+ */
+function laterNode(speaker: string): DialogueNode {
+  return { id: LATER, speaker, lines: ["No hurry. Ask me again when you're passing."] };
+}
 
 function askNode(title: string): DialogueNode {
   return {
@@ -143,8 +152,15 @@ export function createDialogueFlow(d: DialogueFlowDeps): DialogueFlow {
       }
       if (next.id === TAKE || next.id === LEAVE) {
         const took = next.id === TAKE ? offer : null;
+        const who = speakerId;
         shut();
         took?.accept();
+        const npc = next.id === LEAVE ? d.npcs.find((n) => n.id === who) : undefined;
+        if (npc) {
+          speechNode = LATER;
+          speakerId = npc.id;
+          d.dialogue.open(laterNode(npc.id), npc.name, (syllables) => d.audio.chirp(syllables, pitchFor(npc.species)));
+        }
         return;
       }
       if (d.nodes[speechNode ?? '']?.choices?.some((c) => c.takes === true && c.next === next.id)) agreed = true;

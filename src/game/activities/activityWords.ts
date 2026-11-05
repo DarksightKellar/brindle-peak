@@ -51,6 +51,8 @@ export const WORDS = {
   stoneNow: 'Over the gap — press E',
   stoneEarly: 'Too soon. Let it sway over the gap first',
   stoneLate: 'Too late. Wait for it to sway back over',
+  /** Pressed again straight after a press: the woodpile and the dam both take one press per swing. */
+  buildMash: 'Easy: one press per swing. Watch for the lights',
   // Snowman, rolled: the ball is growing; it is big enough to push onto the spot; the face goes on with E.
   snowRoll: 'Keep rolling it bigger. It goes on the lit ring',
   snowPush: 'Big enough. Push it onto the lit ring',

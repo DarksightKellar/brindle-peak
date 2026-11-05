@@ -105,11 +105,12 @@ describe('a conversation that hands between speakers', () => {
 
   it('ends an errand offer on Pip choosing: only "i\'ll do it" takes it on', () => {
     // A view that plays each node in one press and takes the highlighted (first, or second) choice.
-    const run = (pick: 0 | 1, npc = 'fen', root = 'fen-root', escapeAfter = Infinity): { took: number; asked: string[] } => {
+    const run = (pick: 0 | 1, npc = 'fen', root = 'fen-root', escapeAfter = Infinity): { took: number; asked: string[]; last?: string } => {
+      let lastLine: string | undefined;
       let node: { id: string; speaker: string; lines: string[]; next?: string; choices?: { next: string }[] } | null = null;
       const asked: string[] = [];
       const view = {
-        open(n: typeof node): void { node = n; if (n?.choices?.some((c) => c.next.startsWith('§'))) asked.push(n.lines[0]); },
+        open(n: typeof node): void { node = n; lastLine = n?.lines[n.lines.length - 1]; if (n?.choices?.some((c) => c.next.startsWith('§'))) asked.push(n.lines[0]); },
         advance(): { id: string; speaker: string } | 'close' {
           if (!node) return 'close';
           const done = node;
@@ -129,15 +130,15 @@ describe('a conversation that hands between speakers', () => {
         if (i >= escapeAfter) flow.close();
         else flow.advance();
       }
-      return { took, asked };
+      return { took, asked, last: lastLine };
     };
     const yes = run(0);
     expect(yes.asked).toEqual(['(take on "Something on the Trail"?)']);
     expect(yes.took).toBe(1);
-    expect(run(1).took).toBe(0); // "why keep a tally?", then "not now."
+    expect(run(1)).toMatchObject({ took: 0, last: "No hurry. Ask me again when you're passing." }); // "not now." gets a reply
     // An answer that already says yes takes it, with no second question; the other answer still asks.
-    expect(run(0, 'orla', 'orla-root')).toEqual({ took: 1, asked: [] }); // "i'll ask skiff."
-    expect(run(1, 'orla', 'orla-root')).toEqual({ took: 0, asked: ['(take on "Something on the Trail"?)'] });
+    expect(run(0, 'orla', 'orla-root')).toMatchObject({ took: 1, asked: [] }); // "i'll ask skiff."
+    expect(run(1, 'orla', 'orla-root')).toMatchObject({ took: 0, asked: ['(take on "Something on the Trail"?)'] });
     // Escape after saying yes keeps the yes (critic round 20: Gus and Skiff); before it, it is "not now".
     expect(run(0, 'gus', 'gus-root', 1).took).toBe(1);
     expect(run(0, 'skiff', 'skiff-root', 1).took).toBe(1);
