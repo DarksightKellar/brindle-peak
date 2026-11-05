@@ -85,6 +85,18 @@ describe('errands', () => {
     expect(g.state.quests['margit-ice']?.step).toBe(1);
   });
 
+  // Critic round 29 fished the Creek Pool before Fen's tip, and the mitten step was already done: the
+  // mitten never came up, and Hollis thanked them for it.
+  it('a catch at the Creek Pool before Fen sends you there does not count for the mitten', () => {
+    const g = play();
+    g.emit('activity:completed', 'pinewind-creek-fish');
+    g.talk('hollis');
+    g.talk('fen');
+    expect(g.state.quests['hollis-mitten']?.step).toBe(1);
+    g.emit('activity:completed', 'pinewind-creek-fish');
+    expect(g.state.quests['hollis-mitten']?.step).toBe(2);
+  });
+
   it('two errands waiting on Hollis each get their own talk', () => {
     const g = play();
     g.talk('hollis');

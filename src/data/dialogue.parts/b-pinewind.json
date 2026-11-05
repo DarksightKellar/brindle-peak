@@ -113,7 +113,7 @@
     "lines": [
       "He lives by the road head, in Hearth Hollow. Hollis, he's called.",
       "Take it to him and ask him to try it on. I'd only fret.",
-      "But have a go at the pinecone toss first. Hit or miss. I like watching someone else be bad at something.",
+      "And have a go at the pinecone toss while you're here, if you like. I like watching someone else be bad at something.",
       "Then come back and tell me if it fits. Honestly. I'd rather know."
     ]
   },
@@ -121,8 +121,7 @@
     "id": "tamsin-wait",
     "speaker": "tamsin",
     "lines": [
-      "You're still at it? The pinecone toss first. Hit or miss, I don't mind.",
-      "Then Hollis, the hare by the road head. Ask him to try it on.",
+      "Still got it? Hollis, the hare by the road head. Ask him to try it on.",
       "If it's too tight, tell me true. I'd rather know."
     ]
   },

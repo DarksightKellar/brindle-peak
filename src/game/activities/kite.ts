@@ -252,7 +252,7 @@ export class KiteActivity implements ActivityInstance {
   progress(): ActivityReadout | null {
     const above = this.height >= KITE.line;
     const fraction = above ? 0.8 + 0.2 * (this.held / KITE.hold) : 0.8 * ((this.height - KITE.floor) / (KITE.line - KITE.floor));
-    const label = above ? WORDS.kiteHigh : this.inLift() > 0.25 ? WORDS.kiteRising
+    const label = above ? WORDS.kiteHigh(Math.max(1, Math.ceil(KITE.hold - this.held))) : this.inLift() > 0.25 ? WORDS.kiteRising
       : WORDS.kiteLift(liftAt(this.t) < this.side ? 'left' : 'right', !this.rose);
     return { label, fraction: clamp(fraction, 0, 1), urgent: above };
   }

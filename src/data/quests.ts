@@ -97,7 +97,9 @@ export const QUESTS: readonly QuestDef[] = [
   q('hollis-mitten', 'One Mitten', 'hollis', 'hearth', 'A mitten is missing, and Hollis has a theory.',
     { offer: 'hollis-root', waiting: 'hollis-wait' }, [
       talk('owl', 'Ask Fen in the pines if he saw the mitten.', 'fen', 'fen-mitten'),
-      s('creek', 'Fish the Creek Pool below the split pine in Pinewind Wood.', { kind: 'activity', id: 'pinewind-creek-fish' }),
+      // Fresh: the mitten only snags while this step is current, and critic round 29 had fished the pool
+      // before Fen's tip, so the step was already done and the mitten never came up.
+      s('creek', 'Fish the Creek Pool below the split pine in Pinewind Wood.', { kind: 'activity', id: 'pinewind-creek-fish' }, { fresh: true }),
       talk('tell', 'Take the mitten back to Hollis.', 'hollis', 'hollis-done'),
     ], { item: 'mitten', bells: 12 }),
 
@@ -111,7 +113,8 @@ export const QUESTS: readonly QuestDef[] = [
 
   q('tamsin-headband', 'Something for a Head', 'tamsin', 'pinewind', 'She knits for strangers and worries about the fit.',
     { offer: 'tamsin-root', waiting: 'tamsin-wait' }, [
-      s('toss', 'Have a go at the pinecone toss in Pinewind Wood.', { kind: 'activity', id: 'pinewind-pinecone-throw' }),
+      // No pinecone toss first: it stood between Pip and Hollis, and critic round 29 walked to Hollis as
+      // she said while the line pointed back at the toss, 413 u behind. She still invites it.
       // The headband is for Hollis, so it is tried on Hollis, one zone down the trail, not judged by
       // Orla across the valley: that leg was 450 units each way.
       talk('fit', 'Ask Hollis by the road head to try on the headband.', 'hollis', 'hollis-fit'),

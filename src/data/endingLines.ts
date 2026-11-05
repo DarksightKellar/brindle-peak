@@ -64,7 +64,7 @@ export const NANA_POSTS: Readonly<Record<'all' | 'some' | 'none', string>> = {
 
 /** Nana at the homecoming, one line per finished errand (chosen by src/data/dialogueFills.ts). */
 export const NANA_HEARD: Readonly<Record<string, string>> = {
-  'hollis-mitten': "Hollis came past with both mittens on and his ears out. He says he owes an owl an apology.",
+  'hollis-mitten': "Hollis came past with both mittens on, waving them at me. He says he owes an owl an apology.",
   'wren-sounds': "Wren tells me her book's full, and the last page isn't even in her words.",
   'tamsin-headband': "Hollis came by in a green headband, tight round the ears. Says the marten from the pines made it. He looked pleased, for Hollis.",
   'fen-ledger': "Fen asked Tamsin a question, I hear. Fen. Asked. Twenty years I've known that owl.",
