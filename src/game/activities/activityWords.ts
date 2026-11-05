@@ -131,16 +131,17 @@ export const WORDS = {
   skateLap: 'Round the Reach and upright the whole way.',
   // The meter's side, said as the key that rights it: "Balance right" read as the way to press. Once the
   // lap is under way the key steps back, and comes back when a fall is close.
-  skateTip: (side: 'left' | 'right', keys: boolean): string =>
-    `Tipping ${side}${keys ? ` — hold ${side === 'right' ? 'A' : 'D'}` : ''}`,
+  skateTip: (side: 'left' | 'right'): string => `Tipping ${side} — hold ${side === 'right' ? 'A' : 'D'}`,
+  /** Off the edge on the ice, large in the middle of the view. */
+  cueSkate: (side: 'left' | 'right'): string => `Hold ${side === 'right' ? 'A' : 'D'}!`,
   skateSteady: 'Steady',
   /** Pip rode out a wobble that would have been a fall; `left` more of those before one is. */
   skateCaught: (left: number): string => `Whoa, caught it${left === 0 ? '. Next one is a fall' : ''}`,
   // Kite readouts and result
   kiteLow: 'Keep it in the rising snow',
-  // Out of the lift: which way it is, as the key to press until the kite has risen in it once.
-  kiteLift: (side: 'left' | 'right', keys: boolean): string =>
-    `Lift is ${side}${keys ? ` — hold ${side === 'left' ? 'A' : 'D'}` : ''}`,
+  // Out of the lift: which way it is, and the key that walks the kite there. Critic round 34 lost the
+  // key once the kite had risen and was left with "Lift is left".
+  kiteLift: (side: 'left' | 'right'): string => `Lift is ${side} — hold ${side === 'left' ? 'A' : 'D'}`,
   // Shown while the kite is inside the rising snow and climbing.
   kiteRising: 'In the lift. Up it goes',
   // Counts the hold down: critic round 29 read "Hold it there" with no idea for how long.

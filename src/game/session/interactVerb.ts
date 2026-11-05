@@ -77,7 +77,13 @@ export function interact(d: InteractVerbDeps): void {
     standClear(d.player, target.id);
     const offered = talk.offer === null ? undefined : QUESTS.find((q) => q.id === talk.offer);
     const id = talk.offer;
-    d.flow.open(target.id, talk.node, offered && id !== null ? { title: offered.title, accept: () => d.mech.accept(id) } : undefined);
+    // A "not now" is kept in the save: critic round 34 declined Bram's rope and had nothing to find it by.
+    const state = d.state;
+    d.flow.open(target.id, talk.node, offered && id !== null ? {
+      title: offered.title,
+      accept: () => d.mech.accept(id),
+      decline: () => { state.flags[`declined:${id}`] = true; },
+    } : undefined);
     return;
   }
 

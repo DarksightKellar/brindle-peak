@@ -35,10 +35,12 @@ export interface DialogueFlowDeps {
   skip?(nodeId: string): boolean;
 }
 
-/** An errand on offer in this conversation: its title, and what taking it on does. */
+/** An errand on offer in this conversation: its title, and what taking it on, or not, does. */
 export interface PendingOffer {
   title: string;
   accept(): void;
+  /** Pip said "not now": the journal keeps the offer, so it can be found again. */
+  decline?(): void;
 }
 
 export interface DialogueFlow {
@@ -152,9 +154,11 @@ export function createDialogueFlow(d: DialogueFlowDeps): DialogueFlow {
       }
       if (next.id === TAKE || next.id === LEAVE) {
         const took = next.id === TAKE ? offer : null;
+        const left = next.id === LEAVE ? offer : null;
         const who = speakerId;
         shut();
         took?.accept();
+        left?.decline?.();
         const npc = next.id === LEAVE ? d.npcs.find((n) => n.id === who) : undefined;
         if (npc) {
           speechNode = LATER;
@@ -182,8 +186,11 @@ export function createDialogueFlow(d: DialogueFlowDeps): DialogueFlow {
       // Escape after Pip has already said yes ("i'll ring it.") keeps the yes. It used to drop the offer:
       // critic round 20 said yes to Gus and Skiff, skipped the rest with Escape, and had neither errand.
       const took = offer && agreed ? offer : null;
+      // Escape at Pip's answer is "not now", and is kept as one.
+      const left = offer && !agreed && speechNode === ASK ? offer : null;
       shut();
       took?.accept();
+      left?.decline?.();
     },
     isOpen: () => d.dialogue.isOpen(),
     currentNode: () => speechNode,

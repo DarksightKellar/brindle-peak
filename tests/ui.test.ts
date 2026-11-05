@@ -168,6 +168,16 @@ describe('journal model', () => {
     expect(m.sledBest).toBe('41.2s');
   });
 
+  it('keeps an offer Pip said "not now" to on the Quests page until it is taken (critic round 34)', () => {
+    const s = filled();
+    s.flags['declined:tuck-rope'] = true;
+    const row = formatJournal(s, { quests: QUESTS }).quests.find((q) => q.id === 'tuck-rope');
+    expect(row).toMatchObject({ title: 'The Good Rope', status: 'available', trackable: false });
+    expect(row?.stepText).toBe('Bram asked, and you said not now. Talk to Bram again to take it on.');
+    s.quests['tuck-rope'] = { status: 'active', step: 0 };
+    expect(formatJournal(s, { quests: QUESTS }).quests.filter((q) => q.id === 'tuck-rope').map((q) => q.status)).toEqual(['active']);
+  });
+
   it('counts every post lit once the radio call has the valley light the rest, and keeps Pip\'s share', () => {
     const s = filled();
     expect(formatJournal(s, { lanternsTotal: 12 })).toMatchObject({ lanterns: { text: '2 / 12' }, lanternsLitByPip: null });

@@ -475,6 +475,25 @@ describe('skate', () => {
     expect(skate.crossedPond).toBe(true);
   });
 
+  it('names the key every time it tips, and says it large before a fall (critic round 34)', () => {
+    const skate = createSkateActivity(defOf('skate'));
+    const host = makeHost();
+    begin(skate, host);
+    const tips: string[] = [];
+    const cues: string[] = [];
+    let guard = 0;
+    while (!skate.isComplete() && guard++ < 1300) {
+      const r = skate.progress();
+      if (r?.label.includes('Tipping')) tips.push(r.label);
+      if (r?.cue) cues.push(r.cue);
+      step(skate, host);
+    }
+    expect(tips.length).toBeGreaterThan(0);
+    expect(tips.every((l) => /Tipping (right — hold A|left — hold D)/.test(l))).toBe(true);
+    expect(cues.length).toBeGreaterThan(0);
+    expect(cues.every((c) => c === 'Hold A!' || c === 'Hold D!')).toBe(true);
+  });
+
   it('an untouched run ends on its own and still banks the time', () => {
     const skate = createSkateActivity(defOf('skate'));
     const host = makeHost();

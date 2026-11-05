@@ -16,6 +16,7 @@ import type { GuideContent } from '../../core/guide/nextStep';
 import { nextStepOf } from '../../core/guide/nextStep';
 import { evaluate } from '../../core/progress/conditions';
 import { CHAPTER_DONE, VALLEY_LINES } from '../../data/endingLines';
+import { NPCS } from '../../data/npcs';
 import { RADIO_QUEST } from '../../data/quests';
 import { ZONE_NAMES } from '../../data/zoneNames';
 import type { MapDecor } from './journalMap';
@@ -143,6 +144,26 @@ export function formatJournal(s: GameState, content: JournalContent = {}): Journ
         main: def?.main === true,
       };
     })
+    // An offer Pip said "not now" to stays on the page until it is taken: critic round 34 declined
+    // Bram's rope and had nothing to find it by afterwards.
+    .concat(
+      (content.quests ?? [])
+        .filter((q) => s.flags[`declined:${q.id}`] === true && s.quests[q.id] === undefined)
+        .map((q) => {
+          const who = NPCS.find((n) => n.id === q.giver)?.name ?? q.giver;
+          return {
+            id: q.id,
+            title: q.title,
+            status: 'available' as const,
+            step: 0,
+            stepText: `${who} asked, and you said not now. Talk to ${who} again to take it on.`,
+            nextText: null,
+            epilogue: q.blurb,
+            trackable: false,
+            main: false,
+          };
+        }),
+    )
     .sort((a, b) => QUEST_ORDER[a.status] - QUEST_ORDER[b.status]);
 
   const achievementsList: JournalAch[] = content.achievements

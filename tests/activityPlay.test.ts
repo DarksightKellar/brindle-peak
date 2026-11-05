@@ -329,6 +329,33 @@ describe('build', () => {
     expect(h.awards).toEqual([{ score: 4, bonus: 'hamlet-snowman' }]);
   });
 
+  it('a full ball pushed along a key line 20 degrees off the ring still goes on (critic round 34)', () => {
+    const d = ACTIVITIES.find((a) => a.id === 'hamlet-snowman')!;
+    const snow = createActivity(d) as SnowmanActivity;
+    const at = siteFor(d).at;
+    const h = host({ x: at.x + 3, y: 0, z: at.z });
+    snow.start(h);
+    const walk = (x: number, z: number): void => {
+      for (let i = 0; i < 2000; i++) {
+        const dx = x - h.playerPos.x, dz = z - h.playerPos.z, len = Math.hypot(dx, dz);
+        if (len < 0.05) return;
+        const k = Math.min(0.07, len) / len;
+        h.playerPos = { x: h.playerPos.x + dx * k, y: 0, z: h.playerPos.z + dz * k };
+        step(snow, h);
+      }
+    };
+    walk(at.x + 3, at.z + 14); // out into the open: the ball fills
+    walk(at.x + 3, at.z + 9); // turn back toward the ring, ball in front
+    const k = 6 / Math.hypot(3, 9);
+    walk(at.x + 3 * k, at.z + 9 * k); // 6 m out
+    expect(snow.progress()?.label).toMatch(/^Big enough/);
+    // From here, one held key line 20 degrees off the ring, straight on for 10 m: no steering at the end.
+    // On that line the ball once passed about 2 m from the spot, beside the ring.
+    const off = Math.atan2(at.x - h.playerPos.x, at.z - h.playerPos.z) + (20 * Math.PI) / 180;
+    walk(h.playerPos.x + Math.sin(off) * 10, h.playerPos.z + Math.cos(off) * 10);
+    expect(snow.placed).toBe(1);
+  });
+
   it('stands every finished build back up from the save counters, and the untouched woodpile as a heap', () => {
     const counters = { 'activity:hamlet-snowman': 1 };
     const out = finishedBuildMarkers(ACTIVITIES, counters, FLAT);

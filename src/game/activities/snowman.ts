@@ -38,8 +38,18 @@ export const ROLL = {
   grow: 0.08,
   /** Gap kept between Pip and the ball's surface. */
   gap: 0.35,
-  /** A full-size ball whose centre comes within this of the snowman's spot (plus its radius) goes on. */
-  set: 1.0,
+  /**
+   * A full-size ball whose centre comes within this of the snowman's spot (plus its radius) goes on: 1.3
+   * is the lit ring's own radius, so a ball that touches the ring counts.
+   */
+  set: 1.3,
+  /**
+   * Metres (rim to spot) inside which a full ball leans toward the spot while Pip pushes within `cone` of
+   * it. The words name the nearest of eight key lines, up to 22 degrees off, and critic round 34 pushed a
+   * full ball along one past the ring's edge.
+   */
+  near: 4,
+  cone: Math.PI / 4,
   /** Radians a second the ball swings round Pip when Pip turns: it goes round the outside, not through. */
   swing: 5,
 } as const;
@@ -122,9 +132,14 @@ export class SnowmanActivity implements ActivityInstance {
     const moved = Math.hypot(p.x - this.last.x, p.z - this.last.z);
     const b = this.ball;
     if (b && moved > 0.002) {
-      const want = angleDelta(b.heading, Math.atan2(p.x - this.last.x, p.z - this.last.z));
-      b.heading += Math.max(-ROLL.swing * step, Math.min(ROLL.swing * step, want));
       const target = this.size(this.stage);
+      const walk = Math.atan2(p.x - this.last.x, p.z - this.last.z);
+      const at = this.site.at;
+      const home = Math.atan2(at.x - p.x, at.z - p.z);
+      const lean = b.r >= target - 1e-6 && Math.hypot(at.x - b.x, at.z - b.z) - b.r < ROLL.near
+        && Math.abs(angleDelta(walk, home)) < ROLL.cone;
+      const want = angleDelta(b.heading, lean ? home : walk);
+      b.heading += Math.max(-ROLL.swing * step, Math.min(ROLL.swing * step, want));
       b.r = Math.min(target, b.r + ROLL.grow * moved);
       b.spin += moved / b.r;
     }
