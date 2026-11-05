@@ -35,6 +35,8 @@ const ARROW_UP = 2.3;
 /** The next gate within this of the view's heading (radians) is "ahead"; past WAY_BEHIND, "behind you". */
 const WAY_AHEAD = 0.5;
 const WAY_BEHIND = 2.3;
+/** The pointer leans at most this far (radians) from up: down-left or down-right, never plain down. */
+const ARROW_MAX_ROLL = 2.4;
 
 export class RaceActivity implements ActivityInstance {
   readonly def: ActivityDef;
@@ -164,7 +166,9 @@ export class RaceActivity implements ActivityInstance {
     const size = 0.55 + 0.45 * Math.min(1, (far - 3) / 6);
     const at = { x: p.x + Math.sin(yaw) * ARROW_OUT, y: p.y + ARROW_UP, z: p.z + Math.cos(yaw) * ARROW_OUT };
     const face = this.camYaw + Math.PI;
-    const roll = angleDelta(this.camYaw, yaw);
+    // Never straight down: a gate behind still leans the arrow to the side to come round on.
+    const delta = angleDelta(this.camYaw, yaw);
+    const roll = Math.sign(delta) * Math.min(Math.abs(delta), ARROW_MAX_ROLL);
     return (['arrow-rim', 'arrow'] as const).map((look) => ({ shape: 'float', look, ...at, yaw: face, tilt: roll, size }));
   }
 
@@ -189,7 +193,7 @@ export class RaceActivity implements ActivityInstance {
     if (!g || !p) return { label, fraction: total === 0 ? 0 : this.next / total };
     const turn = angleDelta(this.camYaw, Math.atan2(g.x - p.x, g.z - p.z));
     const way = Math.abs(turn) < WAY_AHEAD ? 'ahead' : Math.abs(turn) > WAY_BEHIND ? 'behind' : turn > 0 ? 'left' : 'right';
-    return { label: `${label} · ${WORDS.gateWay(Math.hypot(g.x - p.x, g.z - p.z), way)}`, fraction: total === 0 ? 0 : this.next / total };
+    return { label: `${label} · ${WORDS.gateWay(Math.hypot(g.x - p.x, g.z - p.z), way, turn > 0 ? 'left' : 'right')}`, fraction: total === 0 ? 0 : this.next / total };
   }
 
   /** Turn to the first gate as the run opens: it is in front of you, not behind the camera. */

@@ -26,6 +26,9 @@ import { WORDS } from './activityWords';
 
 /** A full ball further than this (metres, rim to ring) from the spot raises a beam over it. */
 const BEAM_GAP = 5;
+/** The ring within this of the view's heading (radians) is "ahead"; past WAY_BEHIND, "behind you" (as race.ts). */
+const WAY_AHEAD = 0.5;
+const WAY_BEHIND = 2.3;
 
 export const ROLL = {
   /** Radius a fresh ball starts at, and how much it grows per metre rolled. */
@@ -60,6 +63,8 @@ export class SnowmanActivity implements ActivityInstance {
   private outcome: ActivityResult | null = null;
   private paid = false;
   private swallowPress = false;
+  /** The view's heading, for saying which way the ring is. */
+  private camYaw = 0;
 
   constructor(def: ActivityDef) {
     this.def = def;
@@ -105,6 +110,7 @@ export class SnowmanActivity implements ActivityInstance {
     }
     const step = Math.max(0, Math.min(dt, 0.1));
     this.elapsed += step;
+    this.camYaw = host.cameraYaw;
     const pressed = host.input.interactPressed && !this.swallowPress;
     this.swallowPress = false;
     const p = host.playerPos;
@@ -211,11 +217,20 @@ export class SnowmanActivity implements ActivityInstance {
     const total = this.steps.length;
     const count = `${nounFor(this.site)} ${Math.min(this.stage, total)} / ${total}`;
     const b = this.ball;
+    // Dressed, it says so: critic round 20 still read "Press E to give it a face" under the hat.
+    if (!b && this.stage >= total) return { label: count, fraction: 1 };
     if (!b) return { label: `${WORDS.snowFace} · ${count}`, fraction: this.stage / total, urgent: this.stage === this.balls };
     const target = this.size(this.stage);
     const full = b.r >= target - 1e-6;
     const grown = (b.r - ROLL.start) / Math.max(0.01, target - ROLL.start);
-    return { label: `${full ? WORDS.snowPush : WORDS.snowRoll} · ${count}`, fraction: (this.stage + grown) / total, urgent: full };
+    // Which way the ring is, as the race says where its gate is: critic round 20 circled for three
+    // minutes looking for it with a ball in front of them.
+    const at = this.site.at;
+    const far = Math.hypot(at.x - b.x, at.z - b.z) - b.r - 1.3;
+    const turn = angleDelta(this.camYaw, Math.atan2(at.x - b.x, at.z - b.z));
+    const way = Math.abs(turn) < WAY_AHEAD ? 'ahead' : Math.abs(turn) > WAY_BEHIND ? 'behind' : turn > 0 ? 'left' : 'right';
+    const where = far > 2 ? ` · ${WORDS.gateWay(far, way, turn > 0 ? 'left' : 'right')}` : '';
+    return { label: `${full ? WORDS.snowPush : WORDS.snowRoll}${where} · ${count}`, fraction: (this.stage + grown) / total, urgent: full };
   }
 
   /** The face goes on framed from the side, as the other builds are; rolling keeps the chase view. */

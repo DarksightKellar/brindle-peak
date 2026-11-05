@@ -78,7 +78,7 @@ describe('race', () => {
     race.start(h);
     step(race, h);
     // The count, then where the gate is from the view (critic round 17 lost the lantern line).
-    expect(race.progress()?.label).toMatch(new RegExp(`^Gate 1 of ${race.gates.length} · \\d+ u (ahead|behind you|on your (left|right))$`));
+    expect(race.progress()?.label).toMatch(new RegExp(`^Gate 1 of ${race.gates.length} · \\d+ u (ahead|behind you, over your (left|right) shoulder|on your (left|right))$`));
     const arches = (race.markers() as PlacedMarker[]).filter((m) => m.look === 'arch');
     expect(arches).toHaveLength(1);
     expect(arches[0].strength).toBe(1);
@@ -250,6 +250,8 @@ describe('build', () => {
     };
     for (let ball = 1; ball <= 3; ball++) {
       walk(at.x + 3, at.z + 12); // roll out into the open and grow it
+      // Out there, the card says where the ring is (critic round 20 circled for it).
+      expect(snow.progress()?.label).toMatch(/ · \d+ u (ahead|behind you, over your (left|right) shoulder|on your (left|right)) · /);
       walk(at.x + 3, at.z);
       walk(at.x, at.z); // push it home
       expect(snow.placed).toBe(ball);
@@ -259,6 +261,7 @@ describe('build', () => {
     step(snow, h, { interactPressed: true });
     for (let i = 0; i < 40; i++) step(snow, h);
     expect(snow.isComplete()).toBe(true);
+    expect(snow.progress()?.label).not.toMatch(/face/); // dressed, it no longer asks for one
     expect(h.awards).toEqual([{ score: 4, bonus: 'hamlet-snowman' }]);
   });
 

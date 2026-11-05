@@ -84,7 +84,7 @@ describe('throw', () => {
     expect(r.awards[0]).toMatchObject({ score: 3, bonus: 'clean-sweep' });
   });
 
-  it('a throw let go while the arc is bold hits (round 8: the cue says what the throw will do)', () => {
+  it('a throw let go while the arc is bold hits, with no steering during the draw (rounds 8, 20)', () => {
     const d = def('throw', 'pinewind-pinecone-throw', { x: -206, z: 160 });
     const game = createTargetActivity(d);
     const h = host({ x: d.pos.x, y: 0, z: d.pos.z });
@@ -100,7 +100,9 @@ describe('throw', () => {
         continue;
       }
       const before = game.hitCount;
-      if (!throwOnArc(game, h)) continue; // swung out of line during the draw: that throw proves nothing
+      // No steering while drawing: the aim keeps on the snowman it was lined up on as it swings, so
+      // the arc always comes round to bold (critic round 20 was called wide on the swing).
+      expect(throwOnArc(game, h)).toBe(true);
       thrown++;
       for (let k = 0; k < 90 && game.inFlight > 0; k++) step(game, h);
       expect(game.hitCount).toBe(before + 1);
@@ -143,7 +145,8 @@ describe('throw', () => {
   });
 
   it('on the line, a throw let go too soon falls short and one at the top of the swell sails over (round 19)', () => {
-    for (const [frames, said] of [[2, 'Fell short'], [Math.round(THROW.drawPeriod / 2 / FRAME), 'Sailed over']] as const) {
+    // Let go two frames in, the swell was still growing: too soon. Let go at the top, it was too much.
+    for (const [frames, said] of [[2, 'Fell short: let go later'], [Math.round(THROW.drawPeriod / 2 / FRAME) - 2, 'Sailed over: let go sooner']] as const) {
       const game = createTargetActivity(def('throw', 'hamlet-bell-throw', { x: 274, z: 128 }));
       const h = host({ x: 274, y: 0, z: 128 });
       game.start(h);
@@ -176,6 +179,7 @@ describe('throw', () => {
     step(game, h, { interactPressed: true, interactHeld: true });
     expect(game.progress()?.label).toBe('Let go as the arc reaches it · Hits 0 / 1 · 8 left');
     for (let i = 0; i < 240 && !game.letGoHits; i++) step(game, h, { interactHeld: true });
+    expect(game.progress()).toMatchObject({ label: 'Let go! · Hits 0 / 1 · 8 left', urgent: true });
     step(game, h);
     expect(game.inFlight).toBe(1);
     let f = 0;

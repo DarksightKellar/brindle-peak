@@ -50,13 +50,25 @@ export const THROW = {
 
 interface Puff { pos: Vec3; age: number }
 
+/** Seconds of reaction allowed after "Let go!" lights: the cue is only up where a release that late lands too. */
+const LET_GO_SLACK = 0.08;
+
+/**
+ * The bell's swell is this share of the toss's. Up on its post and close by, the bell takes a lob that
+ * strength changes a lot: at the full swell its window was 0.08 s, and critic round 20 rang it once in
+ * fifteen throws. At this share it is about as wide as the toss's.
+ */
+const BELL_SPREAD = 0.35;
+
 /** How a missed throw missed, or null when it was close or there was nothing to miss. */
 type Side = 'left' | 'right' | 'short' | 'long' | null;
+/** When a throw on the line was let go, against the swell: before the arc reached the target, or after. */
+type Timing = 'early' | 'late';
 
 /** Strength of a throw drawn for `held` seconds, as a share of the throw that arrives on the target. */
-export function drawReach(held: number): number {
+export function drawReach(held: number, spread = 1): number {
   const swell = 0.5 - 0.5 * Math.cos((2 * Math.PI * held) / THROW.drawPeriod);
-  return THROW.drawMin + (THROW.drawMax - THROW.drawMin) * swell;
+  return 1 + spread * (THROW.drawMin + (THROW.drawMax - THROW.drawMin) * swell - 1);
 }
 
 export class TargetActivity implements ActivityInstance {
@@ -84,7 +96,19 @@ export class TargetActivity implements ActivityInstance {
   private paid = false;
   private swallowPress = false;
   /** The last throw's outcome and when it landed (`elapsed`), for the panel and the hit ring. */
-  private call: { hit: boolean; at: number; pos: Vec3; side: Side } | null = null;
+  private call: { hit: boolean; at: number; pos: Vec3; side: Side; timing?: Timing } | null = null;
+  /**
+   * How the throw in flight was let go: whether the aim was on the target (so a miss was the strength)
+   * and whether the swell was still growing. Critic round 20 let go at every length of hold and was told
+   * "wide left / right" each time, because a long throw lands far enough past to be off the line.
+   */
+  private released: { aimedOn: boolean; rising: boolean } | null = null;
+  /**
+   * The target the throw was lined up on when E went down, or -1. While drawing, the aim keeps on it as
+   * it swings, so holding E is only about when to let go: critic round 20's snowmen swung out of line
+   * mid-draw, and every throw let go after that was called wide.
+   */
+  private locked = -1;
 
   constructor(def: ActivityDef) {
     this.def = def;
@@ -106,6 +130,7 @@ export class TargetActivity implements ActivityInstance {
     this.hits = 0;
     this.cooldown = 0;
     this.draw = -1;
+    this.locked = -1;
     this.decidedAt = -1;
     this.outcome = null;
     this.paid = false;
@@ -143,16 +168,22 @@ export class TargetActivity implements ActivityInstance {
     const pressed = host.input.interactPressed && !this.swallowPress;
     this.swallowPress = false;
     this.feet = { ...host.playerPos };
-    this.aim = turnAim(this.aim, host.input.moveX, step);
+    if (this.draw >= 0 && this.locked >= 0) this.follow(this.locked);
+    else this.aim = turnAim(this.aim, host.input.moveX, step);
 
     if (this.draw < 0) {
-      if (pressed && this.decidedAt < 0 && this.cooldown <= 0 && this.throwsLeft > 0 && this.shots.length === 0) this.draw = 0;
+      if (pressed && this.decidedAt < 0 && this.cooldown <= 0 && this.throwsLeft > 0 && this.shots.length === 0) {
+        this.draw = 0;
+        this.locked = this.predict();
+      }
     } else if (host.input.interactHeld) {
       this.draw += step;
     } else {
+      this.locked = -1;
       this.throwsLeft--;
       this.cooldown = THROW.cooldown;
-      this.shots.push(launch(this.feet, this.aim, this.strikeables(), this.groundAt, drawReach(this.draw)));
+      this.released = { aimedOn: this.predict() >= 0, rising: this.draw % THROW.drawPeriod < THROW.drawPeriod / 2 };
+      this.shots.push(launch(this.feet, this.aim, this.strikeables(), this.groundAt, this.reachAt(this.draw)));
       this.draw = -1;
     }
 
@@ -169,7 +200,12 @@ export class TargetActivity implements ActivityInstance {
       if (hit >= 0) this.strike(hit);
       if (!was && shot.done) {
         this.puffs.push({ pos: { ...shot.pos }, age: 0 });
-        this.call = { hit: hit >= 0, at: this.elapsed, pos: { ...shot.pos }, side: hit >= 0 ? null : this.sideOf(shot.pos) };
+        const side = hit >= 0 ? null : this.sideOf(shot.pos, this.released?.aimedOn === true);
+        // Short on a growing swell was let go too soon; short on an ebbing one, too late; long, the reverse.
+        const timing: Timing | undefined = side === 'short' || side === 'long'
+          ? ((side === 'short') === (this.released?.rising !== false) ? 'early' : 'late')
+          : undefined;
+        this.call = { hit: hit >= 0, at: this.elapsed, pos: { ...shot.pos }, side, timing };
       }
     }
     this.shots = this.shots.filter((s) => !s.done);
@@ -177,6 +213,22 @@ export class TargetActivity implements ActivityInstance {
     const decided = this.hits >= this.setup.need || (this.throwsLeft <= 0 && this.shots.length === 0);
     if (decided && this.decidedAt < 0) this.decidedAt = this.elapsed;
     if (this.decidedAt >= 0 && this.elapsed - this.decidedAt >= THROW.linger) this.finish(host);
+  }
+
+  /** The strength of a throw drawn for `held` seconds at this activity. */
+  private reachAt(held: number): number {
+    return drawReach(held, this.bell ? BELL_SPREAD : 1);
+  }
+
+  /** Nudge the aim, by the least that does it, back onto target `index` as it swings. */
+  private follow(index: number): void {
+    if (this.predict() === index) return;
+    const from = this.aim;
+    for (const d of [0.01, -0.01, 0.025, -0.025, 0.05, -0.05, 0.09, -0.09]) {
+      this.aim = from + d;
+      if (this.predict() === index) return;
+    }
+    this.aim = from;
   }
 
   /** The standing target nearest the aim, by bearing from Pip's feet. */
@@ -200,14 +252,15 @@ export class TargetActivity implements ActivityInstance {
    * never knew why: the loft is solved for the player, so a miss is always wide, and saying which way
    * says how to fix it.
    */
-  private sideOf(at: Vec3): Side {
+  private sideOf(at: Vec3, aimedOn: boolean): Side {
     const t = this.nearestToAim();
     if (!t) return null;
+    const along = (at.x - t.pos.x) * Math.sin(t.bearing) + (at.z - t.pos.z) * Math.cos(t.bearing);
+    // Let go lined up, so it was the strength: landed before the target, or flew past it.
+    if (aimedOn) return along < 0 ? 'short' : 'long';
     // A raises the aim yaw, which turns it left; left of the line to the target is +(cos, -sin).
     const lateral = (at.x - t.pos.x) * Math.cos(t.bearing) - (at.z - t.pos.z) * Math.sin(t.bearing);
     if (Math.abs(lateral) >= 0.6) return lateral > 0 ? 'left' : 'right';
-    // On line, so it was the strength: landed before the target, or flew past it.
-    const along = (at.x - t.pos.x) * Math.sin(t.bearing) + (at.z - t.pos.z) * Math.cos(t.bearing);
     return along < -0.3 ? 'short' : along > 0.3 ? 'long' : null;
   }
 
@@ -298,8 +351,8 @@ export class TargetActivity implements ActivityInstance {
       // Before the draw the arc is a faint guide for the aim; drawing, it is the throw as it stands, and
       // it turns bold while letting go would hit.
       const drawing = this.draw >= 0;
-      const reach = drawing ? drawReach(this.draw) : 1;
-      const lands = drawing && this.predict(reach) >= 0;
+      const reach = drawing ? this.reachAt(this.draw) : 1;
+      const lands = drawing && this.letGoHits;
       for (const p of previewArc(this.feet, this.aim, targets, this.groundAt, 9, reach)) {
         out.push({ shape: 'float', look: 'dot', x: p.x, y: p.y, z: p.z, strength: lands ? 1 : drawing ? 0.85 : 0.6, size: lands ? 1.7 : 1.25 });
       }
@@ -317,7 +370,7 @@ export class TargetActivity implements ActivityInstance {
   progress(): ActivityReadout | null {
     const need = this.setup.need;
     const fresh = this.call !== null && this.elapsed - this.call.at < THROW.call;
-    const said = fresh && this.call ? `${this.call.hit ? WORDS.throwHit : WORDS.throwWide(this.call.side)} · ` : '';
+    const said = fresh && this.call ? `${this.call.hit ? WORDS.throwHit : WORDS.throwWide(this.call.side, this.call.timing)} · ` : '';
     // While the aim line is up, it says which way to turn, then that it will hit: critic round 13 could
     // not see the line "turn bold" and threw blind.
     const aiming = this.stage === 'throwing' && this.decidedAt < 0 && this.throwsLeft > 0 && this.shots.length === 0;
@@ -329,9 +382,13 @@ export class TargetActivity implements ActivityInstance {
       // left with a hit count and no idea which way to turn; round 13 hit nothing without the words.
       // The aim is coached, while drawing too (a snowman swings out of line); the strength is not:
       // on line and drawing, the words only say to let go on the arc.
+      // Drawing, it says "Let go!" (in the urgent colour) for exactly the moment the arc is bold: critic
+      // round 20 could not see the window in the dots and timed the release by trial.
       const t = on ? null : this.nearestToAim();
-      const lined = this.draw >= 0 ? WORDS.throwDrawing : WORDS.throwOn;
+      const now = on && this.letGoHits;
+      const lined = this.draw >= 0 ? (now ? WORDS.throwNow : WORDS.throwDrawing) : WORDS.throwOn;
       cue = on ? `${lined} · ` : t ? `${WORDS.throwTurn(angleDelta(this.aim, t.bearing) > 0 ? 'left' : 'right')} · ` : '';
+      on = this.draw >= 0 ? now : on;
     }
     return {
       label: `${said}${cue}Hits ${Math.min(this.hits, need)} / ${need} · ${this.throwsLeft} left`,
@@ -383,9 +440,13 @@ export class TargetActivity implements ActivityInstance {
     return this.shots.length;
   }
 
-  /** A throw is being drawn and letting go now would hit: the moment the arc turns bold. */
+  /**
+   * A throw is being drawn and letting go now would hit: the moment the arc turns bold and the words say
+   * "Let go!". It also asks that a release a beat later still hits, so a player who lets go on the cue,
+   * a reaction late, isn't sent short off the window's edge.
+   */
   get letGoHits(): boolean {
-    return this.draw >= 0 && this.predict(drawReach(this.draw)) >= 0;
+    return this.draw >= 0 && this.predict(this.reachAt(this.draw)) >= 0 && this.predict(this.reachAt(this.draw + LET_GO_SLACK)) >= 0;
   }
 }
 

@@ -9,7 +9,8 @@
  * An errand offer ends on Pip's answer. When the offer's last line closes, Pip is asked "take it on?"
  * with "i'll do it." and "not now."; only the first takes the errand. An answer that already says yes
  * ("i'll ask skiff.", a choice marked `takes`) takes it when the talk closes, without the question:
- * critic round 13 said yes to Orla and was then asked again. Escape is "not now". Declined,
+ * critic round 13 said yes to Orla and was then asked again. Escape is "not now", unless Pip already
+ * said yes. Declined,
  * the errand stays on offer, and talking to the villager again goes straight to Pip's answer: critic
  * round 5 had to sit through a whole pitch again to say yes to something it had already heard.
  */
@@ -161,7 +162,13 @@ export function createDialogueFlow(d: DialogueFlowDeps): DialogueFlow {
       }
       if (id !== speechNode) open(d.nodes[id]?.speaker ?? next.speaker, id);
     },
-    close: shut,
+    close(): void {
+      // Escape after Pip has already said yes ("i'll ring it.") keeps the yes. It used to drop the offer:
+      // critic round 20 said yes to Gus and Skiff, skipped the rest with Escape, and had neither errand.
+      const took = offer && agreed ? offer : null;
+      shut();
+      took?.accept();
+    },
     isOpen: () => d.dialogue.isOpen(),
     currentNode: () => speechNode,
     speaker: () => (d.dialogue.isOpen() ? speakerId : null),
