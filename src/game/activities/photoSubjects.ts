@@ -40,8 +40,10 @@ export const PHOTO_SUBJECTS: Readonly<Record<string, PhotoSubject>> = {
   'reach-ice-photo': { kind: 'ground', x: 67.9, z: 350.6, lift: 0.5, what: 'pressure ridge' },
   // The steam columns over the south-east Kettle basin (-24, 78), 8 u in front of the viewpoint.
   'kettles-steam-photo': { kind: 'ground', x: -24, z: 78, lift: 2.6, what: 'steam' },
-  // The lantern on the hamlet's bell post in the middle of the square (landmarks.ts), 16 u away.
-  'hamlet-market-photo': { kind: 'ground', x: 250, z: 120, lift: 2.85, what: 'market lamp' },
+  // The lantern on the hamlet's bell post in the middle of the square (landmarks.ts), 16 u away. Named
+  // with the bell: in the viewfinder the post reads as Gus's bell, and critic round 21 was told to
+  // centre a "market lamp" while the arrow sat on a bell.
+  'hamlet-market-photo': { kind: 'ground', x: 250, z: 120, lift: 2.85, what: 'market lamp on the bell post' },
   'peak-aurora-photo': { kind: 'aurora', what: 'aurora' },
 };
 

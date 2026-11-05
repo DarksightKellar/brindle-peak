@@ -42,6 +42,8 @@ import { setTuckRopeTied } from './game/world/tuckBridge';
 import { PHOTO_SUBJECTS } from './game/activities/photoSubjects';
 import { WORDS } from './game/activities/activityWords';
 import { advancePlayer } from './game/session/playerAdvance';
+import { createSteepNudge } from './game/session/steepNudge';
+import { TUNING } from './core/player/tuning';
 import { pushFrame } from './game/session/frameFeedback';
 import { disposeSession } from './game/session/dispose';
 import { createDialogueFlow } from './game/session/dialogueFlow';
@@ -142,6 +144,7 @@ export function createSession(opts: SessionOptions): Session {
   // Buildings the camera rises over; the mast is a lattice it looks through, Edda's hut 13 u off is not.
   rig.setStructures(measureStructures(world.group, world.colliders, (x, z) => Math.hypot(x - PEAK.x, z - PEAK.z) < 6));
   prepareViewFade(world.group); // see-through corners bound from the first draw (render/viewFade.ts)
+  const steep = createSteepNudge();
   const runner = createActivityRunner({
     create: (def) => (live = createActivity(def, FISH)),
     hostFor: (instance, input) => mech.hostFor(instance, input),
@@ -198,6 +201,7 @@ export function createSession(opts: SessionOptions): Session {
     const blocked = routeInput(input, dt);
 
     const gusting = state.zone === 'ridge' && elapsed % 9 < 3;
+    const before = { x: player.pos.x, z: player.pos.z };
     // Movement is emptied behind an overlay, but look is not: see the camera note further down.
     advancePlayer({
       player,
@@ -212,7 +216,16 @@ export function createSession(opts: SessionOptions): Session {
       sfx: (name) => audio.sfx(name),
     });
 
+    if (!blocked && dt > 0) {
+      const pushing = Math.hypot(input.moveX, input.moveZ) > 0.5 && player.grounded;
+      const ahead = sampler.sampleAt(player.pos.x + Math.sin(player.facing) * 0.7, player.pos.z + Math.cos(player.facing) * 0.7);
+      const speed = Math.hypot(player.pos.x - before.x, player.pos.z - before.z) / dt;
+      const said = steep.update(dt, pushing && ahead.slope > TUNING.climbMaxSlope, speed);
+      if (said) bus.emit('toast', { text: said, icon: 'mountain', tier: 'discovery' });
+    }
+
     runner.update(dt, input);
+    if (runner.breathFree()) player.stamina = player.maxStamina;
     onboarding.update(dt, input); // before the flush: a beat's payout lands on its own frame
 
     const sample = sampler.sampleAt(player.pos.x, player.pos.z);

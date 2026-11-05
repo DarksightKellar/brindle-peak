@@ -173,7 +173,7 @@ export const QUESTS: readonly QuestDef[] = [
 
   q('orla-night-bake', 'The Night Bake', 'orla', 'hamlet', 'Four loaves becomes nine if nobody sleeps.',
     { offer: 'orla-b', waiting: 'orla-bwait', still: 'orla-bstill' }, [
-      s('lamps', 'Photograph the market lamps in Hollowpine Hamlet.', { kind: 'activity', id: 'hamlet-market-photo' }),
+      s('lamps', 'Photograph the market lamp on the bell post in Hollowpine Hamlet.', { kind: 'activity', id: 'hamlet-market-photo' }),
       talk('gus', 'Borrow Gus from his shop for an hour.', 'gus', 'gus-bake'),
       talk('orla', 'Tell Orla the queue is fed.', 'orla', 'orla-bdone'),
     ], { bells: 14 }, { requires: [done('orla-flour')] }),

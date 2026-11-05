@@ -93,6 +93,8 @@ export const WORDS = {
   skateTipRight: 'Tipping right — hold A',
   skateTipLeft: 'Tipping left — hold D',
   skateSteady: 'Steady',
+  /** Pip rode out a wobble that would have been a fall; `left` more of those before one is. */
+  skateCaught: (left: number): string => `Whoa, caught it${left === 0 ? '. Next one is a fall' : ''}`,
   // Kite readouts and result
   kiteLow: 'Keep it in the rising snow',
   // Out of the lift: which way it is, as the key to press.

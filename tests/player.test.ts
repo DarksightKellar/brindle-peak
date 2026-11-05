@@ -179,3 +179,33 @@ describe('air verbs', () => {
     expect(flat.mode).not.toBe('sled');
   });
 });
+
+describe('ground too steep to climb', () => {
+  it('sheds Pip downhill instead of holding the bird wedged on it (critic round 21, Nettle Chimney)', () => {
+    // A face of gradient 8 (slope about 0.88), past the climb limit, rising toward +x from x = 0.
+    const face = (x: number): number => (x > 0 ? x * 8 : 0);
+    const n = (x: number) => {
+      const g = (face(x + 0.05) - face(x - 0.05)) / 0.1;
+      const len = Math.hypot(g, 1);
+      return { x: -g / len, y: 1 / len, z: 0 };
+    };
+    const env = {
+      ...makeEnv(),
+      terrain: {
+        size: 400,
+        heightAt: (x: number) => face(x),
+        normalAt: (x: number) => n(x),
+        sampleAt: (x: number) => ({ height: face(x), slope: 1 - n(x).y, surface: 'snow' as const, zone: 'peak' as const }),
+      },
+    };
+    expect(1 - n(1).y).toBeGreaterThan(TUNING.climbMaxSlope);
+    // Whichever way the stick pushes, up the face included, Pip comes off it.
+    for (const push of [{ moveX: 1 }, { moveX: -1 }, { moveZ: 1 }, { moveZ: -1 }]) {
+      const s = spawn(0, { y: face(1) + 0.02 });
+      s.pos.x = 1;
+      for (let i = 0; i < 180; i++) stepPlayer(s, input(push), FRAME, TUNING, env);
+      expect(s.pos.x).toBeLessThan(0.2);
+      expect(s.pos.y).toBeLessThan(1);
+    }
+  });
+});

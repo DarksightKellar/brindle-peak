@@ -45,6 +45,14 @@ export const SKATE = {
   lap: 11,
   /** |balance| under this reads as steady in the panel. */
   steady: 0.15,
+  /**
+   * Wobbles Pip rides out before a fall ends the lap: the bird windmills, comes back upright, and the
+   * lap goes on. Critics rounds 17 and 21 both went down at about 12 s of 20 and called it too strict
+   * for a cozy game; now the third time off the edge is the fall.
+   */
+  catches: 2,
+  /** Seconds the panel says Pip caught it. */
+  caughtFor: 1.5,
 } as const;
 
 export interface BalanceState {
@@ -97,6 +105,9 @@ export class SkateActivity implements ActivityInstance {
   private outcome: ActivityResult | null = null;
   private paid = false;
   private terrain: TerrainSampler | null = null;
+  private catchesLeft: number = SKATE.catches;
+  /** `elapsed` when Pip last caught a wobble, or -Infinity. */
+  private caughtAt = -Infinity;
 
   constructor(def: ActivityDef) {
     this.def = def;
@@ -112,6 +123,8 @@ export class SkateActivity implements ActivityInstance {
     this.outcome = null;
     this.paid = false;
     this.stage = 'skate';
+    this.catchesLeft = SKATE.catches;
+    this.caughtAt = -Infinity;
   }
 
   update(dt: number, host: ActivityHost): void {
@@ -125,7 +138,13 @@ export class SkateActivity implements ActivityInstance {
     this.elapsed += step;
     skateStep(this.balanceState, step, host.input.moveX, this.elapsed, this.phase);
 
-    if (lostBalance(this.balanceState)) this.finish(host, false);
+    if (lostBalance(this.balanceState) && this.catchesLeft > 0) {
+      // Windmilling, back upright, still leaning a touch the way it went.
+      this.catchesLeft--;
+      this.caughtAt = this.elapsed;
+      const b = this.balanceState;
+      this.balanceState = { balance: Math.sign(b.balance) * 0.2, velocity: 0, offCentreFor: 0 };
+    } else if (lostBalance(this.balanceState)) this.finish(host, false);
     else if (this.elapsed >= SKATE.goal) this.finish(host, true);
   }
 
@@ -158,8 +177,9 @@ export class SkateActivity implements ActivityInstance {
     const off = isOffCentre(b.balance);
     const tip = b.balance > SKATE.steady ? WORDS.skateTipRight : b.balance < -SKATE.steady ? WORDS.skateTipLeft : WORDS.skateSteady;
     const warn = off ? ` · falling in ${Math.max(0, SKATE.fallAfter - b.offCentreFor).toFixed(1)}s` : '';
+    const caught = this.elapsed - this.caughtAt < SKATE.caughtFor ? `${WORDS.skateCaught(this.catchesLeft)} · ` : '';
     return {
-      label: `${tip}${warn} · ${this.elapsed.toFixed(0)} / ${SKATE.goal}s`,
+      label: `${caught}${tip}${warn} · ${this.elapsed.toFixed(0)} / ${SKATE.goal}s`,
       fraction: Math.min(1, this.elapsed / SKATE.goal),
       urgent: off && b.offCentreFor > SKATE.fallAfter * 0.5,
     };

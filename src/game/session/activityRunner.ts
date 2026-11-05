@@ -49,8 +49,9 @@ export interface ActivityRunnerDeps {
 
 /** Seconds the opening turn is held, so the camera has swung round before the player takes over. */
 const OPENING_TURN = 0.7;
-/** Seconds the result stays in the panel after a finish. 3.2 was gone before critic round 5 looked down at it. */
-const RESULT_HOLD = 5;
+/** Seconds the result stays in the panel after a finish (Esc sends it away sooner). 3.2 was gone before
+ * critic round 5 looked down at it, and 5 before critic rounds 20 and 21 did (skating, the deer run). */
+const RESULT_HOLD = 10;
 
 export interface ActivityRunner {
   start(def: ActivityDef): void;
@@ -59,6 +60,11 @@ export interface ActivityRunner {
   isRunning(): boolean;
   /** True when the live activity needs the player's movement input left alone. */
   freeRoam(): boolean;
+  /**
+   * A race is run on a full breath: critic round 21 was winded by gate 7 of a run they chose to enter,
+   * and the sprint bar decided the race rather than the line through the trees.
+   */
+  breathFree(): boolean;
   /** Abandon the live activity (the player pressed cancel, or the session is shutting down). */
   cancel(): void;
   /** Close the result card if it is up; true when it was. Escape uses it before the pause menu. */
@@ -173,6 +179,7 @@ export function createActivityRunner(d: ActivityRunnerDeps): ActivityRunner {
     },
     isRunning: () => active !== null,
     freeRoam: () => active !== null && active.freeRoam === true,
+    breathFree: () => active !== null && active.def.kind === 'race',
     focus: () => (active ? extras(active).focus?.() ?? null : null),
     dismissResult(): boolean {
       if (active || resultLeft <= 0) return false;

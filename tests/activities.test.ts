@@ -428,13 +428,31 @@ describe('skate', () => {
     expect(skate.crossedPond).toBe(true);
   });
 
+  it('a whole second late on every cue, rides out its wobbles and finishes the lap (critic rounds 17 and 21)', () => {
+    // A player a whole second late on every cue: once a fall, now caught.
+    const skate = createSkateActivity(defOf('skate'));
+    const host = makeHost();
+    begin(skate, host);
+    const seen: string[] = [];
+    let guard = 0;
+    while (!skate.isComplete() && guard++ < 2000) {
+      seen.push(skate.progress()?.label ?? '');
+      const cue = seen[Math.max(0, seen.length - 1 - 60)];
+      const at = cue.replace(/^Whoa[^·]*· /, '');
+      step(skate, host, { moveX: at.startsWith('Tipping right') ? -1 : at.startsWith('Tipping left') ? 1 : 0 });
+    }
+    expect(seen.some((l) => l.startsWith("Whoa, caught it"))).toBe(true);
+    expect(skate.crossedPond).toBe(true);
+  });
+
   it('an untouched run ends on its own and still banks the time', () => {
     const skate = createSkateActivity(defOf('skate'));
     const host = makeHost();
     begin(skate, host);
     let guard = 0;
-    while (!skate.isComplete() && guard++ < 900) step(skate, host);
+    while (!skate.isComplete() && guard++ < 1300) step(skate, host);
     expect(skate.isComplete()).toBe(true);
+    expect(skate.crossedPond).toBe(false); // the caught wobbles don't carry a run nobody steers
     expect(skate.result()?.score).toBeGreaterThan(0);
     expect(host.awards).toHaveLength(1);
   });

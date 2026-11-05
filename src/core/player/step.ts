@@ -170,8 +170,12 @@ function slice(
   const sprinting = state.grounded && env.abilities.sprint && input.sprintHeld && inp.mag > 0.2
     && spend(T.drainSprint * dt, true);
   const top = sprinting ? T.sprintSpeed : T.walkSpeed;
-  const wantX = nx * top * inp.mag;
-  const wantZ = nz * top * inp.mag;
+  // Ground too steep even to climb can't be stood on: Pip slides off it, downhill. Critic round 21
+  // landed on the foot of Nettle Chimney (0.85) and stood there wedged, unable to walk up, climb, or
+  // move at all, until it gave up and teleported.
+  const shed = state.grounded && here.slope > T.climbMaxSlope;
+  const wantX = shed ? dhx * T.walkSpeed : nx * top * inp.mag;
+  const wantZ = shed ? dhz * T.walkSpeed : nz * top * inp.mag;
 
   if (state.grounded) {
     const grip = here.surface === 'ice' ? T.frictionIce : 1; // ice takes 6.7x longer to bite
