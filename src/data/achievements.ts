@@ -28,5 +28,5 @@ export const ACHIEVEMENTS: readonly AchievementDef[] = [
   { id: 'chimney-top', name: 'The Tall Face', desc: 'Rock, then more rock, then sky. The valley got very small below.', icon: 'M3 10V4l3-2 3 3v5', trigger: { kind: 'count', id: 'activity:ridge-chimney-race', n: 1 } },
   { id: 'night-colour', name: 'Green Over the Peak', desc: 'It began as a smudge low in the north, and then the whole sky was moving.', icon: 'M2 9c2 0 3-4 5-4s2 4 3 4M2 3h1M9 3h1', trigger: { kind: 'count', id: 'activity:peak-aurora-photo', n: 1 } },
   { id: 'summit', name: 'The Mast at Last', desc: 'The mast, and Edda beside it, and a set waiting on power.', icon: 'M6 10V4M4 4h4M3 2h6', trigger: { kind: 'flag', id: 'summit' } }, // the mast, not the peak zone: zone radius 105 fired this ~26 u short
-  { id: 'home-again', name: 'Home Again', desc: 'You crossed the whole valley and came back to the blue cabin, with a line of lights coming down the mountain ahead of you.', icon: 'M2 7l4-4 4 4M4 7v3h4V7', trigger: { kind: 'quest', id: 'nana-home' } },
+  { id: 'home-again', name: 'The Lights Came Down', desc: 'You crossed the whole valley and came back to the blue cabin, with a line of lights coming down the mountain ahead of you.', icon: 'M2 7l4-4 4 4M4 7v3h4V7', trigger: { kind: 'quest', id: 'nana-home' } },
 ];

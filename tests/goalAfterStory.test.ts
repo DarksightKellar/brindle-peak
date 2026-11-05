@@ -31,6 +31,10 @@ describe('the goal after the story', () => {
     s.quests.story = { status: 'complete', step: 1 };
     expect(goalTarget(s, { x: 0, z: 0 }, guide)).toEqual({ x: 100, z: 0 });
     expect(goalLine(s, null, { name: 'Fen', zone: ZONE_NAMES.pinewind })).toBe(`The valley's talking again. Go and say hello to Fen, in ${ZONE_NAMES.pinewind}.`);
+    // With an errand under way, the line names it before the hello (critic round 40).
+    s.quests.errand = { status: 'active', step: 0 };
+    expect(goalLine(s, null, { name: 'Fen', zone: ZONE_NAMES.pinewind })).toBe(`The valley's talking again. See your errands through, and say hello to Fen, in ${ZONE_NAMES.pinewind}.`);
+    delete s.quests.errand;
     s.talked.fen = true;
     expect(unmetAfterStory(s, { x: 0, z: 0 }, guide)?.id).toBe('orla');
     s.talked.orla = true;

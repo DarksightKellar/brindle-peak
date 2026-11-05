@@ -175,7 +175,7 @@ describe('journal model', () => {
     const ilsa = VILLAGER_BESTS['pinewind-deer-run'];
     expect(WORDS.parStart(ilsa)).toBe("Ilsa's best is 15s.");
     expect(WORDS.parAfter(ilsa, 12.4, 0)).toBe(" · quicker than Ilsa's 15s!");
-    expect(WORDS.parAfter(ilsa, 19.9, 0)).toBe(" · Ilsa's 15s is 4.9s quicker");
+    expect(WORDS.parAfter(ilsa, 19.9, 0)).toBe(" · 4.9s off Ilsa's 15s");
     const ivy = VILLAGER_BESTS['kettles-otter-slide'];
     expect(WORDS.parStart(ivy)).toBe('Ivy gets 10 rings.');
     expect(WORDS.parAfter(ivy, 30, 9)).toBe(' · Ivy gets 10');

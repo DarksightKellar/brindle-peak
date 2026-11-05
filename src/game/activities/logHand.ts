@@ -112,8 +112,9 @@ export class LogHand {
     const near = Math.max(0, 1 - (Math.abs(angle) - SWING.square) / (SWING.amp - SWING.square));
     const square = !slipping && isSquare(angle);
     const lit = slipping || square ? 1 : 0.15 + 0.45 * near * near;
+    // Sized to read from where the camera keeps: critic round 40 called the 1.5 / 2.3 dots "hard to read".
     const ends: PlacedMarker[] = [-1, 1].map((end) => ({
-      shape: 'float', look: 'dot', size: square ? 2.3 : 1.5, strength: lit, color: slipping ? PALETTE.PIP_SCARF : undefined,
+      shape: 'float', look: 'dot', size: square ? 3.2 : 2, strength: lit, color: slipping ? PALETTE.PIP_SCARF : undefined,
       x: rest.x + Math.cos(yaw) * end * LOG.length * 0.5, y: rest.y + LOG.radius * 2 + 0.15, z: rest.z - Math.sin(yaw) * end * LOG.length * 0.5,
     }));
     // Square: a ring lights on the crib under the log as well. From the side the camera keeps, a log's

@@ -66,7 +66,8 @@ export const WORDS = {
     if (b.seconds !== undefined) {
       return seconds < b.seconds
         ? ` · quicker than ${b.who}'s ${clock(b.seconds)}!`
-        : ` · ${b.who}'s ${clock(b.seconds)} is ${(seconds - b.seconds).toFixed(1)}s quicker`;
+        // Your gap first: critic round 40 found "Ilsa's 15s is 36.0s quicker" took a second read.
+        : ` · ${(seconds - b.seconds).toFixed(1)}s off ${b.who}'s ${clock(b.seconds)}`;
     }
     const c = b.count ?? 0;
     return count > c ? ` · more than ${b.who}!` : count === c ? ` · as many as ${b.who}!` : ` · ${b.who} gets ${c}`;

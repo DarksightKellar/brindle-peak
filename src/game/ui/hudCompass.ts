@@ -18,6 +18,7 @@
  */
 
 import { icon } from './icons';
+import { keyToward } from '../activities/activityWords';
 
 type Point = { x: number; z: number };
 
@@ -188,7 +189,9 @@ export function createHudCompass(layer: HTMLElement): HudCompass {
       // Behind, the pinned diamond alone reads as "over there, a bit": the chevrons say which way round.
       const behind = Math.abs(rel) > HALF;
       showTurn(!behind ? 0 : turnSide !== 0 && Math.abs(rel) > ASTERN ? turnSide : Math.sign(rel) || 1);
-      const text = `${Math.round(v.goalDistance ?? Math.hypot(v.goal.x - v.from.x, v.goal.z - v.from.z))} u${behind ? ' · behind you' : ''}`;
+      // Behind, it names the key that walks there, as the errand's line does: critic round 40 read
+      // "behind you" on the way to the mast with no key, and pushed W into the ridge.
+      const text = `${Math.round(v.goalDistance ?? Math.hypot(v.goal.x - v.from.x, v.goal.z - v.from.z))} u${behind ? ` · behind you, hold ${keyToward(-rel)}` : ''}`;
       if (text !== lastDist) {
         lastDist = text;
         dist.textContent = text;
