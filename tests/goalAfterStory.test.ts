@@ -43,14 +43,16 @@ describe('the goal after the story', () => {
   });
 
   // Critic round 27 watched the line flick between Margit, Skiff and Corm as it walked the Reach.
-  it('keeps the villager it named until another is much nearer', () => {
+  it('keeps the villager it named until another is at hand', () => {
     const s = fresh();
     s.talked.nana = true;
     s.quests.story = { status: 'complete', step: 1 };
     expect(unmetAfterStory(s, { x: 180, z: 0 }, guide)?.id).toBe('fen');
     // Orla is now a little nearer than Fen: the line stays on Fen.
     expect(unmetAfterStory(s, { x: 210, z: 0 }, guide)?.id).toBe('fen');
-    // Orla is now far nearer: the line moves to her.
+    // Orla is far nearer, but not at hand: walking between zones, the line keeps one name (critic round 42).
+    expect(unmetAfterStory(s, { x: 240, z: 0 }, guide)?.id).toBe('fen');
+    // Orla is at hand: the line moves to her.
     expect(unmetAfterStory(s, { x: 280, z: 0 }, guide)?.id).toBe('orla');
   });
 });

@@ -44,6 +44,11 @@ export interface CompassView {
    * diamond each under the strip, beside the followed errand's filled one. In front of the view only.
    */
   errands?: readonly Point[];
+  /**
+   * Whether "behind you" names the key that walks there. Off while an activity runs: critic round 42 read
+   * "behind you, hold A" over the pinecone toss, where A aims.
+   */
+  keys?: boolean;
 }
 
 export interface HudCompass {
@@ -198,7 +203,7 @@ export function createHudCompass(layer: HTMLElement): HudCompass {
       // Behind, it names the key that walks there, as the errand's line does: critic round 40 read
       // "behind you" on the way to the mast with no key, and pushed W into the ridge.
       saidBehind = Math.abs(rel) > HALF + (saidBehind ? -BEHIND_GIVE : BEHIND_GIVE);
-      const text = `${Math.round(v.goalDistance ?? Math.hypot(v.goal.x - v.from.x, v.goal.z - v.from.z))} u${saidBehind ? ` · behind you, hold ${keyToward(-rel)}` : ''}`;
+      const text = `${Math.round(v.goalDistance ?? Math.hypot(v.goal.x - v.from.x, v.goal.z - v.from.z))} u${saidBehind ? (v.keys === false ? ' · behind you' : ` · behind you, hold ${keyToward(-rel)}`) : ''}`;
       if (text !== lastDist) {
         lastDist = text;
         dist.textContent = text;

@@ -53,6 +53,8 @@ export interface Hud {
   setNextVisible(visible: boolean): void;
   /** Point the compass strip at a running activity's own target (a race's next gate); null for the goal. */
   setCourse(at: Vec2 | null): void;
+  /** An activity is running: its keys are its own, so the compass names none. */
+  setPlaying(playing: boolean): void;
   /** Hold the goal, the next line and the target where they are (a conversation is open). */
   setHeld(held: boolean): void;
   /**
@@ -136,6 +138,8 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
 
   /** The walk left to the goal when it follows a route rather than the straight line (route.ts). */
   let goalDistance: number | undefined;
+  /** An activity is running (setPlaying). */
+  let playing = false;
 
   const liveTarget = (): Vec2 | null => {
     if (held) return heldTarget;
@@ -237,8 +241,8 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
       const errandMarks = nextAllowed && !held
         ? otherErrands.filter((o) => (o.distance ?? Infinity) < ERRAND_SEEN).map((o) => o.target as Vec2)
         : [];
-      if (course) compass.update({ from: lastFrom, viewYaw, goal: course, side: null, feather: null, todo: [], errands: [] });
-      else compass.update({ from: lastFrom, viewYaw, goal: heldTarget, goalDistance, side, feather: feather.feather, todo, errands: errandMarks });
+      if (course) compass.update({ from: lastFrom, viewYaw, goal: course, side: null, feather: null, todo: [], errands: [], keys: false });
+      else compass.update({ from: lastFrom, viewYaw, goal: heldTarget, goalDistance, side, feather: feather.feather, todo, errands: errandMarks, keys: !playing });
       for (const fn of frameListeners) fn(heldTarget, p.pos, held, side);
     },
 
@@ -280,6 +284,10 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
 
     setCourse(at: Vec2 | null): void {
       course = at;
+    },
+
+    setPlaying(next: boolean): void {
+      playing = next;
     },
 
     setNextVisible(visible: boolean): void {

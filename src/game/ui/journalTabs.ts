@@ -111,7 +111,7 @@ export function questsHTML(
     // Critic round 10 read "following" on an errand while the goal and compass named the story, and
     // took them to disagree. They don't: the story is the goal at the top, the followed errand the line
     // under it. The page now says so in those words.
-    const status = on ? (q.main ? 'followed alone' : 'line under the goal') : q.main && q.status === 'active' ? 'the goal'
+    const status = on ? (q.main ? 'the goal only' : 'line under the goal') : q.main && q.status === 'active' ? 'the goal'
       : q.status === 'available' ? 'on offer' : q.status;
     const pick = q.trackable ? ` is-pickable${q.id === cursor ? ' is-cursor' : ''}${on ? ' is-tracked' : ''}` : '';
     return (

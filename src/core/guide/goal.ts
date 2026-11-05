@@ -36,10 +36,11 @@ export function goalTarget(s: GameState, from: Vec2, content: GuideContent): Vec
 }
 
 /**
- * The villager the line last named keeps it while still unmet, unless another is this much nearer:
- * walking across the Reach, critic round 27 watched it flick between Margit, Skiff and Corm.
+ * The villager the line last named keeps it while still unmet, unless another stands within this (u) and
+ * the named one does not. Walking across the Reach, critic round 27 watched it flick between Margit, Skiff
+ * and Corm; with a switch at half the distance, critic round 42 still saw five names on one walk.
  */
-const SWITCH_NEARER = 0.5;
+const SWITCH_BESIDE = 40;
 /** The last villager named for each run's state. The only memory here; it changes which, never whether. */
 const named = new WeakMap<GameState, string>();
 
@@ -53,7 +54,7 @@ export function unmetAfterStory(s: GameState, from: Vec2, content: GuideContent)
     if (s.talked[n.id] !== true && (best === null || away(n) < away(best))) best = n;
   }
   const kept = content.npcs.find((n) => n.id === named.get(s) && s.talked[n.id] !== true);
-  if (kept && best && away(best) > away(kept) * SWITCH_NEARER) best = kept;
+  if (kept && best && !(away(best) <= SWITCH_BESIDE && away(kept) > SWITCH_BESIDE)) best = kept;
   if (best) named.set(s, best.id);
   return best;
 }
