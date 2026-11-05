@@ -10,7 +10,8 @@
  * the HUD may fall back to the errand line's step (hud.ts); that fallback is HUD-only because it depends
  * on what the errand line chose to show.
  *
- * Pure: reads `GameState` and the content it is handed.
+ * Reads `GameState` and the content it is handed, and remembers one thing: which unmet villager it last
+ * named, so the line does not flick between two as Pip walks.
  */
 
 import type { GameState, Vec2 } from '../contracts';
@@ -34,19 +35,25 @@ export function goalTarget(s: GameState, from: Vec2, content: GuideContent): Vec
   return npc ? { x: npc.pos.x, z: npc.pos.z } : null;
 }
 
-/** After the story, the nearest villager Pip has never spoken to; null while it runs or once all are met. */
+/**
+ * The villager the line last named keeps it while still unmet, unless another is this much nearer:
+ * walking across the Reach, critic round 27 watched it flick between Margit, Skiff and Corm.
+ */
+const SWITCH_NEARER = 0.5;
+/** The last villager named for each run's state. The only memory here; it changes which, never whether. */
+const named = new WeakMap<GameState, string>();
+
+/** After the story, a villager Pip has never spoken to, nearest first; null while it runs or once all are met. */
 export function unmetAfterStory(s: GameState, from: Vec2, content: GuideContent): GuideNpc | null {
   const mains = content.quests.filter((q) => q.main === true);
   if (mains.length === 0 || !mains.every((q) => s.quests[q.id]?.status === 'complete')) return null;
+  const away = (n: GuideNpc): number => Math.hypot(n.pos.x - from.x, n.pos.z - from.z);
   let best: GuideNpc | null = null;
-  let near = Number.POSITIVE_INFINITY;
   for (const n of content.npcs) {
-    if (s.talked[n.id] === true) continue;
-    const d = Math.hypot(n.pos.x - from.x, n.pos.z - from.z);
-    if (d < near) {
-      near = d;
-      best = n;
-    }
+    if (s.talked[n.id] !== true && (best === null || away(n) < away(best))) best = n;
   }
+  const kept = content.npcs.find((n) => n.id === named.get(s) && s.talked[n.id] !== true);
+  if (kept && best && away(best) > away(kept) * SWITCH_NEARER) best = kept;
+  if (best) named.set(s, best.id);
   return best;
 }

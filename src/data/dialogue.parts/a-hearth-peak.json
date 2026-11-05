@@ -3,11 +3,9 @@
     "id": "nana-root",
     "speaker": "nana",
     "lines": [
-      "There you are. Let me look at you. Thinner. The road does that.",
-      "Bad timing, love. The radio's gone quiet. Not a word since Tuesday.",
-      "The set's up at the mast on Brindle Peak, dead for want of power.",
-      "Bram, who keeps the woodstore by the big pine, has spare batteries.",
-      "And take my old camera. Edda, who keeps the set up there, has been after one for weeks. She'll tell you why."
+      "There you are. Thinner. The road does that.",
+      "Bad timing, love. The radio's gone quiet, and the set up at the mast on Brindle Peak is dead for want of power.",
+      "Bram, who keeps the woodstore by the big pine, has spare batteries. And take my old camera: Edda up there has been after one. She'll tell you why."
     ],
     "choices": [
       {
@@ -36,9 +34,7 @@
     "id": "nana-errand",
     "speaker": "nana",
     "lines": [
-      "Bram is the red squirrel with the woodstore, just up by the big pine.",
-      "He'll want something done first. He always does. Do it his way.",
-      "Then bring the batteries here, and I'll tell you the rest."
+      "He'll want something done first. He always does. Then bring the batteries here."
     ]
   },
   {

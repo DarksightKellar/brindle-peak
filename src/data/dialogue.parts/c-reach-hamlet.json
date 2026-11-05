@@ -189,7 +189,7 @@
     "lines": [
       "You must be Pip. Sit down, you look frozen through.",
       "The oven's on, but I've no flour. Skiff, the otter with the boat, has it.",
-      "Would you ask him for me? And build a snowman while you're out. Keeps your wings warm."
+      "Would you ask him for me?"
     ],
     "choices": [
       {
@@ -216,18 +216,18 @@
   {
     "id": "orla-errand",
     "speaker": "orla",
+    "fill": "orla-green",
     "lines": [
-      "Skiff's boat is iced in, down on the Frozen Reach. He'll know what's aboard.",
-      "And the snowman, on the green. Somebody ought to enjoy the snow."
+      "Skiff's boat is iced in, down on the Frozen Reach. He'll know what's aboard."
     ],
     "next": "orla-pip"
   },
   {
     "id": "orla-pip",
     "speaker": "pip",
+    "fill": "orla-pip-green",
     "lines": [
-      "i'll ask him about the flour.",
-      "and build a snowman while i'm at it."
+      "i'll ask him about the flour."
     ]
   },
   {

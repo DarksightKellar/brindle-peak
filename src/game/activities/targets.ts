@@ -22,7 +22,7 @@ import type {
   TerrainSampler, Vec3,
 } from '../../core/contracts';
 import type { PlacedMarker } from './markerLooks';
-import { pointerTo } from './pointer';
+import { signTo } from './pointer';
 import { FLIGHT, launch, previewArc, stepShot, turnAim, type Shot, type Strikeable } from './throwFlight';
 import { bellTarget, FAN, makeFan, setupFor, targetFoot, type ThrowSetup, type ThrowTarget } from './throwSetups';
 import { WORDS } from './activityWords';
@@ -387,7 +387,7 @@ export class TargetActivity implements ActivityInstance {
       const g = this.gustNow;
       if (g !== 0) {
         const to = { x: b.x + Math.sign(g) * this.across.x * 10, z: b.z + Math.sign(g) * this.across.z * 10 };
-        for (const m of pointerTo({ x: b.x, y: b.y - 0.9, z: b.z }, to, this.camYaw)) out.push({ ...m, size: (m.size ?? 1) * (0.6 + 0.5 * Math.abs(g)) });
+        for (const m of signTo({ x: b.x, y: b.y - 0.9, z: b.z }, to, this.camYaw)) out.push({ ...m, size: (m.size ?? 1) * (0.6 + 0.5 * Math.abs(g)) });
       }
     }
     if (this.bell && this.rang >= 0 && this.rang < 1.2) {
@@ -448,9 +448,12 @@ export class TargetActivity implements ActivityInstance {
       // Drawing, it says "Let go!" (in the urgent colour) for exactly the moment the arc is bold: critic
       // round 20 could not see the window in the dots and timed the release by trial.
       // At the bell the turn is toward the aim that rings it in this wind, not toward the bell itself.
+      // "Let go!" is said until the first hit: after that the bold arc is the cue. Critic round 27 won the
+      // toss reading the words alone and said the arc hardly mattered.
       const goal = on ? null : this.bell ? this.bellAim() : this.nearestToAim()?.bearing ?? null;
       const now = on && this.letGoHits;
-      const lined = this.draw >= 0 ? (now ? WORDS.throwNow : WORDS.throwDrawing) : WORDS.throwOn;
+      const sayNow = now && this.hits === 0;
+      const lined = this.draw >= 0 ? (sayNow ? WORDS.throwNow : WORDS.throwDrawing) : WORDS.throwOn;
       cue = on ? `${lined} · ` : goal !== null ? `${WORDS.throwTurn(angleDelta(this.aim, goal) > 0 ? 'left' : 'right')} · ` : '';
       on = this.draw >= 0 ? now : on;
     }

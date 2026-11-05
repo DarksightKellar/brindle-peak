@@ -37,4 +37,16 @@ describe('the goal after the story', () => {
     expect(goalTarget(s, { x: 0, z: 0 }, guide)).toBeNull();
     expect(goalLine(s, null, null)).toBe("The valley's talking again. Wander, or see your errands through.");
   });
+
+  // Critic round 27 watched the line flick between Margit, Skiff and Corm as it walked the Reach.
+  it('keeps the villager it named until another is much nearer', () => {
+    const s = fresh();
+    s.talked.nana = true;
+    s.quests.story = { status: 'complete', step: 1 };
+    expect(unmetAfterStory(s, { x: 180, z: 0 }, guide)?.id).toBe('fen');
+    // Orla is now a little nearer than Fen: the line stays on Fen.
+    expect(unmetAfterStory(s, { x: 210, z: 0 }, guide)?.id).toBe('fen');
+    // Orla is now far nearer: the line moves to her.
+    expect(unmetAfterStory(s, { x: 280, z: 0 }, guide)?.id).toBe('orla');
+  });
 });

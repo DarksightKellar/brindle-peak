@@ -94,8 +94,11 @@ export function bootstrap(opts: BootOptions): Booted {
   const store = createPersistence(() => stateRef as GameState);
   const loaded = opts.resume === false ? null : store.load();
   const fresh = loaded === null;
-  // SPAWN.y is nominal; the start is resampled onto the real ground so Pip never begins inside it.
-  const spawn = loaded?.player.pos ?? { x: SPAWN.x, y: sampler.heightAt(SPAWN.x, SPAWN.z) + 0.05, z: SPAWN.z };
+  // SPAWN.y is nominal; the start is resampled onto the real ground so Pip never begins inside it. A
+  // save is resampled too: one written mid-jump or mid-glide (the autosave and the page closing both
+  // can) put Pip back in the air, to drop to the snow on load. Pip only ever stands on the terrain.
+  const at = loaded?.player.pos ?? SPAWN;
+  const spawn = { x: at.x, y: sampler.heightAt(at.x, at.z) + 0.05, z: at.z };
 
   const state: GameState = loaded ?? createGameState(spawn, TUNING.staminaMaxBase);
   stateRef = state;

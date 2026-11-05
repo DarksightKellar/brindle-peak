@@ -93,6 +93,8 @@ export interface Session {
   readonly colliders: readonly Collider[];
   /** Live footprint count, for the verification harness. */
   footprintCount(): number;
+  /** The snow's height at a point, for the verification harness. */
+  heightAt(x: number, z: number): number;
   destroy(): void;
 }
 
@@ -339,6 +341,7 @@ export function createSession(opts: SessionOptions): Session {
       || ui.ending.isOpen() || runner.isRunning(),
     colliders: b.world.colliders,
     footprintCount: () => prints.count(),
+    heightAt: (x, z) => sampler.heightAt(x, z),
     destroy: (): void => {
       polaroid.destroy();
       disposeSession({ persist, world, prints, snowfall, pipeline, audio, ui });

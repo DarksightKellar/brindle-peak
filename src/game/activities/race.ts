@@ -24,7 +24,7 @@ import type { PlacedMarker } from './markerLooks';
 import { courseFor, type RaceCourse } from './raceCourses';
 import { advanceGates, courseLength, gateYaw } from './raceGates';
 import { WORDS } from './activityWords';
-import { pointerTo } from './pointer';
+import { floorArrowTo } from './pointer';
 
 /** A hoop counts within this many metres of its centre height (so walking under one does not). */
 const HOOP_BAND = 2.2;
@@ -49,6 +49,8 @@ export class RaceActivity implements ActivityInstance {
   private paid = false;
   /** Ground height under each gate, sampled at start so markers need no terrain access. */
   private ground: number[] = [];
+  /** The ground under the floor arrow beside the runner. */
+  private groundAt: (x: number, z: number) => number = () => 0;
   /** Gates actually reached (a skipped gate is passed but not reached). */
   private reached = 0;
   /** The best time on this course before this run, from the save; null on a first run. */
@@ -72,6 +74,7 @@ export class RaceActivity implements ActivityInstance {
 
   start(host: ActivityHost): void {
     this.ground = this.course.gates.map((g) => host.terrain.heightAt(g.x, g.z));
+    this.groundAt = (x, z) => host.terrain.heightAt(x, z);
     const first = this.course.gates[0];
     this.opening = first ? Math.atan2(first.x - host.playerPos.x, first.z - host.playerPos.z) : host.cameraYaw;
     this.reached = 0;
@@ -168,9 +171,9 @@ export class RaceActivity implements ActivityInstance {
     return i;
   }
 
-  /** The arrow over Pip's head to the next gate (pointer.ts): gates in a wood are behind trunks more often than not. */
+  /** The arrow on the snow beside Pip to the next gate (pointer.ts): gates in a wood are behind trunks more often than not. */
   private pointer(target: Vec2): PlacedMarker[] {
-    return this.runner ? pointerTo(this.runner, target, this.camYaw) : [];
+    return this.runner ? floorArrowTo(this.runner, target, this.groundAt, this.elapsed) : [];
   }
 
   /** The lamp-posts of a lantern line are solid while they stand; arches and hoops are run through. */

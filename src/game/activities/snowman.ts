@@ -23,7 +23,7 @@ import type { PlacedMarker } from './markerLooks';
 import { nounFor, placePiece, siteFor, stepsFor, type BuildSite, type Piece } from './buildSites';
 import { BUILD, settleAt } from './build';
 import { WORDS } from './activityWords';
-import { pointerTo } from './pointer';
+import { floorArrowTo } from './pointer';
 
 /** A full ball further than this (metres, rim to ring) from the spot raises a beam over it. */
 const BEAM_GAP = 5;
@@ -210,9 +210,9 @@ export class SnowmanActivity implements ActivityInstance {
         }
       }
     }
-    // While a ball is out, the arrow over Pip's head points at the ring, as the race's does at its gate:
-    // critic round 24 rolled a ball 141 u off and gave up looking for the way back.
-    if (b) out.push(...pointerTo({ x: this.last.x, y: this.groundAt(this.last.x, this.last.z), z: this.last.z }, at, this.camYaw));
+    // While a ball is out, the arrow on the snow beside Pip points at the ring, as the race's does at its
+    // gate: critic round 24 rolled a ball 141 u off and gave up looking for the way back.
+    if (b) out.push(...floorArrowTo({ x: this.last.x, y: this.groundAt(this.last.x, this.last.z), z: this.last.z }, at, (x, z) => this.groundAt(x, z), this.elapsed));
     const lift = DOT_LIFT[this.stage] ?? 2.6;
     out.push({ shape: 'float', look: 'dot', x: at.x, y: this.ground + lift + 0.12 * Math.sin(this.elapsed * 4), z: at.z, size: full || !b ? 1.6 : 1.2, strength: 1 });
     return out;

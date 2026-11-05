@@ -24,6 +24,7 @@ const CLIMB_MIN_SLOPE = 0.35; // above this a face needs the climb verb, not wal
 const SLED_MIN_SLOPE = 0.25; // below this a sled is just a tray
 const MANTLE_FORWARD = 1.0; // how far past the lip a mantle carries the body
 const MAX_FRAME = 1.0; // hard cap on simulated seconds per call
+const FLAP_STACK = 1.5; // quick flaps add up to at most this many beats of climb
 
 /** Jump-hold seconds per state. `PlayerState` is frozen and has no field for it, so a
  *  WeakMap keeps the timer per player without touching the contract. Glide gate only. */
@@ -160,7 +161,9 @@ function slice(
      * The beat is also a push: wings drive the body forward as well as up. Adding it here rather than
      * only lifting means a flap bought distance, not just height.
      */
-    state.vel.y = Math.max(state.vel.y, 0) + T.flapSpeed;
+    // Capped: each beat added to the last, so a burst of quick presses stacked into one huge climb
+    // (critic round 27 rose some 170 u over the Thermal Descent; 14 presses gained 85 u).
+    state.vel.y = Math.min(Math.max(state.vel.y, 0) + T.flapSpeed, T.flapSpeed * FLAP_STACK);
     state.vel.x += Math.sin(state.facing) * T.flapForward;
     state.vel.z += Math.cos(state.facing) * T.flapForward;
     state.flapsUsed += 1; state.jumpBuffer = 0; state.mode = 'air';

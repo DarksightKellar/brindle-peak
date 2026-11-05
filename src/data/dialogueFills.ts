@@ -63,6 +63,16 @@ export const DIALOGUE_FILLS: Readonly<Record<string, (s: GameState) => string[]>
     (s.counters['activity:hamlet-snowman'] ?? 0) > 0
       ? ["Was that your snowman on the green? It leans. I like it."]
       : ["Still no snowman on the green, I see. Somebody ought to enjoy the snow."],
+  // When she sends Pip to Skiff. Critic round 27 had built the snowman already and was still asked for
+  // one, and said yes to it: she has seen it, or asks for it, whichever is true. Said first.
+  'orla-green': (s) =>
+    (s.counters['activity:hamlet-snowman'] ?? 0) > 0
+      ? ['And the snowman on the green, that was you? Good. Somebody ought to enjoy the snow.']
+      : ["And build a snowman on the green while you're out. Keeps your wings warm."],
+  'orla-pip-green': (s) =>
+    (s.counters['activity:hamlet-snowman'] ?? 0) > 0
+      ? ['the snowman leans on purpose.']
+      : ["a snowman too. i can do that."],
   // In the card's order, so the threads between two people come first.
   'nana-heard': (s) =>
     VALLEY_LINES.map(([quest]) => quest)

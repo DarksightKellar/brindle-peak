@@ -18,7 +18,7 @@ import type { StartLook } from './startPropMeshes';
 
 export type TransientLook =
   | 'arch' | 'beam' | 'hoop' | 'lamp' | 'lamp-post' | 'shot' | 'pinecone' | 'dot' | 'puff' | 'target' | 'pulse'
-  | 'sled' | 'kite' | 'arrow' | 'arrow-rim' | 'beacon' | 'fish' | 'fin' | 'halo' | 'streak' | 'stake' | 'mitten';
+  | 'sled' | 'kite' | 'arrow' | 'arrow-rim' | 'arrow-floor' | 'arrow-floor-rim' | 'beacon' | 'fish' | 'fin' | 'halo' | 'streak' | 'stake' | 'mitten';
 
 export type PieceLook =
   | 'log' | 'snowball' | 'stone' | 'carrot' | 'coal' | 'twig' | 'hat' | 'scarf' | 'pool' | 'hole' | 'deer' | 'snowman-target' | 'empty'

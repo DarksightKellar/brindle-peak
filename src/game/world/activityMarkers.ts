@@ -124,9 +124,12 @@ const PROTOTYPES: Readonly<Record<MarkerShape | TransientLook, Prototype>> = {
   // A shaft of light from the next gate up past the tops of the pines, so it can be found over a
   // ridge line or through a wood.
   beam: { geometry: new THREE.CylinderGeometry(0.24, 0.24, 40, 5), color: PALETTE.LANTERN, lift: 20 },
-  // The race and photo pointer, and a dark rim drawn just behind it so it reads on snow and on sky.
+  // The photo and wind pointer, and a dark rim drawn just behind it so it reads on snow and on sky.
   arrow: { geometry: arrowGeometry(1, 0), color: PALETTE.LANTERN, lift: 0 },
   'arrow-rim': { geometry: arrowGeometry(1.24, 0.08), color: PALETTE.SHADOW_FLOOR, lift: 0 },
+  // The way-to-go arrow, laid on the snow beside Pip with its nose along +Z, rim just under it.
+  'arrow-floor': { geometry: arrowGeometry(1, 0).rotateX(Math.PI / 2), color: PALETTE.LANTERN, lift: 0.12 },
+  'arrow-floor-rim': { geometry: arrowGeometry(1.24, 0).rotateX(Math.PI / 2), color: PALETTE.SHADOW_FLOOR, lift: 0.06 },
   // A crest light for the kite: big enough to read at twenty metres, a cold blue until it is cleared.
   beacon: { geometry: new THREE.OctahedronGeometry(0.42, 0), color: PALETTE.LANTERN, dim: PALETTE.SNOW_NIGHT, lift: 0 },
   // A caught fish, nose along +Z; its colours come from the journal's own table (spec.color).

@@ -90,6 +90,8 @@ const debug: GameDebug = {
     const p = session.player;
     p.pos.x = x;
     p.pos.z = z;
+    // Onto the snow there: keeping the old height dropped Pip from the peak's height into the valley.
+    p.pos.y = session.heightAt(x, z);
     p.vel.x = 0;
     p.vel.y = 0;
     p.vel.z = 0;

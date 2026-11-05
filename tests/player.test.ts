@@ -26,6 +26,16 @@ describe('flaps', () => {
     expect(s.stamina).toBeLessThan(TUNING.drainFlap);
   });
 
+  // Critic round 27 rose some 170 u over the Thermal Descent: each beat added to the last, so a burst of
+  // quick presses stacked into one huge climb.
+  it('a burst of flaps climbs about as fast as one beat, not all of them added up', () => {
+    const s = spawn(0, { y: 30, grounded: false });
+    const env = makeEnv();
+    for (let i = 0; i < 8; i++) stepPlayer(s, input({ jumpPressed: true, jumpHeld: true }), FRAME, TUNING, env);
+    expect(s.flapsUsed).toBe(8);
+    expect(s.vel.y).toBeLessThanOrEqual(TUNING.flapSpeed * 1.5);
+  });
+
   it('resets the count on landing', () => {
     const s = spawn(0, { y: 8, grounded: false });
     const env = makeEnv();
