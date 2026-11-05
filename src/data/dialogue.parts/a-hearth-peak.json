@@ -414,8 +414,9 @@
   {
     "id": "edda-line-orla",
     "speaker": "orla",
+    "fill": "orla-radio",
     "lines": [
-      "This is the bakery in Hollowpine Hamlet. The oven's on, and there's soup. Over."
+      "Come and have some, any of you. Over."
     ],
     "next": "edda-line-skiff"
   },

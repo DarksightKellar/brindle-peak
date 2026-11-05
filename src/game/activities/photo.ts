@@ -137,6 +137,13 @@ export class PhotoActivity implements ActivityInstance {
   }
 
   /** True while the aim is still where the aurora's shutter opened. */
+  /** The key that brings the frame back to where the shutter opened: A raises yaw, W raises pitch. */
+  private backToStar(): 'A' | 'D' | 'W' | 'S' {
+    const dyaw = angleDelta(this.aimYaw, this.opened.yaw), dpitch = this.opened.pitch - this.aimPitch;
+    if (Math.abs(dyaw) >= Math.abs(dpitch)) return dyaw > 0 ? 'A' : 'D';
+    return dpitch > 0 ? 'W' : 'S';
+  }
+
   private steady(): boolean {
     return Math.abs(angleDelta(this.aimYaw, this.opened.yaw)) < STEADY && Math.abs(this.aimPitch - this.opened.pitch) < STEADY;
   }
@@ -195,7 +202,7 @@ export class PhotoActivity implements ActivityInstance {
   progress(): ActivityReadout | null {
     if (this.exposure.open) {
       const steady = this.steady();
-      return { label: steady ? WORDS.exposeHold : WORDS.exposeDrift, fraction: this.exposure.fraction, urgent: !steady };
+      return { label: steady ? WORDS.exposeHold : WORDS.exposeDrift(this.backToStar()), fraction: this.exposure.fraction, urgent: !steady };
     }
     const label = this.hint === 'aim'
       ? 'Centred — press E'

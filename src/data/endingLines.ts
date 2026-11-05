@@ -43,7 +43,9 @@ export const VALLEY_LINES: readonly (readonly [quest: string, line: string])[] =
  * `VALLEY_LINES` sentence there instead, and the chapters use these.
  */
 export const CHAPTER_DONE: Readonly<Record<string, string>> = {
-  'the-line': "Bram's batteries went up the mountain in your bag.",
+  // Said while the batteries are still on their way: "went up the mountain" was written before they had
+  // (critic round 31).
+  'the-line': "Bram's batteries are in your bag, for the mast on Brindle Peak.",
   'the-climb': 'Edda has the batteries, and the set at the mast is warm.',
   'the-mast': 'The aurora cleared the sky, and the valley heard the radio.',
   'nana-home': 'You followed the lit posts home. Nana already knew.',

@@ -6,6 +6,19 @@
  * them are the copy. Results show for about three seconds, so each is one short line.
  */
 
+/**
+ * The keys that walk toward something at `turn` radians from the view's heading, left positive. A held
+ * key walks one straight line, fixed in the world when it goes down (core/player/move.ts): nothing
+ * curves, so the words name the nearest of the eight lines two keys can walk, always within about 22
+ * degrees of the target. Behind, that ends in S, straight back; the view comes round behind Pip as it goes.
+ */
+export function keyToward(turn: number, offAhead = false): string {
+  // 0 ahead .. 4 straight back; a target the words call "on your left" is never "hold W".
+  const eighth = Math.max(offAhead ? 1 : 0, Math.round(Math.abs(turn) / (Math.PI / 4)));
+  const side = turn > 0 ? 'A' : 'D';
+  return ['W', `W and ${side}`, side, `S and ${side}`, 'S'][Math.min(4, eighth)];
+}
+
 /** "1:05" or "24s": the same clock the activity panel shows. */
 export function clock(seconds: number): string {
   const whole = Math.max(0, Math.round(seconds));
@@ -49,11 +62,10 @@ export const WORDS = {
   /** Added to a result card the first time an activity is played to its end. */
   firstBells: (n: number): string => `+${n} bells for a first go`,
   /** Where the next gate is, from the camera's view: critic round 17 lost the lantern line with it behind them. */
-  // Behind, it still says which shoulder: critic round 20 overshot a gate, read "behind you", and had no
-  // way to know which way round to come. It names the key: critic round 30 read "over your right shoulder",
-  // turned the view with the camera keys, and walked on the wrong way.
-  gateWay: (metres: number, way: 'ahead' | 'left' | 'right' | 'behind', side: 'left' | 'right' = 'left'): string =>
-    `${Math.round(metres)} u ${way === 'ahead' ? 'ahead' : way === 'behind' ? `behind you, hold ${side === 'left' ? 'A' : 'D'} to come round` : `on your ${way}`}`,
+  // Off to a side or behind, it names the keys that walk there (keyToward): "over your right
+  // shoulder" (critic round 20) and "hold D to come round" (round 31) both left Pip walking off sideways.
+  gateWay: (metres: number, way: 'ahead' | 'left' | 'right' | 'behind', turn: number): string =>
+    `${Math.round(metres)} u ${way === 'ahead' ? 'ahead' : `${way === 'behind' ? 'behind you' : `on your ${way}`}, hold ${keyToward(turn, true)}`}`,
   // Woodpile: a crooked press, before the log came square or after it swung past.
   woodEarly: 'Too soon. Let it swing square first',
   woodLate: 'Too late. Wait for it to swing back square',
@@ -83,7 +95,8 @@ export const WORDS = {
   photoHint: (what: string): string => `Centre the ${what} in the frame, then press E.`,
   // The aurora's long exposure: holding the frame still; the frame has drifted off.
   exposeHold: 'Shutter open. Hold it still on the star',
-  exposeDrift: 'It drifted. Ease it back onto the star',
+  // It says which way: critic round 31 missed, saw the star drift off the frame, and found it by eye.
+  exposeDrift: (key: 'A' | 'D' | 'W' | 'S'): string => `It drifted. Ease it back onto the star: hold ${key}`,
   // Throw result
   throwResult: (hits: number, need: number): string => `${Math.min(hits, need)} of ${need} hits`,
   /** Critic round 17 rang it and read "1 of 1 hits", if anything: the bell is the point, not the count. */

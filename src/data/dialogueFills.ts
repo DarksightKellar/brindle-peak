@@ -78,6 +78,12 @@ export const DIALOGUE_FILLS: Readonly<Record<string, (s: GameState) => string[]>
       `${caught ? `One ${caught.name}` : 'One fish'} from my hole, and where the pike sit. That's two lines in the record.`,
     ];
   },
+  // Orla on the radio says what her oven has, by whether Pip brought the flour: critic round 31 heard
+  // "the oven's on, and there's soup" while she still had no flour, and read it as a slip.
+  'orla-radio': (s) =>
+    s.quests['orla-flour']?.status === 'complete'
+      ? ["This is the bakery in Hollowpine Hamlet. The oven's on, and there's bread, four loaves of it."]
+      : ["This is the bakery in Hollowpine Hamlet. The oven's on, but no flour yet, so it's soup."],
   // Skiff's hill. Critic round 30 rode it before he asked and was sent to ride it again: he saw it.
   'skiff-hill': (s) =>
     (s.counters['activity:reach-sled-hill'] ?? 0) > 0

@@ -17,6 +17,7 @@ import { BUILD, createBuildActivity, settleAt } from '../src/game/activities/bui
 import { BUILD_SITES, finishedBuildMarkers, heapLeft, siteFor, stepsFor } from '../src/game/activities/buildSites';
 import { activityOffered } from '../src/game/activities/offered';
 import { onAurora } from '../src/game/activities/photoSubjects';
+import { createPhotoActivity } from '../src/game/activities/photo';
 import { createKiteActivity, KITE, KiteActivity, liftAt } from '../src/game/activities/kite';
 import { createActivity } from '../src/game/activities/index';
 import { SnowmanActivity } from '../src/game/activities/snowman';
@@ -78,7 +79,7 @@ describe('race', () => {
     race.start(h);
     step(race, h);
     // The count, then where the gate is from the view (critic round 17 lost the lantern line).
-    expect(race.progress()?.label).toMatch(new RegExp(`^Gate 1 of ${race.gates.length} · \\d+ u (ahead|behind you, hold [AD] to come round|on your (left|right))$`));
+    expect(race.progress()?.label).toMatch(new RegExp(`^Gate 1 of ${race.gates.length} · \\d+ u (ahead|(behind you|on your (left|right)), hold (W|S|A|D|[WS] and [AD]))$`));
     const arches = (race.markers() as PlacedMarker[]).filter((m) => m.look === 'arch');
     expect(arches).toHaveLength(1);
     expect(arches[0].strength).toBe(1);
@@ -287,7 +288,7 @@ describe('build', () => {
     for (let ball = 1; snow.placed < 3 && ball <= 3; ball++) {
       walk(at.x + 3, at.z + 12); // roll out into the open and grow it
       // Out there, the card says where the ring is (critic round 20 circled for it).
-      expect(snow.progress()?.label).toMatch(/ · \d+ u (ahead|behind you, hold [AD] to come round|on your (left|right)) · /);
+      expect(snow.progress()?.label).toMatch(/ · \d+ u (ahead|(behind you|on your (left|right)), hold (W|S|A|D|[WS] and [AD])) · /);
       // and an arrow on the snow beside Pip points back at it (critic round 24 rolled one 141 u off),
       // nose the real way to the ring.
       const floor = snow.markers().find((m) => (m as { look?: string }).look === 'arrow-floor') as { x: number; z: number; yaw: number } | undefined;
@@ -349,6 +350,29 @@ describe('build', () => {
 // ---------------------------------------------------------------------------
 
 describe('aurora framing', () => {
+  // Critic round 31 missed, watched the star drift off the frame, and found it again by eye.
+  it('a player who only follows the words frames the aurora and holds it to the end', () => {
+    const d = ACTIVITIES.find((a) => a.id === 'peak-aurora-photo')!;
+    const photo = createPhotoActivity(d);
+    const h = host({ x: d.pos.x, y: 0, z: d.pos.z });
+    photo.start(h);
+    const keyOf = (label: string): { moveX: number; moveZ: number } => {
+      const k = /\(([ADWS])\)|hold ([ADWS])/.exec(label);
+      const key = k?.[1] ?? k?.[2] ?? '';
+      return { moveX: key === 'D' ? 1 : key === 'A' ? -1 : 0, moveZ: key === 'W' ? 1 : key === 'S' ? -1 : 0 };
+    };
+    let drifted = 0;
+    for (let i = 0; i < 60 * 30 && !photo.isComplete(); i++) {
+      const label = photo.progress()?.label ?? '';
+      if (label.startsWith('It drifted')) drifted++;
+      const centred = label.startsWith('Centred');
+      step(photo, h, { ...keyOf(label), interactPressed: centred && i % 10 === 0 });
+    }
+    expect(photo.isComplete()).toBe(true);
+    expect(photo.result()).not.toBeNull();
+    expect(drifted, 'the drift words came up, so they were followed').toBeGreaterThan(0);
+  });
+
   it('counts the frame as centred wherever a curtain is drawn, and not in the dark between', () => {
     for (const c of AURORA.curtains) expect(onAurora(Math.PI + c.yaw, c.base + c.height * 0.3)).toBe(true);
     expect(onAurora(0, 0.3)).toBe(false); // due south

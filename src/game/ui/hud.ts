@@ -30,6 +30,7 @@ import { createNearbyNotice, NOTICE_RANGE, nearbyTodo } from './hudNearby';
 import { hopBlocked, hopPlaces } from '../session/travel';
 import { ACTIVITIES } from '../../data/activities';
 import { createFeatherNotice } from './hudFeather';
+import { keyToward } from '../activities/activityWords';
 
 export interface Hud {
   update(s: GameState, p: PlayerState): void;
@@ -146,15 +147,16 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
   /**
    * Where the errand lies when its mark is off the compass strip. Critic round 11 saw the errand's
    * diamond pinned to the strip's edge, read no way to turn, and walked away from it. The goal's own
-   * distance says "behind you"; the errand's line now says the same, and which way to turn. By the key:
-   * critic round 30 read "turn right", turned the view with Q and R, and lost Margit, Skiff and the ice hole.
+   * distance says "behind you"; the errand's line now says the same, and the key that walks there
+   * (keyToward): "turn right" (critic round 30) and "hold D to come round" (round 31) both left Pip
+   * walking off sideways while the errand stayed behind.
    */
   const offStrip = (at: Vec2 | null): string => {
     if (!at) return '';
     const rel = bearing(at.x - lastFrom.x, at.z - lastFrom.z, viewYaw);
     // The strip's own rule (hudCompass.ts): off its half of the horizon is "behind you".
     if (Math.abs(rel) <= Math.PI / 2) return '';
-    return rel > 0 ? ' · behind you, hold D to come round' : ' · behind you, hold A to come round';
+    return ` · behind you, hold ${keyToward(-rel)}`; // bearing() is right positive
   };
 
   const writeNext = (text: string, step: ReturnType<typeof nextStepFor>): void => {

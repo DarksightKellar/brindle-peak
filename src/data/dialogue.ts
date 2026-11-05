@@ -58,7 +58,7 @@ export const DIALOGUE: Readonly<Record<string, DialogueNode>> = {
   'edda-wait': n('edda-wait', 'edda', ["The set's warm and my talon's on the dial. The rest is the sky's.","North, over the shoulder of the peak. Green, low at first, then climbing. Get it on the camera, then tell me."]),
   'edda-line-up': n('edda-line-up', 'edda', ["It's up? Then here we go. Stand by me.","Brindle Peak calling the valley. Brindle Peak calling. Anyone there? Over.","Nothing. Static. The sky has to find us first. Give it a...","There."], { next: 'edda-line-bram' }),
   'edda-line-bram': n('edda-line-bram', 'bram', ["Hearth Hollow, by the big pine. Woodstore's full. Four hundred and eighty-one. Over."], { next: 'edda-line-orla' }),
-  'edda-line-orla': n('edda-line-orla', 'orla', ["This is the bakery in Hollowpine Hamlet. The oven's on, and there's soup. Over."], { next: 'edda-line-skiff' }),
+  'edda-line-orla': n('edda-line-orla', 'orla', ["Come and have some, any of you. Over."], { next: 'edda-line-skiff', fill: 'orla-radio' }),
   'edda-line-skiff': n('edda-line-skiff', 'skiff', ["Boathouse on the Frozen Reach. The ice is holding. Lake's quiet. Over."], { next: 'edda-line-ivy' }),
   'edda-line-ivy': n('edda-line-ivy', 'ivy', ["Anyone cold, come down. Over."], { next: 'edda-line-wren', fill: 'ivy-radio' }),
   'edda-line-wren': n('edda-line-wren', 'wren', ["Wren, in Pinewind Wood. The mast's humming again. I can hear it from here. Over."], { next: 'edda-line-gus' }),

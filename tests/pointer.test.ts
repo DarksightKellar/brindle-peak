@@ -2,6 +2,7 @@
 
 import { describe, expect, it } from 'vitest';
 import { floorArrowTo, steadyWay } from '../src/game/activities/pointer';
+import { keyToward } from '../src/game/activities/activityWords';
 
 describe('the way words', () => {
   // Critic round 28: a gate on the edge between "ahead" and "on your left" flicked every frame.
@@ -17,6 +18,24 @@ describe('the way words', () => {
     expect(steadyWay(0.45, way)).toBe('left');
     expect(steadyWay(-0.8, way)).toBe('right');
     expect(steadyWay(2.5, way)).toBe('behind');
+  });
+});
+
+// Critic round 31 held D on "hold D to come round" and walked off sideways: a held key walks a straight
+// line, so the words name the line nearest the target.
+describe('the keys toward a target', () => {
+  const deg = (d: number): number => (d * Math.PI) / 180;
+  it('names the nearest of the eight lines, left positive', () => {
+    expect(keyToward(deg(10))).toBe('W');
+    expect(keyToward(deg(40))).toBe('W and A');
+    expect(keyToward(deg(-95))).toBe('D');
+    expect(keyToward(deg(-130))).toBe('S and D');
+    expect(keyToward(deg(175))).toBe('S');
+    expect(keyToward(deg(-180))).toBe('S');
+  });
+
+  it('never says W for a target it calls off to a side', () => {
+    expect(keyToward(deg(20), true)).toBe('W and A');
   });
 });
 

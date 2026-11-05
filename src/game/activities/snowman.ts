@@ -239,7 +239,7 @@ export class SnowmanActivity implements ActivityInstance {
     const far = Math.hypot(at.x - b.x, at.z - b.z) - b.r - 1.3;
     const turn = angleDelta(this.camYaw, Math.atan2(at.x - b.x, at.z - b.z));
     const way = this.way = steadyWay(turn, this.way);
-    const where = far > 2 ? ` · ${WORDS.gateWay(far, way, turn > 0 ? 'left' : 'right')}` : '';
+    const where = far > 2 ? ` · ${WORDS.gateWay(far, way, turn)}` : '';
     return { label: `${full ? WORDS.snowPush : WORDS.snowRoll}${where} · ${count}`, fraction: (this.stage + grown) / total, urgent: full };
   }
 
