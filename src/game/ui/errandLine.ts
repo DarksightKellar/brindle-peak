@@ -17,6 +17,10 @@
  *    story alone, until an errand is picked or a new one taken on. Critic round 22 picked "Up to the
  *    Mast" on the Quests page and got Four Loaves, because the story was not a row the cursor stopped on.
  *  - When the tracked errand finishes, the nearest live one is taken up.
+ *  - A word on the way: when the followed errand is far off and another errand's next step is a talk
+ *    with someone a few steps away, the line names that talk for now, then goes back. The followed
+ *    errand does not change. Critic round 45 was sent 636 u back to Nana while Gus, 28 u behind, only
+ *    wanted to hear that his bell carried.
  *  - No other errand is ever named over the tracked one. The others wait in the journal.
  *
  * The earlier complaint still holds (six "go to X" lines read as homework), so it is one line for one
@@ -35,10 +39,17 @@ import { nextStepFor, nextStepOf, worthShowing } from '../../core/guide/nextStep
 const PIN = 'track:';
 /** The pick that means "the story, no errand". */
 const STORY = '@story';
+/** The followed errand is this far off or more before a word on the way may stand in for it. */
+const FAR_OFF = 300;
+/** A talk this close takes the line as a word on the way; it keeps it until Pip is WORD_KEEP away. */
+const WORD_NEAR = 40;
+const WORD_KEEP = 60;
 
 export interface ErrandLine {
   /** The step to print, or null for no line. Moves the tracking on; call once a frame. */
   pick(s: GameState, from: Vec2): GuideStep | null;
+  /** The title of the errand whose talk the line names on the way, standing in for the followed one; else null. */
+  onTheWay(): string | null;
   /** What the last `pick` returned: for a reader (the map) that must not move the tracking. */
   current(): GuideStep | null;
   /** The errand being followed, picked or not, or the story's quest when the story is picked; null when none is. */
@@ -96,6 +107,8 @@ export function createErrandLine(guide: GuideContent): ErrandLine {
   let lastState: GameState | null = null;
   let switchedTo: string | null = null;
   let last: GuideStep | null = null;
+  /** The errand whose talk stands in on the way (WORD_NEAR), or null. */
+  let word: string | null = null;
 
   const storyQuest = (s: GameState): string | null =>
     guide.quests.find((q) => q.main === true && nextStepOf(q, s) !== null)?.id ?? null;
@@ -114,6 +127,24 @@ export function createErrandLine(guide: GuideContent): ErrandLine {
       single.set(id, only);
     }
     return nextStepFor(s, from, only, 'side');
+  };
+
+  /** The nearest other errand whose next step is a talk within reach; the one already named holds to WORD_KEEP. */
+  const wordOnTheWay = (s: GameState, from: Vec2): string | null => {
+    let best: string | null = null;
+    let bestAway = Infinity;
+    for (const def of guide.quests) {
+      if (def.main === true || def.id === tracked) continue;
+      const now = nextStepOf(def, s);
+      if (!now || now.step.when.kind !== 'talked') continue;
+      const away = stepOf(def.id, s, from)?.distance ?? null;
+      if (away === null || away > (def.id === word ? WORD_KEEP : WORD_NEAR)) continue;
+      if (away < bestAway) {
+        best = def.id;
+        bestAway = away;
+      }
+    }
+    return best;
   };
 
   return {
@@ -167,17 +198,21 @@ export function createErrandLine(guide: GuideContent): ErrandLine {
         switchedTo = guide.quests.find((q) => q.id === tracked)?.title ?? null;
       }
       const mine = tracked === null ? null : stepOf(tracked, s, from);
-      if (mine) last = mine;
+      word = mine && !pinned && (mine.distance ?? 0) >= FAR_OFF ? wordOnTheWay(s, from) : null;
+      const aside = word === null ? null : stepOf(word, s, from);
+      if (aside) last = aside;
+      else if (mine) last = mine;
       else last = worthShowing(nearest, Number.POSITIVE_INFINITY) ? nearest : null;
       return last;
     },
+    onTheWay: () => (word === null ? null : guide.quests.find((q) => q.id === word)?.title ?? null),
     current: () => last,
     trackedId: () => (story && lastState ? storyQuest(lastState) : tracked),
     switched: () => switchedTo,
     others(s, from): GuideStep[] {
       const out: GuideStep[] = [];
       for (const def of guide.quests) {
-        if (def.main === true || def.id === tracked) continue;
+        if (def.main === true || def.id === tracked || def.id === word) continue;
         const step = stepOf(def.id, s, from);
         if (step?.target && step.distance !== null) out.push(step);
       }

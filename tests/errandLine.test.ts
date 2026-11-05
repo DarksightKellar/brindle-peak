@@ -44,6 +44,32 @@ describe('the line under the goal', () => {
     expect(line.switched()).toBeNull(); // said once
   });
 
+  it('a talk a few steps away stands in for a far errand, then the line goes back (critic round 45)', () => {
+    const far: GuideContent = {
+      ...guide,
+      quests: [
+        questDef({ id: 'letter', title: "Pell's Letter", steps: [step({ kind: 'talked', id: 'nana' })] }),
+        questDef({ id: 'bell', title: "Gus's Bell", steps: [step({ kind: 'talked', id: 'gus' })] }),
+      ],
+      npcs: [{ id: 'nana', zone: 'hearth', pos: { x: -600, z: 0 } }, { id: 'gus', zone: 'hamlet', pos: { x: 30, z: 0 } }],
+    };
+    const s = fresh();
+    const line = createErrandLine(far);
+    line.pick(s, { x: 0, z: 0 });
+    take(s, 'bell');
+    line.pick(s, { x: 0, z: 0 });
+    take(s, 'letter'); // the newest is followed
+    expect(line.pick(s, { x: 200, z: 0 })?.questId).toBe('letter');
+    expect(line.onTheWay()).toBeNull();
+    expect(line.pick(s, { x: 0, z: 0 })?.questId).toBe('bell'); // Gus 30 u off, Nana 600: a word on the way
+    expect(line.onTheWay()).toBe("Gus's Bell");
+    expect(line.trackedId()).toBe('letter');
+    expect(line.pick(s, { x: -20, z: 0 })?.questId).toBe('bell'); // 50 u: held, no flicker at the edge
+    expect(line.pick(s, { x: -40, z: 0 })?.questId).toBe('letter'); // walked on past it
+    line.track(s, 'letter'); // a picked errand is never stood in for
+    expect(line.pick(s, { x: 0, z: 0 })?.questId).toBe('letter');
+  });
+
   it('picking the story clears the errand line until an errand is picked or taken on', () => {
     const s = fresh();
     const line = createErrandLine(guide);

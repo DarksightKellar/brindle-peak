@@ -228,7 +228,9 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
         // errand's distance to "Pressure Ridges nearby" and "Boathouse Hill nearby" again and again.
         const now = performance.now() < switchedUntil ? `Now on the line: ${switchedTitle}
 ` : '';
-        const errandText = step ? `${now}${formatNextStep(step)}${offStrip(step.target ?? null)}${hopHint(s, step)}` : '';
+        // A word on the way (errandLine.ts) says so, so the followed errand isn't thought dropped.
+        const said = errands?.onTheWay() ? formatNextStep(step).replace(/^Next: /, 'On the way: ') : formatNextStep(step);
+        const errandText = step ? `${now}${said}${offStrip(step.target ?? null)}${hopHint(s, step)}` : '';
         if (feather.line !== '') writeNext(feather.line, null);
         else if (nearby !== '' && errandText !== '') writeNext(`${errandText}\n${nearby}`, step);
         else if (nearby !== '') writeNext(nearby, null);
