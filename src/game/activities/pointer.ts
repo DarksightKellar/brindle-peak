@@ -79,6 +79,15 @@ const WAY_HOLD = 0.15;
  * the line between "ahead" and "on your left" had the race's panel flicking between the two every frame
  * (critic round 28). `turn` is the target's bearing from the view's heading, left positive.
  */
+/**
+ * Which way round to turn for something behind: the side of `turn` (positive is left, as `steadyWay`),
+ * kept while it is nearly straight behind, so it doesn't flip with every step.
+ */
+export function steadyRound(turn: number, last: 'left' | 'right' | null): 'left' | 'right' {
+  if (last !== null && Math.abs(turn) > (Math.PI * 5) / 6) return last;
+  return turn > 0 ? 'left' : 'right';
+}
+
 export function steadyWay(turn: number, last: Way | null): Way {
   const a = Math.abs(turn);
   const raw: Way = a < WAY_AHEAD ? 'ahead' : a > WAY_BEHIND ? 'behind' : turn > 0 ? 'left' : 'right';

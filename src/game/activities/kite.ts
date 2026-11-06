@@ -140,7 +140,10 @@ export class KiteActivity implements ActivityInstance {
     const lift = Math.min(1, this.inLift() * 1.8);
     const sink = this.height >= KITE.line ? KITE.sinkAbove : KITE.sink;
     this.height = clamp(this.height + (KITE.climb * lift - sink) * step, KITE.floor, KITE.ceiling);
-    this.held = this.height >= KITE.line ? this.held + step : Math.max(0, this.held - step * KITE.drain);
+    // Climbing back in the lift keeps what was held: critic round 52 slipped at "2 more seconds" and, by
+    // the time the kite was over the crest again, the count had drained back to 8.
+    const keeping = this.inLift() > 0.25;
+    this.held = this.height >= KITE.line ? this.held + step : keeping ? this.held : Math.max(0, this.held - step * KITE.drain);
     if (this.held >= KITE.hold) this.finish(host);
   }
 

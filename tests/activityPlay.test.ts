@@ -79,7 +79,7 @@ describe('race', () => {
     race.start(h);
     step(race, h);
     // The count, then where the gate is from the view (critic round 17 lost the lantern line).
-    expect(race.progress()?.label).toMatch(new RegExp(`^Gate 1 of ${race.gates.length} · \\d+ u (ahead|behind you|on your (left|right))$`));
+    expect(race.progress()?.label).toMatch(new RegExp(`^Gate 1 of ${race.gates.length} · \\d+ u (ahead|behind you, to your (left|right)|on your (left|right))$`));
     const arches = (race.markers() as PlacedMarker[]).filter((m) => m.look === 'arch');
     expect(arches).toHaveLength(1);
     expect(arches[0].strength).toBe(1);
@@ -308,7 +308,7 @@ describe('build', () => {
     for (let ball = 1; snow.placed < 3 && ball <= 3; ball++) {
       walk(at.x + 3, at.z + 12); // roll out into the open and grow it
       // Out there, the card says where the ring is (critic round 20 circled for it).
-      expect(snow.progress()?.label).toMatch(/ · \d+ u (ahead|behind you|on your (left|right)) · /);
+      expect(snow.progress()?.label).toMatch(/ · \d+ u (ahead|behind you, to your (left|right)|on your (left|right)) · /);
       // and an arrow on the snow beside Pip points back at it (critic round 24 rolled one 141 u off),
       // nose the real way to the ring.
       const floor = snow.markers().find((m) => (m as { look?: string }).look === 'arrow-floor') as { x: number; z: number; yaw: number } | undefined;

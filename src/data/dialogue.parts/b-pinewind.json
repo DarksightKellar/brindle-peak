@@ -23,14 +23,14 @@
     "speaker": "wren",
     "lines": [
       "It's not the page. It's me. Everything sounds like something I've already written.",
-      "My very first page was the mast on Brindle Peak, humming in the cold. I was younger than you.",
-      "It's been quiet since Tuesday. I didn't know you could miss a hum."
+      "My very first page was the mast on Brindle Peak, humming in the cold. I was younger than you."
     ],
     "next": "wren-errand"
   },
   {
     "id": "wren-errand",
     "speaker": "wren",
+    "fill": "wren-hum",
     "lines": [
       "So listen for me. Fresh ears. Go to the hoarfrost glade and take a photograph.",
       "Holding still for a picture is the only time anyone really listens. You'll hear the frost.",

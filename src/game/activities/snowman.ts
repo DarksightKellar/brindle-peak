@@ -23,7 +23,7 @@ import type { PlacedMarker } from './markerLooks';
 import { nounFor, placePiece, siteFor, stepsFor, type BuildSite, type Piece } from './buildSites';
 import { BUILD, settleAt } from './build';
 import { WORDS } from './activityWords';
-import { floorArrowTo, steadyWay, type Way } from './pointer';
+import { floorArrowTo, steadyRound, steadyWay, type Way } from './pointer';
 
 /** A full ball further than this (metres, rim to ring) from the spot raises a beam over it. */
 const BEAM_GAP = 5;
@@ -72,6 +72,7 @@ export class SnowmanActivity implements ActivityInstance {
   private ground = 0;
   /** The way word the panel said last frame (pointer.ts steadyWay). */
   private way: Way | null = null;
+  private round: 'left' | 'right' | null = null;
   private groundAt: (x: number, z: number) => number = () => this.ground;
   private phase: 'build' | 'done' | 'aborted' = 'build';
   private outcome: ActivityResult | null = null;
@@ -254,8 +255,9 @@ export class SnowmanActivity implements ActivityInstance {
     const far = Math.hypot(at.x - b.x, at.z - b.z) - b.r - 1.3;
     const turn = angleDelta(this.camYaw, Math.atan2(at.x - b.x, at.z - b.z));
     const way = this.way = steadyWay(turn, this.way);
+    const round = this.round = steadyRound(turn, this.round);
     // Said right up to the ring: critic round 35 pushed a full ball beside it for minutes with no key named.
-    const where = ` · ${WORDS.gateWay(Math.max(1, far), way)}`;
+    const where = ` · ${WORDS.gateWay(Math.max(1, far), way, round)}`;
     return { label: `${full ? WORDS.snowPush : WORDS.snowRoll}${where} · ${count}`, fraction: (this.stage + grown) / total, urgent: full };
   }
 

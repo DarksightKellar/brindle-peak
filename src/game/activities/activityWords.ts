@@ -68,8 +68,12 @@ export const WORDS = {
   /** Where the next gate is, from the camera's view: critic round 17 lost the lantern line with it behind them. */
   // The way, not the keys: the director's call (round 47). The opening teaches walking; live "hold D"
   // words on every gate were hand-holding.
-  gateWay: (metres: number, way: 'ahead' | 'left' | 'right' | 'behind'): string =>
-    `${Math.round(metres)} u ${way === 'ahead' ? 'ahead' : way === 'behind' ? 'behind you' : `on your ${way}`}`,
+  // Behind, it says which way round, as the compass does: critic round 52 read "Gate 5, 15 u behind you",
+  // walked back toward the camera, and the view swung round with it, until the race was 420 u away.
+  gateWay: (metres: number, way: 'ahead' | 'left' | 'right' | 'behind', round: 'left' | 'right' = 'left'): string =>
+    `${Math.round(metres)} u ${way === 'ahead' ? 'ahead' : way === 'behind' ? `behind you, to your ${round}` : `on your ${way}`}`,
+  /** A race walked away from: it ends, and says so. */
+  raceLeft: 'Left the course, so the run is off. The start is where it was.',
   // Woodpile: a crooked press, before the log came square or after it swung past.
   woodEarly: 'Too soon. Let it swing square first',
   woodLate: 'Too late. Wait for it to swing back square',

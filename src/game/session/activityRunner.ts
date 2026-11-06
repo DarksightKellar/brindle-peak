@@ -107,8 +107,9 @@ export function createActivityRunner(d: ActivityRunnerDeps): ActivityRunner {
     if (framed) d.markers.hide(framed, false);
     framed = null;
     active = null;
-    const said = a.result() !== null ? extras(a).summary?.() ?? null : null;
-    const line = said && firstRun ? `${said} · ${WORDS.firstBells(ACTIVITY_BELLS)}` : said;
+    // Each summary says nothing unless it has something to say: a race walked away from does.
+    const said = extras(a).summary?.() ?? null;
+    const line = said && firstRun && a.result() !== null ? `${said} · ${WORDS.firstBells(ACTIVITY_BELLS)}` : said;
     if (line) {
       d.ui.activity.showResult(line);
       resultLeft = RESULT_HOLD;

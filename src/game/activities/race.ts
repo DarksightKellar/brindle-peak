@@ -25,8 +25,10 @@ import { courseFor, type RaceCourse } from './raceCourses';
 import { advanceGates, courseLength, gateYaw } from './raceGates';
 import { WORDS } from './activityWords';
 import { VILLAGER_BESTS } from '../../data/villagerBests';
-import { floorArrowTo, steadyWay, type Way } from './pointer';
+import { floorArrowTo, steadyRound, steadyWay, type Way } from './pointer';
 
+/** Further than this from the next gate, the run has been walked away from and ends. */
+const LEFT_COURSE = 150;
 /** A hoop counts within this many metres of its centre height (so walking under one does not). */
 const HOOP_BAND = 2.2;
 /** The hoop mesh sits this far above its marker base (world/activityMarkers.ts PROTOTYPES.hoop.lift). */
@@ -59,6 +61,9 @@ export class RaceActivity implements ActivityInstance {
   private camYaw = 0;
   /** The way word the panel said last frame (pointer.ts steadyWay). */
   private way: Way | null = null;
+  private round: 'left' | 'right' | null = null;
+  /** The run ended because Pip walked away from it, not by Esc. */
+  private left = false;
 
   compassTarget(): Vec2 | null {
     const g = this.stage === 'run' ? this.course.gates[this.next] : undefined;
@@ -105,6 +110,13 @@ export class RaceActivity implements ActivityInstance {
     this.next = advanceGates(was, body, this.course.gates, this.course.radius, this.course.heights, HOOP_BAND, skip);
     if (this.next > was) this.reached++;
     if (this.next >= this.course.gates.length) this.finish(host);
+    else {
+      const g = this.course.gates[this.next];
+      if (Math.hypot(g.x - body.x, g.z - body.z) > LEFT_COURSE) {
+        this.abort();
+        this.left = true;
+      }
+    }
   }
 
   private finish(host: ActivityHost): void {
@@ -197,6 +209,7 @@ export class RaceActivity implements ActivityInstance {
     if (!g || !p) return { label, fraction: total === 0 ? 0 : this.next / total };
     const turn = angleDelta(this.camYaw, Math.atan2(g.x - p.x, g.z - p.z));
     const way = this.way = steadyWay(turn, this.way);
+    const round = this.round = steadyRound(turn, this.round);
     // A hoop above or below the glide says so: the round-26 critic had a distance and no height.
     const h = this.course.heights?.[aim];
     const rise = h !== undefined && Math.abs(h - p.y) > HOOP_BAND ? ` · ${WORDS.hoopHeight(h - p.y)}` : '';
@@ -205,7 +218,7 @@ export class RaceActivity implements ActivityInstance {
     // critic round 49 read it, then "through 1 of 8 hoops" at the end. The count through says so as it
     // goes, from the first hoop on: critic round 51 could not tell from the screen how its run stood.
     const missed = this.course.look === 'hoop' && this.next > 0 ? ` · ${WORDS.hoopsThrough(this.reached)}` : '';
-    return { label: `${lead}${missed} · ${WORDS.gateWay(Math.hypot(g.x - p.x, g.z - p.z), way)}${rise}`, fraction: total === 0 ? 0 : this.next / total };
+    return { label: `${lead}${missed} · ${WORDS.gateWay(Math.hypot(g.x - p.x, g.z - p.z), way, round)}${rise}`, fraction: total === 0 ? 0 : this.next / total };
   }
 
   /** Turn to the first gate as the run opens: it is in front of you, not behind the camera. */
@@ -214,6 +227,7 @@ export class RaceActivity implements ActivityInstance {
   }
 
   summary(): string | null {
+    if (this.stage === 'aborted' && this.left) return WORDS.raceLeft;
     if (this.stage !== 'done') return null;
     const total = this.course.gates.length;
     if (this.course.look === 'lantern') return WORDS.lanternResult(total);

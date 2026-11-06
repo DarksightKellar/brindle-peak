@@ -172,8 +172,8 @@
   {
     "id": "hollis-root",
     "speaker": "hollis",
+    "fill": "hollis-hello",
     "lines": [
-      "You're Nana's. The one come up the road.",
       "I've lost a mitten. The left one. The good one.",
       "I know who took it. Fen, the owl who watches from the pines.",
       "Go and see what he says for himself."
@@ -305,7 +305,7 @@
     "id": "bram-rope-wait",
     "speaker": "bram",
     "lines": [
-      "The rope's still in your bag? It's for Tuck, at the bridge on Windscar Ridge. It's on your way up."
+      "Tuck's at the bridge on Windscar Ridge. Forty feet, mind. I'll know if it isn't."
     ]
   },
   {

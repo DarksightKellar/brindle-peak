@@ -81,6 +81,16 @@ export const DIALOGUE_FILLS: Readonly<Record<string, (s: GameState) => string[]>
   },
   // Orla on the radio says what her oven has, by whether Pip brought the flour: critic round 31 heard
   // "the oven's on, and there's soup" while she still had no flour, and read it as a slip.
+  // After the radio, villagers know who got it going: critic round 52 met Hollis and Wren after the ending,
+  // and he greeted a stranger "come up the road" while she missed a hum that was back on.
+  'hollis-hello': (s) => [
+    s.quests['the-mast']?.status === 'complete' ? "You're Nana's. The one who got Edda's set talking." : "You're Nana's. The one come up the road.",
+  ],
+  'wren-hum': (s) => [
+    s.quests['the-mast']?.status === 'complete'
+      ? "It's humming again since you went up. I heard it come back. But nothing sounds new to me."
+      : "It's been quiet since Tuesday. I didn't know you could miss a hum.",
+  ],
   'orla-radio': (s) =>
     s.quests['orla-flour']?.status === 'complete'
       ? ["This is the bakery in Hollowpine Hamlet. The oven's on, and there's bread, four loaves of it."]
