@@ -95,13 +95,13 @@ export function createEnding(root: HTMLElement): Ending {
       statsEl.innerHTML = [
         row('Feathers', `${stats.feathers} of ${stats.feathersTotal}`),
         row('Bells', String(stats.bells)),
-        // What was done, then that more is waiting, never "1 of 18": critic round 26 took the tallies to be
-        // counting what they had done, stingily; round 43 read "0 of 18" as having done nothing; round 54
-        // read "Errands 1 of 18, Things tried 4 of 22" straight after the finale as a mark against it.
-        row('Errands for villagers', tally(stats.questsDone, stats.questsTotal, 'seen through', 'more waiting')),
-        // A count to come back and finish: play goes on after the card (director, round 57).
+        // Two rows, two things: critic round 26 read "1 of 18" errands beside seven activities played and
+        // took the card to be counting what they had done, stingily.
+        // None done yet, it says what is waiting: critic round 43 read "0 of 18" as the game saying it had
+        // done nothing, with the whole story behind it.
+        row('Errands for villagers', stats.questsDone === 0 ? `${stats.questsTotal} waiting for you` : `${stats.questsDone} of ${stats.questsTotal}`),
         row('Things tried', `${stats.triedDone} of ${stats.triedTotal}`),
-        row('Zones walked', tally(stats.zonesSeen, stats.zonesTotal, '', 'more to see')),
+        row('Zones walked', `${stats.zonesSeen} of ${stats.zonesTotal}`),
         row('Time on the mountain', spokenTime(stats.playtime)),
       ].join('');
       panel.hidden = false;
@@ -119,14 +119,6 @@ export function createEnding(root: HTMLElement): Ending {
 }
 
 const COUNT = ['no', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen'];
-
-/** A count in words with what is left as an invitation: "one seen through, more waiting", "every one". */
-export function tally(done: number, total: number, did: string, more: string): string {
-  if (done >= total) return 'every one';
-  if (done === 0) return `${COUNT[total] ?? String(total)} waiting for you`;
-  const n = COUNT[done] ?? String(done);
-  return `${did ? `${n} ${did}` : n}, ${more}`;
-}
 
 /** The second paragraph: only what this player finished, or a nudge back down if they finished nothing. */
 export function valleyText(lines: readonly string[], more: number): string {
