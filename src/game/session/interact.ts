@@ -25,8 +25,8 @@ export const ACTIVITY_REACH_MIN = 6;
 /** How close to an activity's start prop E reaches it. */
 export const PROP_REACH = 5.5;
 export const LANTERN_RADIUS = 2.4;
-/** Carrying the lantern, Pip lights a post just by passing this close to it. */
-export const LANTERN_PASS = 6;
+/** Carrying the lantern, Pip lights a post just by passing this close to it. A trail's width either side. */
+export const LANTERN_PASS = 8;
 
 /** The reach E has on this villager. The tutorial's talk hint shows only inside it. */
 export const talkReach = (n: Pick<NpcDef, 'radius'>): number => Math.max(n.radius ?? 0, NPC_RADIUS);

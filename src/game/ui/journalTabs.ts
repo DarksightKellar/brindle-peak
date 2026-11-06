@@ -127,8 +127,10 @@ export function questsHTML(
   });
   const hint = m.quests.some((q) => q.trackable)
     // Critic round 41 read the old "E puts an errand on the line under the goal, or on the story, follows
-    // it alone" twice and still could not tell what E would do.
-    ? '<p class="ui-journal__meta">↑↓ choose · E follows it, and the compass points there · E again lets it go</p>'
+    // it alone" twice and still could not tell what E would do. Critic round 48 then read "the compass
+    // points there" and watched the big diamond stay on the story: during the story a followed errand
+    // gets the small one, after it the big one.
+    ? '<p class="ui-journal__meta">↑↓ choose · E follows it: its step goes under the goal, with its own diamond on the compass · E again lets it go</p>'
     : '';
   return `${hint}<ul class="ui-quests">${rows.join('')}</ul>`;
 }
@@ -143,7 +145,8 @@ const TRY_FAR_ROWS = 3;
 /**
  * Things to try: the nearest activities not yet done, with how far and which way. Critic round 9
  * found the kite, the sled, the skating and the toss only as a line that flashed by, or not at all;
- * the map drew their marks, but nothing said which were near. The page now does.
+ * the map drew their marks, but nothing said which were near. The page now does. Each says what Pip
+ * does there: critic round 48 could not plan from "Boathouse Hill" or "Ice Hole" until 15 u away.
  */
 export function tryHTML(activities: readonly ActivityDef[], s: GameState): string {
   const from = s.player.pos;
@@ -158,7 +161,8 @@ export function tryHTML(activities: readonly ActivityDef[], s: GameState): strin
   const shown = (near.length > 0 ? near.slice(0, TRY_ROWS) : rows.slice(0, TRY_FAR_ROWS))
     .map((e) => {
       const where = e.d < 4 ? 'here' : `${formatDistance(e.d)} ${compassWord(e.dx, e.dz)}`;
-      return `<li class="ui-try"><span class="ui-try__name">${esc(e.a.name)}</span><span class="ui-quest__where">${esc(where)}</span></li>`;
+      const what = e.a.what ? `<span class="ui-try__what">${esc(e.a.what)}</span>` : '';
+      return `<li class="ui-try"><span class="ui-try__name">${esc(e.a.name)}${what}</span><span class="ui-quest__where">${esc(where)}</span></li>`;
     });
   if (shown.length === 0) return '';
   const head = near.length > 0 ? 'Things to try nearby' : 'Things still to try, a walk away';

@@ -145,6 +145,7 @@ export function bootstrap(opts: BootOptions): Booted {
 
   const audio: AudioKit = createAudio();
   const ui: Presentation = createPresentation(opts.uiRoot, audio, (x, z) => sampler.heightAt(x, z));
+  ui.hud.setBuildings(world.colliders.flatMap((c) => (c.kind === 'box' ? [c] : [])));
   const mech: Mechanics = createMechanics({
     state, player, bus, quests, achievements, world, sampler,
     cameraYaw: () => rig.yaw(),

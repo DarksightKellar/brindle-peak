@@ -61,7 +61,7 @@ export const WORDS = {
   gates: (next: number, total: number): string => `Gate ${next} of ${total}`,
   lanterns: (next: number, total: number): string => `Lantern ${next} of ${total}`,
   /** Added to a result card the first time an activity is played to its end. */
-  firstBells: (n: number): string => `+${n} bells for a first go`,
+  firstBells: (n: number): string => `+${n} bells for trying it`,
   /** Where the next gate is, from the camera's view: critic round 17 lost the lantern line with it behind them. */
   // The way, not the keys: the director's call (round 47). The opening teaches walking; live "hold D"
   // words on every gate were hand-holding.

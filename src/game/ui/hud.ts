@@ -21,7 +21,7 @@ import type { GameState, PlayerState, Vec2, Vec3 } from '../../core/contracts';
 import type { GuideContent } from '../../core/guide/nextStep';
 import { formatNextStep, nextStepFor } from '../../core/guide/nextStep';
 import { goalTarget, unmetAfterStory } from '../../core/guide/goal';
-import { routeAim } from '../../core/guide/route';
+import { aroundAim, routeAim, type GuideBox } from '../../core/guide/route';
 import { errandLineFor, type ErrandLine } from './errandLine';
 import { goalLine } from './hudText';
 import { bearing, createHudCompass } from './hudCompass';
@@ -52,6 +52,8 @@ export interface Hud {
   setNextVisible(visible: boolean): void;
   /** Point the compass strip at a running activity's own target (a race's next gate); null for the goal. */
   setCourse(at: Vec2 | null): void;
+  /** The buildings' footprints: a near goal behind one is pointed at round it (route.ts `aroundAim`). */
+  setBuildings(boxes: readonly GuideBox[]): void;
   /** Hold the goal, the next line and the target where they are (a conversation is open). */
   setHeld(held: boolean): void;
   /**
@@ -135,6 +137,7 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
 
   /** The walk left to the goal when it follows a route rather than the straight line (route.ts). */
   let goalDistance: number | undefined;
+  let buildings: readonly GuideBox[] = [];
 
   const liveTarget = (): Vec2 | null => {
     if (held) return heldTarget;
@@ -243,8 +246,10 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
       const errandMarks = nextAllowed && !held
         ? otherErrands.filter((o) => (o.distance ?? Infinity) < ERRAND_SEEN).map((o) => o.target as Vec2)
         : [];
+      // The strip goes round a building in the way; the beam over the target stays where it is.
+      const round = heldTarget && !held ? aroundAim(buildings, lastFrom, heldTarget) : null;
       if (course) compass.update({ from: lastFrom, viewYaw, goal: course, side: null, feather: null, todo: [], errands: [] });
-      else compass.update({ from: lastFrom, viewYaw, goal: heldTarget, goalDistance, side, feather: feather.feather, todo, errands: errandMarks });
+      else compass.update({ from: lastFrom, viewYaw, goal: round?.aim ?? heldTarget, goalDistance: round?.distance ?? goalDistance, side, feather: feather.feather, todo, errands: errandMarks });
       for (const fn of frameListeners) fn(heldTarget, p.pos, held, side);
     },
 
@@ -286,6 +291,10 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
 
     setCourse(at: Vec2 | null): void {
       course = at;
+    },
+
+    setBuildings(boxes): void {
+      buildings = boxes;
     },
 
     setNextVisible(visible: boolean): void {

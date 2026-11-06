@@ -102,7 +102,7 @@ export function createActivityHud(root: HTMLElement): ActivityHud {
       foot.hidden = false;
       label.textContent = formatClock(0);
       fill.style.width = '0%';
-      panel.classList.remove('is-urgent', 'is-compact');
+      panel.classList.remove('is-urgent', 'is-compact', 'is-result');
       panel.hidden = false;
     },
     update(readout, seconds): void {
@@ -125,14 +125,14 @@ export function createActivityHud(root: HTMLElement): ActivityHud {
       foot.hidden = true;
       label.textContent = line;
       setCue(undefined);
-      panel.classList.add('is-urgent');
+      panel.classList.add('is-urgent', 'is-result');
       panel.classList.remove('is-compact');
       panel.hidden = false;
     },
     hide(): void {
       panel.hidden = true;
       setCue(undefined);
-      panel.classList.remove('is-urgent', 'is-compact');
+      panel.classList.remove('is-urgent', 'is-compact', 'is-result');
     },
     isOpen: () => !panel.hidden,
   };

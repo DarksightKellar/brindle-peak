@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { routeAim } from '../src/core/guide/route';
+import { aroundAim, routeAim } from '../src/core/guide/route';
 
 // An L: east 100, then north 100, to a target just past the end.
 const routes = [{ path: [[0, 0], [100, 0], [100, 100]] as const }];
@@ -36,5 +36,55 @@ describe('a goal along a route (critic round 17, the pin through the north face)
   it('leaves the goal straight when Pip is far off the path, or the target is elsewhere', () => {
     expect(routeAim(routes, { x: 50, z: 200 }, top)).toBeNull();
     expect(routeAim(routes, { x: 90, z: 5 }, { x: 300, z: 300 })).toBeNull();
+  });
+});
+
+describe('a near goal behind a building (critic round 48, "6 u" through the radio hut wall)', () => {
+  // A 10 by 6 hut at the origin, square to the axes; the target stands beside its east wall's middle.
+  const hut = [{ x: 0, z: 0, hw: 5, hd: 3, yaw: 0 }];
+  const target = { x: 7, z: 0 };
+
+  it('points straight when nothing stands between', () => {
+    expect(aroundAim(hut, { x: 7, z: 10 }, target)).toBeNull();
+  });
+
+  it('points straight at a target too far off to be about walking round a wall', () => {
+    expect(aroundAim(hut, { x: -40, z: 0 }, { x: 7, z: 0 })).toBeNull();
+  });
+
+  it('aims at a corner round the wall, and the distance is the walk', () => {
+    const r = aroundAim(hut, { x: -8, z: 1 }, target);
+    expect(r).not.toBeNull();
+    // Behind the west wall: first the near corner on the south side (z > 0 is nearer), then round.
+    expect(r!.aim.x).toBeCloseTo(-6.5);
+    expect(r!.aim.z).toBeCloseTo(4.5);
+    expect(r!.distance).toBeGreaterThan(15);
+  });
+
+  it('turns with the building', () => {
+    const turned = [{ x: 0, z: 0, hw: 5, hd: 3, yaw: Math.PI / 2 }]; // now 6 wide, 10 deep
+    const r = aroundAim(turned, { x: 0, z: -9 }, { x: 0, z: 7 });
+    expect(r).not.toBeNull();
+    expect(Math.abs(r!.aim.x)).toBeCloseTo(4.5);
+    expect(Math.abs(r!.aim.z)).toBeCloseTo(6.5);
+  });
+});
+
+describe('standing at the corner', () => {
+  it('points on round it, not back at the corner under Pip (it said "behind you" with Nana in view)', () => {
+    const hut = [{ x: 0, z: 0, hw: 5, hd: 3, yaw: 0 }];
+    // Just off the north-west corner, with the line to a target on the north side clipping it.
+    expect(aroundAim(hut, { x: -5.6, z: 3.1 }, { x: 2, z: 7 })).toBeNull();
+  });
+});
+
+describe('drifted off the path (critic round 48 walked beside the trail and passed no posts)', () => {
+  it('aims further along the further off Pip is, so the walk back meets the path at a slant', () => {
+    const straight = [{ path: [[0, 0], [400, 0]] as const }];
+    const on = routeAim(straight, { x: 100, z: 0 }, { x: 410, z: 0 });
+    expect(on?.aim.x).toBeCloseTo(114);
+    const off = routeAim(straight, { x: 100, z: 30 }, { x: 410, z: 0 });
+    expect(off?.aim.x).toBeCloseTo(160);
+    expect(off?.aim.z).toBeCloseTo(0);
   });
 });
