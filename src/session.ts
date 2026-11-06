@@ -151,7 +151,8 @@ export function createSession(opts: SessionOptions): Session {
   const steep = createSteepNudge();
   const runner = createActivityRunner({
     create: (def) => (live = createActivity(def, FISH)),
-    hostFor: (instance, input) => mech.hostFor(instance, input),
+    // The dam's "to your left" is said against the side shot on screen, not the chase heading under it.
+    hostFor: (instance, input) => ({ ...mech.hostFor(instance, input), viewYaw: rig.shotYaw() ?? rig.yaw() }),
     ui,
     markers,
     solids: world.colliders,

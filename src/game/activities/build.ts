@@ -103,7 +103,9 @@ export class BuildActivity implements ActivityInstance {
     }
     const step = Math.max(0, Math.min(dt, 0.1));
     this.elapsed += step;
-    this.camYaw = host.cameraYaw;
+    // Steered against what the screen shows: the build frames a side shot, and against the chase
+    // heading under it critic round 56 read "away from you" with the stone running across the view.
+    this.camYaw = host.viewYaw ?? host.cameraYaw;
 
     const pressed = host.input.interactPressed && !this.swallowPress;
     this.swallowPress = false;
@@ -209,8 +211,11 @@ export class BuildActivity implements ActivityInstance {
   focus(): (Vec3 & { facing: number }) | null {
     const first = this.steps[0]?.[0];
     if (!first || this.phase !== 'build') return null;
-    const at = placePiece(this.site, this.ground, first, this.def.id);
-    return { x: at.x, y: this.ground + 0.6, z: at.z, facing: this.site.facing + (this.aligned ? 0.35 : 0) };
+    // The dam frames the middle of its wall, with Pip at one end, so the shot is square to the wall and
+    // the stones run across the screen. Framed on its first stone, critic rounds 55 and 56 looked along
+    // the wall, the stone in hand far behind the ring of its gap.
+    const at = placePiece(this.site, this.ground, this.isDam ? { ...first, x: 0, z: 0 } : first, this.def.id);
+    return { x: at.x, y: this.ground + 0.6, z: at.z, facing: this.site.facing + (this.aligned && !this.isDam ? 0.35 : 0) };
   }
 
   /** True while the swinging log is square: a press now lays it. */

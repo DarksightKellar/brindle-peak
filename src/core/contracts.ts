@@ -580,6 +580,8 @@ export interface ActivityHost {
   readonly playerPos: Vec3;
   readonly input: InputFrame;
   readonly cameraYaw: number;
+  /** The heading the screen shows: an activity's side shot while one is framed, else `cameraYaw`. */
+  readonly viewYaw?: number;
   emit<K extends GameEventName>(name: K, data: GameEventPayloads[K]): void;
   /** Record a finished attempt; the world layer routes the reward. */
   award(result: ActivityResult): void;
