@@ -20,6 +20,12 @@ export interface GuideRoute {
   path: readonly (readonly [number, number])[];
   /** The vertex where the path leaves the straight line; before it the straight goal already follows it. */
   leaves?: number;
+  /**
+   * The vertex up to which a drifted walk is led back at a slant (SLANT). Past it the path winds between
+   * cliffs, and an aim far along it cut across them: critic round 49 followed it home into the chimney
+   * face. Omitted: the whole path.
+   */
+  slantUntil?: number;
 }
 
 /** A target this close to a path's end is what the path leads to: the mast, Edda, and the aurora 50 u past them. */
@@ -77,7 +83,8 @@ export function routeAim(routes: readonly GuideRoute[], from: Vec2, target: Vec2
     // the corner it cut, and Pip pushed at it.
     const bend = up ? bends.find((b) => b > at + AT_BEND) ?? total : [...bends].reverse().find((b) => b < at - AT_BEND) ?? 0;
     // Off the path, the aim is further along it, so the way back meets it at a slant, not square on.
-    const ahead = Math.max(AHEAD, best * SLANT);
+    const open = r.slantUntil === undefined || at < (bends[r.slantUntil] ?? total);
+    const ahead = open ? Math.max(AHEAD, best * SLANT) : AHEAD;
     const goal = up ? Math.min(at + ahead, bend) : Math.max(at - ahead, bend);
     const distance = best + (up ? total - at : at) + Math.hypot(target.x - (up ? ex : sx), target.z - (up ? ez : sz));
     if (up ? goal >= total : goal <= 0) return { aim: target, distance };

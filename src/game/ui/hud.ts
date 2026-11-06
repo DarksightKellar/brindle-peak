@@ -72,6 +72,8 @@ export interface Hud {
   destroy(): void;
 }
 
+/** The hello and the errand trade the pin only when the other is this much nearer, in world units. */
+const HELLO_MARGIN = 30;
 /** Other errands' places nearer than this get a mark on the compass strip, in world units. */
 const ERRAND_SEEN = 200;
 
@@ -138,15 +140,25 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
   /** The walk left to the goal when it follows a route rather than the straight line (route.ts). */
   let goalDistance: number | undefined;
   let buildings: readonly GuideBox[] = [];
+  /** After the story, the hello is nearer than the errand and has the pin; kept until HELLO_MARGIN says otherwise. */
+  let helloFirst = false;
 
   const liveTarget = (): Vec2 | null => {
     if (held) return heldTarget;
     // After the story, an errand under way has the pin, and the hello waits: critic round 41 picked an
-    // errand on the Quests page and watched the compass stay on a villager it had not met.
-    const errandFirst =
+    // errand on the Quests page and watched the compass stay on a villager it had not met. Unless the
+    // hello is the nearer: critic round 49 read "then say hello to Orla" in the hamlet with nothing
+    // pointing at her, gave up, and met half the valley. Then the errand keeps its small diamond.
+    const unmet =
       guide && lastState && errandTarget && Object.values(lastState.quests).some((q) => q.status === 'active')
-        ? unmetAfterStory(lastState, lastFrom, guide) !== null
-        : false;
+        ? unmetAfterStory(lastState, lastFrom, guide)
+        : null;
+    if (unmet && errandTarget) {
+      const hello = Math.hypot(unmet.pos.x - lastFrom.x, unmet.pos.z - lastFrom.z);
+      const errand = Math.hypot(errandTarget.x - lastFrom.x, errandTarget.z - lastFrom.z);
+      if (helloFirst ? hello > errand + HELLO_MARGIN : hello + HELLO_MARGIN < errand) helloFirst = !helloFirst;
+    } else helloFirst = false;
+    const errandFirst = unmet !== null && !helloFirst;
     const story = guide && lastState && !errandFirst ? goalTarget(lastState, lastFrom, guide) : null;
     const routed = story && guide?.routes ? routeAim(guide.routes, lastFrom, story) : null;
     goalDistance = routed?.distance;
@@ -196,7 +208,7 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
       if (!held) {
         const main = guide ? nextStepFor(s, p.pos, guide, 'main') : null;
         const unmet = guide && !main ? unmetAfterStory(s, p.pos, guide) : null;
-        const goal = goalLine(s, main, unmet?.name ? { name: unmet.name, zone: guide?.zoneNames[unmet.zone] ?? '' } : null);
+        const goal = goalLine(s, main, unmet?.name ? { name: unmet.name, zone: guide?.zoneNames[unmet.zone] ?? '', first: helloFirst } : null);
         if (goal !== lastGoal) {
           lastGoal = goal;
           goalEl.textContent = goal;
@@ -224,9 +236,13 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
         // Gus's feathers in the hamlet" and walked through the square without finding him.
         const shop = PICKUPS.find((q) => q.price !== undefined && s.flags[`picked:${q.id}`] !== true && s.bells >= q.price);
         if (shop) notable.push({ id: 'shop:gus', label: `Gus's feathers nearby: ${shop.price} bells each`, pos: { x: shop.pos.x, z: shop.pos.z } });
-        const nearby = nextAllowed && feather.line === ''
+        const noticed = nextAllowed && feather.line === ''
           ? nearbyNotice?.update(s, lastFrom, performance.now(), notable) ?? ''
           : '';
+        // Not the place the errand line already names: critic round 49 read "Creek Pool nearby… 43 u" under
+        // "Next: Fish the Creek Pool… 43 u".
+        const named = step?.target ? ACTIVITIES.find((a) => a.pos.x === step.target?.x && a.pos.z === step.target?.z) : undefined;
+        const nearby = named && noticed.startsWith(`${named.name} nearby`) ? '' : noticed;
         // A thing nearby goes on a second line under the errand, not over it: critic round 16 lost the
         // errand's distance to "Pressure Ridges nearby" and "Boathouse Hill nearby" again and again.
         const now = performance.now() < switchedUntil ? `Now on the line: ${switchedTitle}

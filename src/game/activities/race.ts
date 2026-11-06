@@ -201,7 +201,10 @@ export class RaceActivity implements ActivityInstance {
     const h = this.course.heights?.[aim];
     const rise = h !== undefined && Math.abs(h - p.y) > HOOP_BAND ? ` · ${WORDS.hoopHeight(h - p.y)}` : '';
     const lead = aim > this.next ? WORDS.hoops(aim + 1, total) : label;
-    return { label: `${lead} · ${WORDS.gateWay(Math.hypot(g.x - p.x, g.z - p.z), way)}${rise}`, fraction: total === 0 ? 0 : this.next / total };
+    // A hoop flown past is skipped, so "Hoop 8 of 8" could follow a walk down the slope through none:
+    // critic round 49 read it, then "through 1 of 8 hoops" at the end. The count through says so as it goes.
+    const missed = this.course.look === 'hoop' && this.reached < this.next ? ` · ${WORDS.hoopsThrough(this.reached)}` : '';
+    return { label: `${lead}${missed} · ${WORDS.gateWay(Math.hypot(g.x - p.x, g.z - p.z), way)}${rise}`, fraction: total === 0 ? 0 : this.next / total };
   }
 
   /** Turn to the first gate as the run opens: it is in front of you, not behind the camera. */

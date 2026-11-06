@@ -29,7 +29,7 @@ import type { AudioKit } from '../audio/audio';
 import type { Naming, RouterDeps } from './router';
 import { suppressSaves } from './saveGuard';
 import { LANDMARKS, TRAIL } from '../world/landmarks';
-import { WAY_UP } from '../world/trail';
+import { TURN, WAY_UP } from '../world/trail';
 import { VIEW_H, VIEW_W, worldX, worldZ, type MapDecor } from '../ui/journalMap';
 import { ICE_SURFACE_Y } from '../world/water';
 import { traceRelief } from '../ui/mapRelief';
@@ -93,8 +93,9 @@ export function createPresentation(uiRoot: HTMLElement, audio: AudioKit, heightA
     quests: QUESTS, npcs: NPCS, activities: ACTIVITIES, zones: ZONES, places: PLACES, zoneNames: ZONE_NAMES,
     // The whole trail, not only past its turn at the ridge foot: critic round 48 drifted off the straight
     // line from the cabin, walked parallel to it a few posts' widths away, and passed none of Nana's
-    // posts. Aiming a little way along the trail brings a drifting walk back onto it, post by post.
-    routes: [{ path: WAY_UP }],
+    // posts. Aiming a little way along the trail brings a drifting walk back onto it, post by post, at a
+    // slant on the open run to the ridge foot, and closely past it, where the trail winds between cliffs.
+    routes: [{ path: WAY_UP, slantUntil: TURN }],
   };
 
   const hud = createHud(uiRoot, guide);

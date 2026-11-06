@@ -58,6 +58,8 @@ export const WORDS = {
     return count > c ? ` · more than ${b.who}!` : count === c ? ` · as many as ${b.who}!` : ` · ${b.who} gets ${c}`;
   },
   hoops: (next: number, total: number): string => `Hoop ${next} of ${total}`,
+  /** Said once a hoop has been flown past rather than through. */
+  hoopsThrough: (n: number): string => `${n} flown through`,
   gates: (next: number, total: number): string => `Gate ${next} of ${total}`,
   lanterns: (next: number, total: number): string => `Lantern ${next} of ${total}`,
   /** Added to a result card the first time an activity is played to its end. */

@@ -52,7 +52,9 @@ describe('the goal after the story', () => {
     expect(unmetAfterStory(s, { x: 210, z: 0 }, guide)?.id).toBe('fen');
     // Orla is far nearer, but not at hand: walking between zones, the line keeps one name (critic round 42).
     expect(unmetAfterStory(s, { x: 240, z: 0 }, guide)?.id).toBe('fen');
-    // Orla is at hand: the line moves to her.
-    expect(unmetAfterStory(s, { x: 280, z: 0 }, guide)?.id).toBe('orla');
+    // 20 u from Orla is not beside her (critic round 49 read a new name in every zone).
+    expect(unmetAfterStory(s, { x: 280, z: 0 }, guide)?.id).toBe('fen');
+    // Beside her, the line moves to her.
+    expect(unmetAfterStory(s, { x: 290, z: 0 }, guide)?.id).toBe('orla');
   });
 });

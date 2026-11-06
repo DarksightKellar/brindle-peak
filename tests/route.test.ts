@@ -88,3 +88,13 @@ describe('drifted off the path (critic round 48 walked beside the trail and pass
     expect(off?.aim.z).toBeCloseTo(0);
   });
 });
+
+describe('no slant among the cliffs (critic round 49 was led into the chimney face)', () => {
+  it('aims close along the path past slantUntil', () => {
+    const path = [[0, 0], [100, 0], [400, 0]] as const;
+    const off = routeAim([{ path, slantUntil: 1 }], { x: 200, z: 30 }, { x: 410, z: 0 });
+    expect(off?.aim.x).toBeCloseTo(214);
+    const before = routeAim([{ path, slantUntil: 1 }], { x: 20, z: 30 }, { x: 410, z: 0 });
+    expect(before?.aim.x).toBeCloseTo(80);
+  });
+});
