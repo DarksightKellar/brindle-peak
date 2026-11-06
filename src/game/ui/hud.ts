@@ -31,6 +31,7 @@ import { createNearbyNotice, NOTICE_RANGE, nearbyTodo, viewWay } from './hudNear
 import { hopBlocked, hopPlaces } from '../session/travel';
 import { ACTIVITIES } from '../../data/activities';
 import { PICKUPS } from '../../data/pickups';
+import { QUESTS } from '../../data/quests';
 import { createFeatherNotice } from './hudFeather';
 
 export interface Hud {
@@ -86,6 +87,9 @@ const HOP_HINT = 150;
 function hopHint(s: GameState, step: ReturnType<typeof nextStepFor>): string {
   if (!step || step.zone === null || (step.distance ?? 0) < HOP_HINT) return '';
   if (hopBlocked(s, false) !== null || !hopPlaces(s).includes(step.zone)) return '';
+  // A step that asks for the walk itself is not one the map can do (critic round 60 hopped to Pinewind for Jory).
+  const when = QUESTS.find((q) => q.id === step.questId)?.steps[step.stepIndex ?? -1]?.when;
+  if (when?.kind === 'visited' && when.hop !== true) return '';
   // The way, not the keys (critic round 55 read "M, E" as a key prompt on the goal line).
   return ' · the map can take you back';
 }

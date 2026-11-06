@@ -114,7 +114,11 @@ describe('errands', () => {
     g.emit('activity:completed', 'kettles-spring-fish');
     expect(g.state.quests['jory-first-step']?.step).toBe(1);
     g.emit('zone:entered', 'pinewind', true);
+    // Toasts reach feedback on the next frame's flush.
+    const toasts = g.mech.flush().flatMap((e) => (e.name === 'toast' ? [(e.data as { text: string }).text] : []));
     expect(g.state.quests['jory-first-step']?.step).toBe(1);
+    // Critic round 60 hopped there and saw nothing happen: the hop says it isn't the walk.
+    expect(toasts.some((t) => t.startsWith('As Far As the Pines: this one is walked'))).toBe(true);
     expect(g.state.visited.pinewind).toBe(true);
     g.emit('zone:entered', 'kettles');
     g.emit('zone:entered', 'pinewind');

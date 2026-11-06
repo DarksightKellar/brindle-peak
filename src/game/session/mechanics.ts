@@ -15,6 +15,7 @@ import type {
   InputFrame,
   PlayerState,
   TerrainSampler,
+  ZoneId,
 } from '../../core/contracts';
 import type { QuestEngine, StepPassed } from '../../core/progress/quests';
 import type { AchievementEngine } from '../../core/progress/achievements';
@@ -25,6 +26,8 @@ import { NPCS } from '../../data/npcs';
 import { QUESTS } from '../../data/quests';
 import { ITEMS } from '../../data/items';
 import { PLACES } from '../../data/places';
+import { ZONE_NAMES } from '../../data/zoneNames';
+import { nextStepOf } from '../../core/guide/nextStep';
 import type { WorldBuild } from '../world/assemble';
 
 export interface MechanicsDeps {
@@ -90,6 +93,17 @@ export function createMechanics(deps: MechanicsDeps): Mechanics {
     const passed: StepPassed[] = [];
     for (const e of seen) {
       const outcome = applyEvent(state, e.name, e.data, quests, achievements);
+      // A hop into a zone an errand wants walked into does not pass the step, and says so: critic round
+      // 60 hopped to Pinewind Wood for Jory, saw nothing happen, and took it for a missed trigger.
+      if (e.name === 'zone:entered' && (e.data as { byMap?: boolean }).byMap === true) {
+        const zone = (e.data as { id: ZoneId }).id;
+        for (const def of QUESTS) {
+          if (def.main === true || state.quests[def.id]?.status !== 'active') continue;
+          const when = nextStepOf(def, state)?.step.when;
+          if (when?.kind !== 'visited' || when.id !== zone || when.hop === true) continue;
+          bus.emit('toast', { text: `${def.title}: this one is walked, not hopped. Step out of ${ZONE_NAMES[zone]} and come back in on foot.`, icon: 'quest', tier: 'discovery' });
+        }
+      }
       passed.push(...outcome.passedSteps);
       for (const p of outcome.passedSteps) {
         if (p.step.gives) {
