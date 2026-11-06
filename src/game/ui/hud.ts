@@ -156,9 +156,12 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
     helloAt = unmet ? { x: unmet.pos.x, z: unmet.pos.z } : null;
     const errandFirst = unmet !== null;
     const story = guide && lastState && !errandFirst ? goalTarget(lastState, lastFrom, guide) : null;
-    const routed = story && guide?.routes ? routeAim(guide.routes, lastFrom, story) : null;
+    // An errand standing as the goal walks the trail too (route.ts): Tuck's bridge sits over a gorge.
+    const point = story ?? (nextAllowed ? errandTarget : null);
+    pointed = point;
+    const routed = point && guide?.routes ? routeAim(guide.routes, lastFrom, point) : null;
     goalDistance = routed?.distance;
-    return routed?.aim ?? story ?? (nextAllowed ? errandTarget : null);
+    return routed?.aim ?? point;
   };
 
   /**
@@ -167,6 +170,8 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
    * distance says "behind you"; the errand's line now says the same. No key named: the director's call
    * (round 47), the opening teaches walking.
    */
+  /** What the goal points at before any route bends it: the errand's own place when it is the goal. */
+  let pointed: Vec2 | null = null;
   let offSide = 0;
   const offStrip = (at: Vec2 | null): string => {
     if (!at) return '';
@@ -253,13 +258,16 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
         const said = errands?.onTheWay() ? formatNextStep(step).replace(/^Next: /, 'On the way: ') : formatNextStep(step);
         const errandText = step ? `${now}${said}${offStrip(step.target ?? null)}${hopHint(s, step)}` : '';
         if (feather.line !== '') writeNext(feather.line, null);
+        // Two lines at most under the compass: critic round 57 read four, "Now on the line", the errand,
+        // its wrap and a nearby line. The nearby line waits while the switch is being said.
+        else if (nearby !== '' && errandText !== '' && now !== '') writeNext(errandText, step);
         else if (nearby !== '' && errandText !== '') writeNext(`${errandText}\n${nearby}`, step);
         else if (nearby !== '') writeNext(nearby, null);
         else writeNext(errandText, step);
       }
-      const side = nextAllowed && errandTarget && errandTarget !== heldTarget ? errandTarget : null;
+      const side = nextAllowed && errandTarget && errandTarget !== pointed ? errandTarget : null;
       // With no story point the errand is the goal, and its line wears the goal's mark, not its own.
-      nextEl.classList.toggle('is-goal', errandTarget !== null && errandTarget === heldTarget);
+      nextEl.classList.toggle('is-goal', errandTarget !== null && errandTarget === pointed);
       const todo = nextAllowed && !held ? nearbyTodo(ACTIVITIES, s, lastFrom) : [];
       const errandMarks = nextAllowed && !held
         ? otherErrands.filter((o) => (o.distance ?? Infinity) < ERRAND_SEEN).map((o) => o.target as Vec2)

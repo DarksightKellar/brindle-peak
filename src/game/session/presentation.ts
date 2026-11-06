@@ -95,7 +95,9 @@ export function createPresentation(uiRoot: HTMLElement, audio: AudioKit, heightA
     // line from the cabin, walked parallel to it a few posts' widths away, and passed none of Nana's
     // posts. Aiming a little way along the trail brings a drifting walk back onto it, post by post, at a
     // slant on the open run to the ridge foot, and closely past it, where the trail winds between cliffs.
-    routes: [{ path: WAY_UP, slantUntil: TURN }],
+    // And the same trail as far as Tuck's bridge: critic round 57 followed the errand's pin from below and
+    // walked into the gorge under the bridge.
+    routes: [{ path: WAY_UP, slantUntil: TURN }, { path: WAY_UP.slice(0, 14), slantUntil: TURN }],
   };
 
   const hud = createHud(uiRoot, guide);

@@ -22,6 +22,12 @@ const PER_POOL = 6;
 const PERIOD = 6.5;
 const RISE = 7;
 const THICK = 0.6;
+/**
+ * A puff thins out as the camera comes into it: critic round 57 talked to Corm beside a pool with half
+ * the screen a white wall. Clear within NEAR_CLEAR of the lens, full by NEAR_FULL.
+ */
+const NEAR_CLEAR = 3;
+const NEAR_FULL = 9;
 
 /** A soft cloud: three overlapping round blobs, so a puff is lumpy rather than a perfect disc. */
 let cloudTexture: THREE.DataTexture | null = null;
@@ -79,6 +85,11 @@ export function buildSteam(sampler: TerrainSampler): THREE.Group {
       });
       material.allowOverride = false;
       const sprite = new THREE.Sprite(material);
+      sprite.onBeforeRender = (_r, _s, camera) => {
+        const d = camera.position.distanceTo(sprite.position) - sprite.scale.x * 0.5;
+        const k = Math.max(0, Math.min(1, (d - NEAR_CLEAR) / (NEAR_FULL - NEAR_CLEAR)));
+        material.opacity = (sprite.userData.opacity as number) * k * k * (3 - 2 * k);
+      };
       sprite.layers.set(AURORA_LAYER);
       sprite.renderOrder = 2;
       group.add(sprite);
@@ -100,6 +111,6 @@ export function updateSteam(time: number): void {
     p.sprite.position.set(p.x + drift, p.y + 0.6 + t * RISE, p.z + 0.3 * Math.sin(p.phase * 11));
     p.sprite.scale.set(size, size * 0.8, 1);
     const fade = Math.min(1, t / 0.18) * (1 - Math.max(0, (t - 0.45) / 0.55));
-    (p.sprite.material as THREE.SpriteMaterial).opacity = THICK * fade;
+    p.sprite.userData.opacity = THICK * fade;
   }
 }
