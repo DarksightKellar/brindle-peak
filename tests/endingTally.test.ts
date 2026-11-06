@@ -5,8 +5,8 @@ import { tally } from '../src/game/ui/ending';
 describe('the ending card counts', () => {
   it('says what was done, then that more is waiting, without a total to fall short of', () => {
     expect(tally(1, 18, 'seen through', 'more waiting')).toBe('one seen through, more waiting');
-    expect(tally(4, 22, '', 'more to find')).toBe('four, more to find');
-    expect(tally(16, 22, '', 'more to find')).toBe('16, more to find');
+    expect(tally(5, 9, '', 'more to see')).toBe('five, more to see');
+    expect(tally(16, 22, '', 'more to see')).toBe('16, more to see');
   });
 
   it('names what is waiting when nothing is done, and "every one" when all is', () => {

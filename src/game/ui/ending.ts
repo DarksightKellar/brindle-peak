@@ -99,7 +99,8 @@ export function createEnding(root: HTMLElement): Ending {
         // counting what they had done, stingily; round 43 read "0 of 18" as having done nothing; round 54
         // read "Errands 1 of 18, Things tried 4 of 22" straight after the finale as a mark against it.
         row('Errands for villagers', tally(stats.questsDone, stats.questsTotal, 'seen through', 'more waiting')),
-        row('Things tried', tally(stats.triedDone, stats.triedTotal, '', 'more to find')),
+        // A count to come back and finish: play goes on after the card (director, round 57).
+        row('Things tried', `${stats.triedDone} of ${stats.triedTotal}`),
         row('Zones walked', tally(stats.zonesSeen, stats.zonesTotal, '', 'more to see')),
         row('Time on the mountain', spokenTime(stats.playtime)),
       ].join('');
