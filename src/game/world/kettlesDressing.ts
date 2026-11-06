@@ -24,7 +24,8 @@ import { wayDistance } from './trail';
 const CENTRE = { x: -40, z: 58 };
 const INNER = 9;
 const OUTER = 105;
-const COUNT = 70;
+// 70 left the flats between the pools one open blue field (critic round 62).
+const COUNT = 200;
 /** Kind, chance weight and scale range. */
 const MIX: readonly { kind: PropKind; w: number; scale: [number, number] }[] = [
   { kind: 'rock', w: 0.42, scale: [0.7, 1.5] },
