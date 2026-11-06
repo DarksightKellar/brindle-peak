@@ -132,7 +132,7 @@ export function bootstrap(opts: BootOptions): Booted {
   // Finished woodpiles, snowmen and dams are still standing after a reload.
   markers.restore(finishedBuildMarkers(ACTIVITIES, state.counters, sampler));
 
-  const pip: PlayerMesh = createPlayerMesh();
+  const pip: PlayerMesh = createPlayerMesh((x, z) => sampler.heightAt(x, z));
   kit.scene.add(pip.root);
 
   // The snow remembers you. This is what replaces a map.

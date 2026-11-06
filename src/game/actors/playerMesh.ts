@@ -34,7 +34,11 @@ const shade = (geo: THREE.BufferGeometry, mat: THREE.Material, x = 0, y = 0, z =
   return m;
 };
 
-export function createPlayerMesh(): PlayerMesh {
+/**
+ * `groundAt` is the snow's height under a point: the contact shadow stays on it while Pip is in the air.
+ * Parented to the bird alone, it jumped with the bird (the director, round 47).
+ */
+export function createPlayerMesh(groundAt?: (x: number, z: number) => number): PlayerMesh {
   const cream = lambert(PALETTE.PIP_BODY);
   const brown = lambert(PALETTE.PIP_WING);
   const dark = lambert(PALETTE.PIP_BEAK);
@@ -109,11 +113,18 @@ export function createPlayerMesh(): PlayerMesh {
   const eyeR = shade(eyeGeo, glass, 0.12, 0.43, 0.48);
   body.add(lensL, lensR, eyeL, eyeR);
 
-  // A5 contact ellipse. Dark, constant, never depth-writing, never in the normal pass.
+  // A5 contact ellipse. Dark, never depth-writing, never in the normal pass.
+  const CONTACT_OPACITY = 0.45;
+  /** Just above the snow, so it never fights the ground. */
+  const CONTACT_LIFT = 0.012;
+  /** Where the feet rest above the sampled snow (core/player/step.ts GROUND_OFFSET). */
+  const FEET_ABOVE_SNOW = 0.02;
+  /** Units above the snow at which the shadow is at its smallest and faintest. */
+  const CONTACT_FADE = 8;
   const contactMat = new THREE.MeshBasicMaterial({
     color: new THREE.Color(PALETTE.SHADOW_FLOOR),
     transparent: true,
-    opacity: 0.45,
+    opacity: CONTACT_OPACITY,
     depthWrite: false,
     polygonOffset: true,
     polygonOffsetFactor: -3,
@@ -121,7 +132,7 @@ export function createPlayerMesh(): PlayerMesh {
   contactMat.allowOverride = false;
   const contact = new THREE.Mesh(new THREE.CircleGeometry(0.55, 12), contactMat);
   contact.rotation.x = -Math.PI / 2;
-  contact.position.y = 0.012;
+  contact.position.y = CONTACT_LIFT;
   contact.renderOrder = 1;
   contact.name = 'contact-shadow';
   root.add(contact);
@@ -206,7 +217,12 @@ export function createPlayerMesh(): PlayerMesh {
     lean += (wantLean - lean) * Math.min(1, dt * (s.grounded ? 6 : 14));
     body.rotation.x = lean;
 
-    contact.scale.setScalar(1 + Math.min(0.35, speed * 0.03));
+    // On the snow under Pip, not under its feet: in the air it stays down, smaller and fainter with height.
+    const up = groundAt ? Math.max(0, s.pos.y - groundAt(s.pos.x, s.pos.z) - FEET_ABOVE_SNOW) : 0;
+    contact.position.y = CONTACT_LIFT - up;
+    const far = Math.min(1, up / CONTACT_FADE);
+    contact.scale.setScalar((1 + Math.min(0.35, speed * 0.03)) * (1 - far * 0.5));
+    contactMat.opacity = CONTACT_OPACITY * (1 - far * 0.6);
     // The lantern swings on its bail: forward against the stride, out a little in the air.
     lantern.rotation.x = -lean * 0.8 + bob * 4;
     lantern.rotation.z = flare * 0.35;
