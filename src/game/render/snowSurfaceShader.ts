@@ -118,13 +118,18 @@ vec2 snowSlope = vec2(0.0);
   if (wall > 0.0) {
     vec2 across = normalize(vec2(-faceN.z, faceN.x) + 1e-4);
     float a = dot(snowP, across);
-    float t = vSnowWorld.y / 2.4 + (snowNoise(vec2(a / 7.0, 3.0)) - 0.5) * 1.6;
+    // Courses of 1.6 u, and the dark cut into stones a couple of units long, staggered row to row like
+    // laid stone: whole dark courses ran round the chimney pillar as stripes (critic round 66, "a striped
+    // pillar"). Softer than before, so a face reads as rock rather than as a pattern.
+    float t = vSnowWorld.y / 1.6 + (snowNoise(vec2(a / 7.0, 3.0)) - 0.5) * 1.2;
     float course = fract(t), row = floor(t);
-    float broken = step(0.35, snowNoise(vec2(a / 3.2, row * 1.7)));
-    float ledge = step(0.82, course) * broken;
-    float shade = step(course, 0.35) * step(0.4, snowNoise(vec2(a / 5.0 + 9.0, row * 2.3)));
-    float vis = snowVis(2.4, snowFw, 2.0, 5.0);
-    diffuseColor.rgb *= 1.0 + wall * vis * (ledge * 0.28 - shade * 0.24 * vec3(1.0, 0.9, 0.75));
+    float stone = a / 2.2 + row * 0.5;
+    float broken = step(0.4, snowNoise(vec2(a / 2.6, row * 1.7)));
+    float ledge = step(0.8, course) * broken;
+    float shade = step(course, 0.5) * step(0.62, snowNoise(vec2(floor(stone) * 0.73 + 9.0, row * 2.3)))
+                * step(0.12, fract(stone));
+    float vis = snowVis(1.6, snowFw, 2.0, 5.0);
+    diffuseColor.rgb *= 1.0 + wall * vis * (ledge * 0.18 - shade * 0.16 * vec3(1.0, 0.9, 0.75));
   }
 }
 #else

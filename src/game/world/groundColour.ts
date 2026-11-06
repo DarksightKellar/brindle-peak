@@ -125,7 +125,10 @@ export function groundColour(sample: TerrainSample, x: number, z: number): RGB {
     if (steep > 0) {
       const course = strata(h, x, z);
       const stone = mix(C.rockDk, C.rockWarm, 0.25 + 0.4 * course);
-      base = mix(base, stone, steep * smoothstep(0.25, 0.6, 1 - course) * 0.55);
+      // In patches a few courses across, not right round the face: whole courses read as broad
+      // stripes on a big slope (critic round 66, "dark-blue banded walls").
+      const patch = 0.25 + 0.75 * smoothstep(-0.15, 0.45, Math.sin(x * 0.17 + 1.9 * Math.sin(z * 0.11)) * Math.sin(z * 0.15 - 1.3 * Math.sin(x * 0.08)));
+      base = mix(base, stone, steep * smoothstep(0.25, 0.6, 1 - course) * 0.5 * patch);
     }
   }
 

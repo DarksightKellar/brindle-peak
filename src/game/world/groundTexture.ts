@@ -231,7 +231,11 @@ function rock(): GroundTile {
     const phase = Math.sin(Math.PI * 2 * (v * 12 + u * 2) + warp);
     // Each course thickens and thins along the face, and a ledge holds snow only here and there.
     const thick = (fbm(u, v, 4, 2, 71) - 0.5) * 0.7;
-    const course = -0.3 * smoothstep(-0.15 - thick, 0.5 - thick, -phase);
+    // A dark course pinches out along the face and comes back, as bedding does: unbroken, every course
+    // ran right round the chimney pillar and critic round 66 saw "a striped pillar".
+    const lens = 0.12 + 0.88 * smoothstep(0.42, 0.6, fbm(u, v, 5, 2, 113));
+    // A seam, a third of each course, not half of it: half-and-half bands are what read as zebra.
+    const course = -0.26 * lens * smoothstep(0.2 - thick, 0.7 - thick, -phase);
     const ledge = 0.22 * smoothstep(0.8, 0.96, phase) * smoothstep(0.38, 0.6, fbm(u, v, 6, 2, 91));
     // Outcrops at ~2 units and the odd deep blotch; no per-texel grit, which read as noise.
     const blocky = (fbm(u, v, 12, 2, 33) - 0.5) * 0.12;

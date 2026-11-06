@@ -28,6 +28,7 @@ import { ACTIVITIES } from '../../data/activities';
 import { RACE_COURSES } from '../activities/raceCourses';
 import { buildWayScenes, SCENE_CLEARINGS } from './wayScenes';
 import { buildKettlesDressing } from './kettlesDressing';
+import { buildReachDressing } from './reachDressing';
 import { buildHoarfrostGlade, GLADE } from './hoarfrostGlade';
 import { buildTuckBridge } from './tuckBridge';
 import { GULLY_LINE, GULLY_RIM, TUCK_BRIDGE } from '../../core/terrain/carving';
@@ -141,7 +142,8 @@ export function buildNamedPlaces(sampler: TerrainSampler): NamedPlaces {
   const kettles = buildKettlesDressing(sampler, WORLD_SEED);
   const glade = buildHoarfrostGlade(sampler);
   const bridge = buildTuckBridge(sampler);
-  group.add(trail.group, scenes.group, kettles.group, glade.group, bridge.group);
+  const reach = buildReachDressing(sampler, WORLD_SEED);
+  group.add(trail.group, scenes.group, kettles.group, glade.group, bridge.group, reach.group);
 
   const colliders: Collider[] = [
     { kind: 'circle', x: BIG_PINE.x, z: BIG_PINE.z, r: 1.5 },
@@ -154,6 +156,7 @@ export function buildNamedPlaces(sampler: TerrainSampler): NamedPlaces {
     ...kettles.colliders,
     ...glade.colliders,
     ...bridge.colliders,
+    ...reach.colliders,
   ];
   const occluders: Occluder[] = [
     { x: BIG_PINE.x, z: BIG_PINE.z, base: sampler.heightAt(BIG_PINE.x, BIG_PINE.z), radius: 4.5, height: BIG_PINE_HEIGHT },
