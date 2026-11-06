@@ -193,10 +193,13 @@ export function createHudCompass(layer: HTMLElement): HudCompass {
       }
       // Behind, the pinned diamond alone reads as "over there, a bit": the chevrons say which way round.
       const behind = Math.abs(rel) > HALF;
-      showTurn(!behind ? 0 : turnSide !== 0 && Math.abs(rel) > ASTERN ? turnSide : Math.sign(rel) || 1);
-      // Behind, it says so, as the errand's line does. No key named: the director's call (round 47).
+      const way = turnSide !== 0 && Math.abs(rel) > ASTERN ? turnSide : Math.sign(rel) || 1;
+      showTurn(!behind ? 0 : way);
+      // Behind, it says so and which way round, the side the chevrons show: critic round 47 read "behind
+      // you", pressed S, and overshot as the view swung. No key named: the director's call (round 47).
       saidBehind = Math.abs(rel) > HALF + (saidBehind ? -BEHIND_GIVE : BEHIND_GIVE);
-      const text = `${Math.round(v.goalDistance ?? Math.hypot(v.goal.x - v.from.x, v.goal.z - v.from.z))} u${saidBehind ? ' · behind you' : ''}`;
+      const round = way > 0 ? 'right' : 'left';
+      const text = `${Math.round(v.goalDistance ?? Math.hypot(v.goal.x - v.from.x, v.goal.z - v.from.z))} u${saidBehind ? ` · behind you, to your ${round}` : ''}`;
       if (text !== lastDist) {
         lastDist = text;
         dist.textContent = text;

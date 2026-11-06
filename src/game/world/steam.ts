@@ -4,7 +4,7 @@
  * It used to be three stacks of crossed, see-through rectangles per pool, which read as panes of
  * glass (critic: "stacks of see-through rectangles"). Steam has no edges, so each puff is a camera-
  * facing sprite with a soft lumpy texture, cycling on its own phase: born small at the water, it
- * rises about five units, doubles in size and fades. Four per pool keep a column going.
+ * rises about seven units, doubles in size and fades. Six per pool keep a column going.
  *
  * Beauty layer only (the aurora's layer): a translucent puff written into the normal target would be
  * outlined by the edge pass. With reduce motion on, the puffs hold still at their staggered phases.
@@ -16,9 +16,12 @@ import { PALETTE } from '../../core/palette';
 import { AURORA_LAYER } from '../render/aurora';
 import { SPRING_POOLS } from './landmarks';
 
-const PER_POOL = 4;
+// Six puffs, a seven-unit rise and 60% at the thickest, in white brighter than the sky: four faint puffs
+// were the sky's own colour, and critic round 47's steam photo came back with no steam in it.
+const PER_POOL = 6;
 const PERIOD = 6.5;
-const RISE = 5.2;
+const RISE = 7;
+const THICK = 0.6;
 
 /** A soft cloud: three overlapping round blobs, so a puff is lumpy rather than a perfect disc. */
 let cloudTexture: THREE.DataTexture | null = null;
@@ -69,7 +72,7 @@ export function buildSteam(sampler: TerrainSampler): THREE.Group {
     for (let i = 0; i < PER_POOL; i++) {
       const material = new THREE.SpriteMaterial({
         map: cloud(),
-        color: new THREE.Color(PALETTE.WATER_FOAM),
+        color: new THREE.Color(PALETTE.STEAM),
         transparent: true,
         opacity: 0,
         depthWrite: false,
@@ -97,6 +100,6 @@ export function updateSteam(time: number): void {
     p.sprite.position.set(p.x + drift, p.y + 0.6 + t * RISE, p.z + 0.3 * Math.sin(p.phase * 11));
     p.sprite.scale.set(size, size * 0.8, 1);
     const fade = Math.min(1, t / 0.18) * (1 - Math.max(0, (t - 0.45) / 0.55));
-    (p.sprite.material as THREE.SpriteMaterial).opacity = 0.34 * fade;
+    (p.sprite.material as THREE.SpriteMaterial).opacity = THICK * fade;
   }
 }

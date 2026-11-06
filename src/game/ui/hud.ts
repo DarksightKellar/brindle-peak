@@ -156,12 +156,18 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
    * distance says "behind you"; the errand's line now says the same. No key named: the director's call
    * (round 47), the opening teaches walking.
    */
+  let offSide = 0;
   const offStrip = (at: Vec2 | null): string => {
     if (!at) return '';
     const rel = bearing(at.x - lastFrom.x, at.z - lastFrom.z, viewYaw);
-    // The strip's own rule (hudCompass.ts): off its half of the horizon is "behind you".
-    if (Math.abs(rel) <= Math.PI / 2) return '';
-    return ' · behind you';
+    // The strip's own rule (hudCompass.ts): off its half of the horizon is "behind you", and which way
+    // round (critic round 47). Nearly straight behind, the side said last is kept, so it doesn't flicker.
+    if (Math.abs(rel) <= Math.PI / 2) {
+      offSide = 0;
+      return '';
+    }
+    if (offSide === 0 || Math.abs(rel) < (Math.PI * 5) / 6) offSide = Math.sign(rel) || 1;
+    return ` · behind you, to your ${offSide > 0 ? 'right' : 'left'}`;
   };
 
   const writeNext = (text: string, step: ReturnType<typeof nextStepFor>): void => {

@@ -186,6 +186,8 @@ export const PALETTE = {
   WATER_DEEP: '#2E6A8C',
   WATER_DK: '#23506E',
   WATER_FOAM: '#EAF6FA',
+  /** Spring steam: brighter than the pale sky, so a column reads against it (critic round 47). */
+  STEAM: '#FFFFFF',
 
   ROCK_LT: '#A9AEC0',
   ROCK_MID: '#7C8398',

@@ -105,7 +105,8 @@ export const DIALOGUE_FILLS: Readonly<Record<string, (s: GameState) => string[]>
   'orla-pip-green': (s) =>
     (s.counters['activity:hamlet-snowman'] ?? 0) > 0
       ? ['the snowman leans on purpose.']
-      : ["a snowman too. i can do that."],
+      // Said before "take it on?" on the "why?" path, so it notices rather than promises (critic round 47).
+      : ['and a snowman on the green.'],
   // In the card's order, so the threads between two people come first.
   'nana-heard': (s) =>
     VALLEY_LINES.map(([quest]) => quest)
