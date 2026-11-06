@@ -39,6 +39,7 @@ import { createActivityRunner } from './game/session/activityRunner';
 import { createFrameInput } from './game/session/frameInput';
 import { createPolaroid, LENS } from './game/ui/polaroid';
 import { setTuckRopeTied } from './game/world/tuckBridge';
+import { setSteamLens } from './game/world/steam';
 import { PHOTO_SUBJECTS } from './game/activities/photoSubjects';
 import { WORDS } from './game/activities/activityWords';
 import { advancePlayer } from './game/session/playerAdvance';
@@ -305,6 +306,7 @@ export function createSession(opts: SessionOptions): Session {
     rig.update(dt, player, sampler, overlayOpen ? 0 : input.lookX, reduced);
     pip.root.visible = rig.viewBlend() < 0.8; // the camera is inside the bird by then
     finder.update(rig.viewBlend(), view?.centred === true);
+    setSteamLens(rig.viewBlend());
     // After the rig has placed the camera: fade whatever now stands between it and the bird.
     updateViewFade(kit.camera, player.pos);
     gems.update(dt, state, player.pos, kit.camera, !overlayOpen && !runner.isRunning());

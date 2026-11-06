@@ -112,7 +112,18 @@ export const SPECIES_MARKS: Readonly<Record<string, (k: Kit) => void>> = {
     // before the body; the shared eyes sit behind the disc, so an owl draws its own, larger ones.
     k.part('sphere', k.accent, [0, HEAD_Y, 0.2], [0.27, 0.25, 0.1]);
     for (const side of [-1, 1]) k.part('sphere', k.dark, [side * 0.11, HEAD_Y + 0.04, 0.29], [0.065, 0.065, 0.03]);
-    ears(k, 0.22, 0.08, 0.35, k.body);
+    // Tufts, not ears: thin, at the head's edges and swept outward. As upright cones they made a cat's
+    // ears, and critic round 58 saw Fen from behind as a grey cat with a scarf.
+    for (const side of [-1, 1]) k.part('cone', k.body, [side * 0.2, HEAD_Y + 0.27, -0.02], [0.05, 0.2, 0.04], 0, side * -0.7);
+    // Folded wings a shade darker down both sides, their tips crossing low at the back: the shape a
+    // cat has none of, and what says "bird" when the face disc is turned away.
+    const wing = (k.body as THREE.MeshLambertMaterial).clone();
+    wing.color.multiplyScalar(0.72);
+    wing.emissive.multiplyScalar(0.72);
+    for (const side of [-1, 1]) {
+      k.part('sphere', wing, [side * 0.27, 0.72, -0.08], [0.11, 0.36, 0.27], 0.12, side * 0.12);
+      k.part('cone', wing, [side * 0.06, 0.3, -0.3], [0.08, 0.3, 0.06], -0.35, side * -0.5);
+    }
   },
   ptarmigan: (k) => {
     // Winter ptarmigan: white, with a black tail fan and a red comb over the eye.

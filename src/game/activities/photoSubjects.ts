@@ -39,9 +39,11 @@ export const PHOTO_SUBJECTS: Readonly<Record<string, PhotoSubject>> = {
   // Pressure ridge 12 on the Frozen Reach (water.ts), ~13 u out on the ice; low, so aimed just above it.
   'reach-ice-photo': { kind: 'ground', x: 67.9, z: 350.6, lift: 0.5, what: 'pressure ridge' },
   // The steam column over the south-east Kettle basin (-24, 78), 8 u in front of the viewpoint. Aimed
-  // where the column leans downwind (steam.ts drift), a little up it: aimed at the basin itself, the frame
-  // was "Centred" on sky beside the plume (critic round 47).
-  'kettles-steam-photo': { kind: 'ground', x: -22.9, z: 78, lift: 3.4, what: 'steam' },
+  // where the column leans downwind (steam.ts drift), just over the water, so the print has the pool's
+  // rim under the column rising: aimed at the basin's middle the frame was "Centred" on sky beside the
+  // plume (critic round 47), and 3.4 u up it was all puff, which at dusk lets the aurora through, and
+  // critic round 58's "The steam, caught on camera" printed only green sky.
+  'kettles-steam-photo': { kind: 'ground', x: -23.4, z: 78, lift: 1.6, what: 'steam' },
   // The lamp on the arm of the hamlet's bell post, beside the bell (landmarks.ts LAMP_ARM), 16 u away.
   // It used to aim at the bell itself, with the words "market lamp", and critics rounds 21 and 45 were
   // told to centre a lamp while the arrow sat on a bell.

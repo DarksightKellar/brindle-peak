@@ -28,6 +28,15 @@ const THICK = 0.6;
  */
 const NEAR_CLEAR = 3;
 const NEAR_FULL = 9;
+/**
+ * 0..1, how far the viewfinder is up. Through the lens the steam is the subject, not something in the
+ * way: the Steam Columns spot stands 5 to 11 u off its pool, inside the thinning, and critic round 58's
+ * "The steam, caught on camera" printed only sky.
+ */
+let lensUp = 0;
+export function setSteamLens(blend: number): void {
+  lensUp = Math.max(0, Math.min(1, blend));
+}
 
 /** A soft cloud: three overlapping round blobs, so a puff is lumpy rather than a perfect disc. */
 let cloudTexture: THREE.DataTexture | null = null;
@@ -87,7 +96,8 @@ export function buildSteam(sampler: TerrainSampler): THREE.Group {
       const sprite = new THREE.Sprite(material);
       sprite.onBeforeRender = (_r, _s, camera) => {
         const d = camera.position.distanceTo(sprite.position) - sprite.scale.x * 0.5;
-        const k = Math.max(0, Math.min(1, (d - NEAR_CLEAR) / (NEAR_FULL - NEAR_CLEAR)));
+        const near = Math.max(0, Math.min(1, (d - NEAR_CLEAR) / (NEAR_FULL - NEAR_CLEAR)));
+        const k = near + (1 - near) * lensUp;
         material.opacity = (sprite.userData.opacity as number) * k * k * (3 - 2 * k);
       };
       sprite.layers.set(AURORA_LAYER);
