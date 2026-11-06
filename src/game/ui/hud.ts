@@ -80,13 +80,14 @@ const ERRAND_SEEN = 200;
 const HOP_HINT = 150;
 
 /**
- * " · M, E to go back" on an errand step that lies far off in a place Pip has already walked. Critic round 6
+ * " · the map can take you back" on an errand step that lies far off in a place Pip has already walked. Critic round 6
  * walked 180 units back to Ilsa and to Hollis with the map hop one key away and never thought of it.
  */
 function hopHint(s: GameState, step: ReturnType<typeof nextStepFor>): string {
   if (!step || step.zone === null || (step.distance ?? 0) < HOP_HINT) return '';
   if (hopBlocked(s, false) !== null || !hopPlaces(s).includes(step.zone)) return '';
-  return ' · M, E to go back';
+  // The way, not the keys (critic round 55 read "M, E" as a key prompt on the goal line).
+  return ' · the map can take you back';
 }
 
 /** Milliseconds the line says which errand it moved on to. */

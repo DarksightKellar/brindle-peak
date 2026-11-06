@@ -337,7 +337,8 @@
       "Nine loaves one day, four the next. Somewhere in between is right.",
       "Sit down, Pip. You look frozen through. There's always a heel of bread.",
       "Tell Nana there's a loaf here whenever she wants one."
-    ]
+    ],
+    "fill": "orla-bell"
   },
   {
     "id": "pell-root",
@@ -501,12 +502,12 @@
     "fill": "gus-hello",
     "lines": [
       "I sell bells. Every size. And I've never once heard the big one ring.",
-      "Would you ring my shop bell for me? One clean strike. I want to know how far it goes.",
+      "My shop bell, though. One clean strike, and I want to know how far it goes.",
       "Pell, the postmaster, walks the whole hamlet. Ask him if he heard it."
     ],
     "choices": [
       {
-        "text": "i'll ring it.",
+        "text": "i'll find out.",
         "next": "gus-errand",
         "takes": true
       },

@@ -64,6 +64,8 @@ export const DIALOGUE_FILLS: Readonly<Record<string, (s: GameState) => string[]>
     (s.counters['activity:hamlet-snowman'] ?? 0) > 0
       ? ["Was that your snowman on the green? It leans. I like it."]
       : ["Still no snowman on the green, I see. Somebody ought to enjoy the snow."],
+  // Critic round 55 rang Gus's bell ("Heads turned at the bakery") and Orla never said a word about it.
+  'orla-bell': (s) => (rung(s) ? ["Was that Gus's shop bell? Half my queue turned round. I thought the bread had burnt."] : []),
   // Gus's first words. Critic round 28 bought a feather from him and was then told "you're not buying".
   // Not bought yet, he says where the feathers are and how: critic round 39 found them only by scanning.
   'gus-hello': (s) =>

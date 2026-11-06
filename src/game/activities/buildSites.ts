@@ -67,7 +67,9 @@ export const BUILD_SITES: Readonly<Record<string, BuildSite>> = {
     kind: 'woodpile', at: storeLocal(4.1, 0.3), facing: STORE.yaw, stand: { x: 1.9, z: -0.4, lookX: -0.9, lookZ: -0.1 },
   },
   'hamlet-snowman': { kind: 'snowman', at: { x: 212.6, z: 136.6 }, facing: toward({ x: 212.6, z: 136.6 }, { x: 214, z: 138 }) },
-  'kettles-dam-build': { kind: 'dam', at: DAM_AT, facing: DAM_DIR },
+  // Pip stands on the dry side, facing the wall with the pool beyond, so the stones run left to right.
+  // Critic round 55 pressed Build from the far side of the post and spent the start looking at snow.
+  'kettles-dam-build': { kind: 'dam', at: DAM_AT, facing: DAM_DIR, stand: { x: 2.2, z: 2.4, lookX: 0, lookZ: -0.6 } },
 };
 
 const NOUN: Readonly<Record<BuildKind, string>> = { woodpile: 'Logs', snowman: 'Snowman, part', dam: 'Dam, part' };
