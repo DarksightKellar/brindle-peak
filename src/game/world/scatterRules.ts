@@ -52,8 +52,10 @@ export const CLEAR_ZONES = [
  * restricted prop set instead of no props, and the exposed zones got a boost for the same reason.
  */
 export const ZONE_TARGET: Readonly<Record<ZoneId, number>> = {
-  hearth: 300, pinewind: 1150, reach: 300, kettles: 0, hamlet: 340, ridge: 380, peak: 140,
+  hearth: 300, pinewind: 1150, reach: 300, kettles: 0, hamlet: 340, ridge: 580, peak: 200,
 };
+// Ridge and peak raised (critic round 59): the climb's slopes read as a white field with nothing in it
+// for hundreds of units, and Pip lost contrast against them. Rocks and drifts give the snow edges.
 
 /** Which silhouettes belong in which zone, before slope and elevation corrections. */
 export const KINDS: Readonly<Record<ZoneId, Partial<Record<PropKind, number>>>> = {
@@ -68,7 +70,7 @@ export const KINDS: Readonly<Record<ZoneId, Partial<Record<PropKind, number>>>> 
 };
 
 /** Candidate acceptance before kind selection; snowDensity sets the weather, this sets the cover. */
-export const DENSITY: Readonly<Record<ZoneId, number>> = { hearth: 0.6, pinewind: 1, reach: 0.45, kettles: 0.5, hamlet: 0.65, ridge: 0.55, peak: 0.45 };
+export const DENSITY: Readonly<Record<ZoneId, number>> = { hearth: 0.6, pinewind: 1, reach: 0.45, kettles: 0.5, hamlet: 0.65, ridge: 0.75, peak: 0.6 };
 
 export const SCALE: Readonly<Record<PropKind, readonly [number, number]>> = {
   pine: [0.9, 1.3], bare: [0.8, 1.25], rock: [0.7, 1.6], drift: [0.8, 1.8], brush: [0.7, 1.3],
