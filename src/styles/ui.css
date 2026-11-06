@@ -178,6 +178,9 @@
   background: var(--panel); border: 1px solid var(--snow-sh);
   font-family: var(--mono); color: var(--snow-mid); text-align: center;
 }
+/* The journal is over the world, so the activity's card waits under it: critic round 50 opened the
+   journal on a result and read the card across its page tabs. */
+#ui:has(.ui-journal:not([hidden])) .ui-activity { visibility: hidden; }
 .ui-activity__kicker {
   margin: 0 0 2px; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
   color: var(--snow-sh);

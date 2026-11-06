@@ -20,7 +20,7 @@ import { FINALE_QUEST } from '../../data/quests';
  * The lantern sentence rides along once the lantern is owned, the call has not gone out and the goal
  * lies in another zone: before the lantern it pointed at posts the player could not light.
  */
-export function goalLine(s: GameState, main: GuideStep | null, unmet: { name: string; zone: string; first?: boolean } | null = null): string {
+export function goalLine(s: GameState, main: GuideStep | null, unmet: { name: string; zone: string } | null = null): string {
   if (main) {
     // Only on the way: standing in the step's own zone, "the way up" is behind you.
     const lanterns = s.abilities.lantern && s.quests[FINALE_QUEST]?.status !== 'complete' && s.zone !== main.zone;
@@ -30,10 +30,8 @@ export function goalLine(s: GameState, main: GuideStep | null, unmet: { name: st
   // Pip to someone not yet met (core/guide/goal.ts), the way Edda's "go and say hello" does.
   // With an errand under way it says that first, and the compass follows the errand (hud.ts): critic
   // round 40 took on Hollis's mitten and read "Go and say hello to Tamsin" over it, two orders at once.
-  // Nearer than the errand, the hello has the compass (hud.ts), and the line says to stop by on the way.
   if (unmet) {
     const errand = Object.values(s.quests).some((q) => q.status === 'active');
-    if (errand && unmet.first) return `The valley's talking again. ${unmet.name} is near, in ${unmet.zone}: say hello on the way.`;
     return errand
       ? `The valley's talking again. See your errands through, then say hello to ${unmet.name}, in ${unmet.zone}.`
       : `The valley's talking again. Go and say hello to ${unmet.name}, in ${unmet.zone}.`;

@@ -11,6 +11,22 @@
 
 import type { ActivityDef, GameState, Vec2 } from '../../core/contracts';
 import { compassWord, formatDistance } from '../../core/guide/compass';
+import { bearing } from './hudCompass';
+
+/** Within this of straight ahead, a thing is "ahead", radians. */
+const AHEAD = 0.35;
+
+/**
+ * Which way a thing lies against the view, in the goal line's words. Critic round 50 read "southwest,
+ * 43 u" with a camera-relative walk and circled the snowman, the bell and a fishing post.
+ */
+export function viewWay(dx: number, dz: number, viewYaw: number): string {
+  const rel = bearing(dx, dz, viewYaw);
+  const side = rel > 0 ? 'right' : 'left';
+  if (Math.abs(rel) <= AHEAD) return 'ahead';
+  if (Math.abs(rel) <= Math.PI / 2) return `on your ${side}`;
+  return `behind you, to your ${side}`;
+}
 
 /** A thing to do nearer than this is worth naming, in world units. */
 export const NOTICE_RANGE = 60;
@@ -46,17 +62,22 @@ export interface Notable {
 const FORGET_RANGE = NOTICE_RANGE * 2;
 
 export function createNearbyNotice(activities: readonly ActivityDef[]): {
-  update(s: GameState, from: Vec2, nowMs: number, extra?: readonly Notable[]): string;
+  /** `viewYaw`: the camera's, so the way is said against the view; without it, a compass word. */
+  update(s: GameState, from: Vec2, nowMs: number, extra?: readonly Notable[], viewYaw?: number): string;
 } {
   const named = new Map<string, Vec2>();
   let current: Notable | null = null;
   let until = -1;
 
-  const line = (n: Notable, from: Vec2, d: number): string =>
-    `${n.label} — ${compassWord(n.pos.x - from.x, n.pos.z - from.z)}, ${formatDistance(d)}`;
+  let yaw: number | undefined;
+  const line = (n: Notable, from: Vec2, d: number): string => {
+    const dx = n.pos.x - from.x, dz = n.pos.z - from.z;
+    return `${n.label} — ${yaw === undefined ? compassWord(dx, dz) : viewWay(dx, dz, yaw)}, ${formatDistance(d)}`;
+  };
 
   return {
-    update(s, from, nowMs, extra = []): string {
+    update(s, from, nowMs, extra = [], viewYaw): string {
+      yaw = viewYaw;
       for (const [id, at] of named) if (Math.hypot(at.x - from.x, at.z - from.z) > FORGET_RANGE) named.delete(id);
       if (current && nowMs < until) {
         const d = Math.hypot(current.pos.x - from.x, current.pos.z - from.z);

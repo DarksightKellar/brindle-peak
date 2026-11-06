@@ -72,8 +72,6 @@ export interface Hud {
   destroy(): void;
 }
 
-/** The hello and the errand trade the pin only when the other is this much nearer, in world units. */
-const HELLO_MARGIN = 30;
 /** Other errands' places nearer than this get a mark on the compass strip, in world units. */
 const ERRAND_SEEN = 200;
 
@@ -140,25 +138,21 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
   /** The walk left to the goal when it follows a route rather than the straight line (route.ts). */
   let goalDistance: number | undefined;
   let buildings: readonly GuideBox[] = [];
-  /** After the story, the hello is nearer than the errand and has the pin; kept until HELLO_MARGIN says otherwise. */
-  let helloFirst = false;
+  /** After the story with an errand under way: the unmet villager the goal line names, for its own mark. */
+  let helloAt: Vec2 | null = null;
 
   const liveTarget = (): Vec2 | null => {
     if (held) return heldTarget;
     // After the story, an errand under way has the pin, and the hello waits: critic round 41 picked an
-    // errand on the Quests page and watched the compass stay on a villager it had not met. Unless the
-    // hello is the nearer: critic round 49 read "then say hello to Orla" in the hamlet with nothing
-    // pointing at her, gave up, and met half the valley. Then the errand keeps its small diamond.
+    // errand on the Quests page and watched the compass stay on a villager it had not met. The hello gets
+    // a mark of its own instead (critic round 49 found nothing pointing at Orla); round 50 gave it the pin
+    // when it was nearer, and in the hamlet the pin swapped between villagers under critic round 50.
     const unmet =
       guide && lastState && errandTarget && Object.values(lastState.quests).some((q) => q.status === 'active')
         ? unmetAfterStory(lastState, lastFrom, guide)
         : null;
-    if (unmet && errandTarget) {
-      const hello = Math.hypot(unmet.pos.x - lastFrom.x, unmet.pos.z - lastFrom.z);
-      const errand = Math.hypot(errandTarget.x - lastFrom.x, errandTarget.z - lastFrom.z);
-      if (helloFirst ? hello > errand + HELLO_MARGIN : hello + HELLO_MARGIN < errand) helloFirst = !helloFirst;
-    } else helloFirst = false;
-    const errandFirst = unmet !== null && !helloFirst;
+    helloAt = unmet ? { x: unmet.pos.x, z: unmet.pos.z } : null;
+    const errandFirst = unmet !== null;
     const story = guide && lastState && !errandFirst ? goalTarget(lastState, lastFrom, guide) : null;
     const routed = story && guide?.routes ? routeAim(guide.routes, lastFrom, story) : null;
     goalDistance = routed?.distance;
@@ -202,13 +196,13 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
       stamina.update(s, p);
       lastState = s;
       lastFrom = { x: p.pos.x, z: p.pos.z };
-      const feather = featherNotice.update(s, lastFrom, performance.now());
+      const feather = featherNotice.update(s, lastFrom, performance.now(), viewYaw);
       if (feather.started) stamina.showFeathers(6000);
 
       if (!held) {
         const main = guide ? nextStepFor(s, p.pos, guide, 'main') : null;
         const unmet = guide && !main ? unmetAfterStory(s, p.pos, guide) : null;
-        const goal = goalLine(s, main, unmet?.name ? { name: unmet.name, zone: guide?.zoneNames[unmet.zone] ?? '', first: helloFirst } : null);
+        const goal = goalLine(s, main, unmet?.name ? { name: unmet.name, zone: guide?.zoneNames[unmet.zone] ?? '' } : null);
         if (goal !== lastGoal) {
           lastGoal = goal;
           goalEl.textContent = goal;
@@ -237,7 +231,7 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
         const shop = PICKUPS.find((q) => q.price !== undefined && s.flags[`picked:${q.id}`] !== true && s.bells >= q.price);
         if (shop) notable.push({ id: 'shop:gus', label: `Gus's feathers nearby: ${shop.price} bells each`, pos: { x: shop.pos.x, z: shop.pos.z } });
         const noticed = nextAllowed && feather.line === ''
-          ? nearbyNotice?.update(s, lastFrom, performance.now(), notable) ?? ''
+          ? nearbyNotice?.update(s, lastFrom, performance.now(), notable, viewYaw) ?? ''
           : '';
         // Not the place the errand line already names: critic round 49 read "Creek Pool nearby… 43 u" under
         // "Next: Fish the Creek Pool… 43 u".
@@ -262,6 +256,8 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
       const errandMarks = nextAllowed && !held
         ? otherErrands.filter((o) => (o.distance ?? Infinity) < ERRAND_SEEN).map((o) => o.target as Vec2)
         : [];
+      // The villager the goal line says to greet, wherever they are: the same hollow mark as an errand's.
+      if (helloAt && nextAllowed && !held) errandMarks.push(helloAt);
       // The strip goes round a building in the way; the beam over the target stays where it is.
       const round = heldTarget && !held ? aroundAim(buildings, lastFrom, heldTarget) : null;
       if (course) compass.update({ from: lastFrom, viewYaw, goal: course, side: null, feather: null, todo: [], errands: [] });

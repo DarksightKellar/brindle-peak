@@ -11,6 +11,7 @@
 
 import type { GameState, Vec2 } from '../../core/contracts';
 import { compassWord, formatDistance } from '../../core/guide/compass';
+import { viewWay } from './hudNearby';
 import { PICKUPS } from '../../data/pickups';
 
 /** A feather nearer than this is worth pointing at, in world units. */
@@ -32,11 +33,11 @@ export interface FeatherNotice {
   started: boolean;
 }
 
-export function createFeatherNotice(): { update(s: GameState, from: Vec2, nowMs: number): FeatherNotice } {
+export function createFeatherNotice(): { update(s: GameState, from: Vec2, nowMs: number, viewYaw?: number): FeatherNotice } {
   let lineUntil = -1;
 
   return {
-    update(s, from, nowMs): FeatherNotice {
+    update(s, from, nowMs, viewYaw): FeatherNotice {
       if (s.feathers > 0) return { feather: null, line: '', started: false };
       let best: Vec2 | null = null;
       let bestD = FEATHER_NOTICE_RANGE;
@@ -51,7 +52,9 @@ export function createFeatherNotice(): { update(s: GameState, from: Vec2, nowMs:
       const started = best !== null && lineUntil < 0;
       if (started) lineUntil = nowMs + FEATHER_LINE_MS;
       if (!best || nowMs >= lineUntil) return { feather: best, line: '', started };
-      const where = bestD < 1.5 ? '' : ` — ${compassWord(best.x - from.x, best.z - from.z)}, ${formatDistance(bestD)}`;
+      // Against the view, as the nearby line says it (hudNearby.ts `viewWay`).
+      const dx = best.x - from.x, dz = best.z - from.z;
+      const where = bestD < 1.5 ? '' : ` — ${viewYaw === undefined ? compassWord(dx, dz) : viewWay(dx, dz, viewYaw)}, ${formatDistance(bestD)}`;
       return { feather: best, line: `${FEATHER_LINE}${where}`, started };
     },
   };

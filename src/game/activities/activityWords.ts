@@ -34,12 +34,13 @@ export const WORDS = {
   // ring), and a run that missed most rings says where they are instead.
   sledResult: (seconds: number, got: number, total: number, best: boolean, par = ''): string =>
     `Down in ${clock(seconds)} · ${got} of ${total} rings${par}${best ? ' · your fastest yet' : ''}`
-    + (got * 2 < total ? '. The rings sit on the fast line: steer through them.' : ''),
+    + (got * 2 < total ? `${!best && par.endsWith('!') ? '' : '.'} The rings sit on the fast line: steer through them.` : ''),
   // Race results and the hoop readout
   // Critic round 9 found the finish a bare line of text: it now says how the run stands against the last.
   raceResult: (seconds: number, best: number | null, par = ''): string =>
     `Over the line in ${clock(seconds)}${par}`
-    + (best === null ? '. Run it again to beat it.' : seconds < best ? ` · a new best, ${clock(best - seconds)} quicker` : ` · best ${clock(best)}`),
+    // After a par that ends "!", no full stop as well: critic round 50 read "Ilsa's 15s!. Run it again".
+    + (best === null ? `${par.endsWith('!') ? '' : '.'} Run it again to beat it.` : seconds < best ? ` · a new best, ${clock(best - seconds)} quicker` : ` · best ${clock(best)}`),
   lanternResult: (lit: number): string => `${lit} lanterns lit, all the way up the ridge`,
   hoopResult: (seconds: number, through: number, total: number, par = ''): string =>
     `Down in ${clock(seconds)} · through ${through} of ${total} hoops${par}`,

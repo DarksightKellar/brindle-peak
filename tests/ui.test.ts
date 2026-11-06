@@ -317,3 +317,14 @@ describe('nearby line (round 7)', () => {
     expect(n.update(s, { x: 700, z: 0 }, 100, [errand])).toBe('');
   });
 });
+
+describe('nearby, against the view (critic round 50 circled "southwest, 43 u")', () => {
+  it('says ahead, on your left or right, or behind you', async () => {
+    const { viewWay } = await import('../src/game/ui/hudNearby');
+    // Looking along +z (yaw 0): +z is ahead, -x is screen right.
+    expect(viewWay(0, 10, 0)).toBe('ahead');
+    expect(viewWay(-10, 2, 0)).toBe('on your right');
+    expect(viewWay(10, 2, 0)).toBe('on your left');
+    expect(viewWay(3, -10, 0)).toBe('behind you, to your left');
+  });
+});
