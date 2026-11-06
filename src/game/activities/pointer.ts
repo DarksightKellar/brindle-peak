@@ -81,7 +81,10 @@ const WAY_HOLD = 0.15;
  */
 /**
  * Which way round to turn for something behind: the side of `turn` (positive is left, as `steadyWay`),
- * kept while it is nearly straight behind, so it doesn't flip with every step.
+ * kept while it is nearly straight behind, so it doesn't flip with every step. Pass `last` only while the
+ * target has stayed behind, as the compass strip keeps its side (hud.ts `offStrip`): a side remembered
+ * from while it was ahead had the race panel saying "to your right" under a compass saying "to your left"
+ * (critic round 66).
  */
 export function steadyRound(turn: number, last: 'left' | 'right' | null): 'left' | 'right' {
   if (last !== null && Math.abs(turn) > (Math.PI * 5) / 6) return last;

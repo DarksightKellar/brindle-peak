@@ -375,9 +375,9 @@ describe('sled', () => {
     while (!sled.isComplete() && guard++ < 6000) {
       seen.push(sled.progress()?.label ?? '');
       const cue = seen[Math.max(0, seen.length - 1 - 20)];
-      step(sled, host, { moveX: cue.startsWith('Ring to your right') ? 1 : cue.startsWith('Ring to your left') ? -1 : 0 });
+      step(sled, host, { moveX: cue.startsWith('Keep right') ? 1 : cue.startsWith('Keep left') ? -1 : 0 });
     }
-    expect(seen.some((l) => /^Ring to your (left|right) · /.test(l))).toBe(true);
+    expect(seen.some((l) => /^Keep (left|right) for the ring · /.test(l))).toBe(true);
     expect(sled.ringsGot).toBeGreaterThanOrEqual(Math.ceil(sled.ringsTotal * 0.6));
   });
 

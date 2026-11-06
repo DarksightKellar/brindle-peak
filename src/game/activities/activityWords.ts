@@ -28,8 +28,11 @@ export const WORDS = {
   /**
    * Which way the next ring is: critic round 18 took 0 of 5 and 3 of 12 steering by eye, and called the
    * rings luck. No key: the director's call (round 47), the opening teaches walking and steering.
+   * The side of the run to keep to, not where the ring sits on screen: on a bend the run turns under it,
+   * and critic round 66 read "Ring to your left" with the ring on the right. Steering by the screen there
+   * misses it; keeping to the run's side takes it.
    */
-  sledRing: (way: 'left' | 'right' | 'on'): string => (way === 'on' ? 'On line for the ring' : `Ring to your ${way}`),
+  sledRing: (way: 'left' | 'right' | 'on'): string => (way === 'on' ? 'On line for the ring' : `Keep ${way} for the ring`),
   // "Your fastest yet" only beats an earlier run (critic round 8 was praised for a first run with one
   // ring), and a run that missed most rings says where they are instead.
   sledResult: (seconds: number, got: number, total: number, best: boolean, par = ''): string =>
@@ -63,8 +66,11 @@ export const WORDS = {
   hoopsThrough: (n: number): string => `${n} flown through`,
   gates: (next: number, total: number): string => `Gate ${next} of ${total}`,
   lanterns: (next: number, total: number): string => `Lantern ${next} of ${total}`,
-  /** Added to a result card the first time an activity is played to its end. */
-  firstBells: (n: number): string => `+${n} bells for trying it`,
+  /**
+   * Added to a result card the first time an activity is played to its end, whatever the result. "For
+   * trying it" read as a consolation under a win (critic round 66, the woodpile stacked).
+   */
+  firstBells: (n: number): string => `+${n} bells for a first go`,
   /** Where the next gate is, from the camera's view: critic round 17 lost the lantern line with it behind them. */
   // The way, not the keys: the director's call (round 47). The opening teaches walking; live "hold D"
   // words on every gate were hand-holding.

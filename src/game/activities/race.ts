@@ -208,8 +208,9 @@ export class RaceActivity implements ActivityInstance {
     const g = this.course.gates[aim], p = this.runner;
     if (!g || !p) return { label, fraction: total === 0 ? 0 : this.next / total };
     const turn = angleDelta(this.camYaw, Math.atan2(g.x - p.x, g.z - p.z));
+    const wasBehind = this.way === 'behind';
     const way = this.way = steadyWay(turn, this.way);
-    const round = this.round = steadyRound(turn, this.round);
+    const round = this.round = steadyRound(turn, wasBehind ? this.round : null);
     // A hoop above or below the glide says so: the round-26 critic had a distance and no height.
     const h = this.course.heights?.[aim];
     const rise = h !== undefined && Math.abs(h - p.y) > HOOP_BAND ? ` · ${WORDS.hoopHeight(h - p.y)}` : '';
