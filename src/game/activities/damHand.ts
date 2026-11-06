@@ -127,7 +127,8 @@ export class DamHand {
     const stone = place(slip ? slip.drop : SWING.hover, off);
     const over = !slipping && Math.abs(off) <= DAM.gap;
     const near = Math.max(0, 1 - (Math.abs(off) - DAM.gap) / (DAM.reach - DAM.gap));
-    const lit = slipping || over ? 1 : 0.15 + 0.45 * near * near;
+    // Never faint: critic rounds 52 to 54 could not tell which stone was theirs or where its gap was.
+    const lit = slipping || over ? 1 : 0.5 + 0.4 * near * near;
     const y = rest.y + 0.5;
     const ends: PlacedMarker[] = [-1, 1].map((end) => ({
       shape: 'float', look: 'dot', size: over ? 2.3 : 1.5, strength: lit, color: slipping ? PALETTE.PIP_SCARF : undefined,
@@ -137,7 +138,9 @@ export class DamHand {
       const k = ((now * 0.35 + phase) % 1) * 2 - 1;
       return { shape: 'float', look: 'dot', size: 0.9, strength: 0.5, x: rest.x + along.x * k * 2.4, y: rest.y + 0.08, z: rest.z + along.z * k * 2.4 };
     });
-    const ring: PlacedMarker[] = over ? [{ shape: 'ring', look: 'halo', x: rest.x, y: rest.y + 0.3, z: rest.z, size: 0.9, strength: 1 }] : [];
-    return [stone, ...ends, ...flecks, ...ring];
+    // The gap's ring stands all the time, brighter once the stone is over it; a light rides the stone in hand.
+    const ring: PlacedMarker = { shape: 'ring', look: 'halo', x: rest.x, y: rest.y + 0.3, z: rest.z, size: over ? 0.9 : 0.75, strength: over ? 1 : 0.5 };
+    const held: PlacedMarker = { shape: 'float', look: 'dot', size: 1.4, strength: 1, x: stone.x, y: stone.y + 0.9 + 0.08 * Math.sin(now * 4), z: stone.z };
+    return [stone, held, ...ends, ...flecks, ring];
   }
 }

@@ -36,12 +36,12 @@ export function goalTarget(s: GameState, from: Vec2, content: GuideContent): Vec
 }
 
 /**
- * The villager the line last named keeps it while still unmet, unless Pip is beside another (within this,
- * u) and not the named one. Walking across the Reach, critic round 27 watched it flick between Margit, Skiff
- * and Corm; with a switch at half the distance, critic round 42 still saw five names on one walk, and at
- * 40 u critic round 49 still read a new name in every zone. Beside someone, their TALK is up anyway.
+ * The villager the line last named keeps it until met. Walking across the Reach, critic round 27 watched
+ * it flick between Margit, Skiff and Corm; with a switch at half the distance, critic round 42 still saw
+ * five names on one walk; at 40 u critic round 49 read a new name in every zone, and at 15 u critic
+ * round 54 still saw it go round the hamlet's unmet villagers and could not commit to one.
  */
-const SWITCH_BESIDE = 15;
+const SWITCH_BESIDE = 0;
 /** The last villager named for each run's state. The only memory here; it changes which, never whether. */
 const named = new WeakMap<GameState, string>();
 

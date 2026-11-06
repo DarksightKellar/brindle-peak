@@ -22,11 +22,12 @@ import type { GuideContent } from '../../core/guide/nextStep';
 import { formatNextStep, nextStepFor } from '../../core/guide/nextStep';
 import { goalTarget, unmetAfterStory } from '../../core/guide/goal';
 import { aroundAim, routeAim, type GuideBox } from '../../core/guide/route';
+import { formatDistance } from '../../core/guide/compass';
 import { errandLineFor, type ErrandLine } from './errandLine';
 import { goalLine } from './hudText';
 import { bearing, createHudCompass } from './hudCompass';
 import { createHudStamina } from './hudStamina';
-import { createNearbyNotice, NOTICE_RANGE, nearbyTodo } from './hudNearby';
+import { createNearbyNotice, NOTICE_RANGE, nearbyTodo, viewWay } from './hudNearby';
 import { hopBlocked, hopPlaces } from '../session/travel';
 import { ACTIVITIES } from '../../data/activities';
 import { PICKUPS } from '../../data/pickups';
@@ -202,7 +203,13 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
       if (!held) {
         const main = guide ? nextStepFor(s, p.pos, guide, 'main') : null;
         const unmet = guide && !main ? unmetAfterStory(s, p.pos, guide) : null;
-        const goal = goalLine(s, main, unmet?.name ? { name: unmet.name, zone: guide?.zoneNames[unmet.zone] ?? '' } : null);
+        const line = goalLine(s, main, unmet?.name ? { name: unmet.name, zone: guide?.zoneNames[unmet.zone] ?? '' } : null);
+        // With the pin on an errand, the hello says where it is itself: critic round 54 read "say hello to
+        // Margit, in The Frozen Reach" with nothing saying how far or which way.
+        const away = unmet && helloAt ? Math.hypot(unmet.pos.x - p.pos.x, unmet.pos.z - p.pos.z) : 0;
+        const goal = unmet && helloAt
+          ? `${line.replace(/\.$/, '')}: ${formatDistance(away)}, ${viewWay(unmet.pos.x - p.pos.x, unmet.pos.z - p.pos.z, viewYaw)}.`
+          : line;
         if (goal !== lastGoal) {
           lastGoal = goal;
           goalEl.textContent = goal;
