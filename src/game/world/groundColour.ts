@@ -119,6 +119,14 @@ export function groundColour(sample: TerrainSample, x: number, z: number): RGB {
     base = mix(base, C.snowDeep, smoothstep(0.12, 0.5, slope) * 0.5);
   } else {
     base = snow(h, slope);
+    // A face too steep to walk shows stone through the snow in courses, as the bare rock does: critic
+    // rounds 60 and 61 climbed past steep snow faces that were one flat blue sheet.
+    const steep = smoothstep(0.42, 0.8, slope);
+    if (steep > 0) {
+      const course = strata(h, x, z);
+      const stone = mix(C.rockDk, C.rockWarm, 0.25 + 0.4 * course);
+      base = mix(base, stone, steep * smoothstep(0.25, 0.6, 1 - course) * 0.55);
+    }
   }
 
   // Low ground catches the low sun, a touch: more than this and blue snow reads as tan.
