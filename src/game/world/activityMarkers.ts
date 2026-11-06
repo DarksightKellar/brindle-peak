@@ -123,7 +123,7 @@ const PROTOTYPES: Readonly<Record<MarkerShape | TransientLook, Prototype>> = {
   arch: { geometry: new THREE.TorusGeometry(2, 0.26, 5, 16), color: PALETTE.LANTERN, dim: PALETTE.SNOW_SH, lift: 2.1 },
   // A shaft of light from the next gate up past the tops of the pines, so it can be found over a
   // ridge line or through a wood.
-  beam: { geometry: new THREE.CylinderGeometry(0.24, 0.24, 40, 5), color: PALETTE.LANTERN, lift: 20 },
+  beam: { geometry: new THREE.CylinderGeometry(0.16, 0.16, 40, 5), color: PALETTE.LANTERN, lift: 20 },
   // The photo and wind pointer, and a dark rim drawn just behind it so it reads on snow and on sky.
   arrow: { geometry: arrowGeometry(1, 0), color: PALETTE.LANTERN, lift: 0 },
   'arrow-rim': { geometry: arrowGeometry(1.24, 0.08), color: PALETTE.SHADOW_FLOOR, lift: 0 },
@@ -194,6 +194,13 @@ export function createActivityMarkers(): ActivityMarkerLayer {
     const material = new THREE.MeshBasicMaterial({ color: PALETTE.SNOW_HI, fog: true });
     const mesh = new THREE.Mesh(PROTOTYPES.lump.geometry, material);
     mesh.visible = false;
+    // A beam fades out as the camera comes up to it: critic round 64 had the snowman's beam standing
+    // between the camera and Pip, a quarter of the screen wide.
+    mesh.onBeforeRender = (_r, _s, camera) => {
+      if (mesh.geometry !== PROTOTYPES.beam.geometry) return;
+      const d = Math.hypot(camera.position.x - mesh.position.x, camera.position.z - mesh.position.z);
+      material.opacity = Math.min(1, Math.max(0, (d - 5) / 10));
+    };
     group.add(mesh);
     meshes.push(mesh);
   }
@@ -250,6 +257,10 @@ export function createActivityMarkers(): ActivityMarkerLayer {
         const mesh = meshes[slot++];
         const strength = spec.strength ?? 1;
         mesh.geometry = proto.geometry;
+        const beam = proto === PROTOTYPES.beam;
+        const mat = mesh.material as THREE.MeshBasicMaterial;
+        if (mat.transparent !== beam) { mat.transparent = beam; mat.depthWrite = !beam; mat.needsUpdate = true; }
+        if (!beam) mat.opacity = 1;
         place(mesh, spec, proto.lift);
         if (spec.yaw === undefined && !spec.look) mesh.rotation.y = slot * 0.7;
         mesh.scale.setScalar(spec.size ?? 0.72 + 0.28 * strength);

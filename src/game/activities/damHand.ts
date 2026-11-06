@@ -141,6 +141,9 @@ export class DamHand {
     // The gap's ring stands all the time, brighter once the stone is over it; a light rides the stone in hand.
     const ring: PlacedMarker = { shape: 'ring', look: 'halo', x: rest.x, y: rest.y + 0.3, z: rest.z, size: over ? 0.9 : 0.75, strength: over ? 1 : 0.5 };
     const held: PlacedMarker = { shape: 'float', look: 'dot', size: 1.4, strength: 1, x: stone.x, y: stone.y + 0.9 + 0.08 * Math.sin(now * 4), z: stone.z };
-    return [stone, held, ...ends, ...flecks, ring];
+    // A warm ring on the water under the stone in hand: among the pool's blue boulders, critic round 64
+    // could not pick out which one was theirs, or see it move.
+    const mine: PlacedMarker = { shape: 'ring', look: 'halo', x: stone.x, y: rest.y + 0.1, z: stone.z, size: 0.65, strength: 1, color: PALETTE.PIP_SCARF };
+    return [stone, held, mine, ...ends, ...flecks, ring];
   }
 }

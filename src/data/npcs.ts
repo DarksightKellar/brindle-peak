@@ -24,7 +24,7 @@ export const NPCS: readonly NpcDef[] = [
   { id: 'ilsa', name: 'Ilsa', species: 'fox', zone: 'pinewind', pos: { x: -190, z: 166 }, yaw: 2.1, idle: 'ilsa-idle', body: '#b4592f', accent: '#f0e2d0', radius: 4 },
 
   // ---- The Frozen Reach (2) ------------------------------------------------
-  { id: 'skiff', name: 'Skiff', species: 'otter', zone: 'reach', pos: { x: 64, z: 296 }, yaw: -2.4, idle: 'skiff-idle', body: '#5c4a3c', accent: '#d9c3a8', radius: 4 },
+  { id: 'skiff', name: 'Skiff', species: 'otter', zone: 'reach', pos: { x: 61, z: 292.5 }, yaw: -2.4, idle: 'skiff-idle', body: '#5c4a3c', accent: '#d9c3a8', radius: 4 },
   { id: 'margit', name: 'Margit', species: 'raven', zone: 'reach', pos: { x: 98, z: 342 }, yaw: 0.5, idle: 'margit-idle', body: '#2b2b33', accent: '#6c7a86', radius: 4 },
 
   // ---- Hollowpine Hamlet (3) ----------------------------------------------

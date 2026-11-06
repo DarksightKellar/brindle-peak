@@ -34,7 +34,7 @@ export const PHOTO_SUBJECTS: Readonly<Record<string, PhotoSubject>> = {
   // south it stood in front of a pine trunk and read as a dead bush; from the east there is open snow
   // behind it for sixty metres. Aimed at its shoulder.
   'pinewind-glade-photo': {
-    kind: 'ground', x: -229, z: 139, lift: 1.4, what: 'deer', piece: { look: 'deer', yaw: 0, size: 1.25 },
+    kind: 'ground', x: -229, z: 139, lift: 1.4, what: 'deer in the frosted glade', piece: { look: 'deer', yaw: 0, size: 1.25 },
   },
   // Pressure ridge 12 on the Frozen Reach (water.ts), ~13 u out on the ice; low, so aimed just above it.
   'reach-ice-photo': { kind: 'ground', x: 67.9, z: 350.6, lift: 0.5, what: 'pressure ridge' },

@@ -26,7 +26,7 @@ export const HOP_SPOTS: Readonly<Record<ZoneId, { at: Vec2; look: Vec2 }>> = {
   // The hamlet square, by the market.
   hamlet: { at: { x: 246, z: 124 }, look: { x: 250, z: 136 } },
   // On the ice by Skiff's boat.
-  reach: { at: { x: 76, z: 306 }, look: { x: 64, z: 296 } },
+  reach: { at: { x: 76, z: 306 }, look: { x: 61, z: 292.5 } },
   // The foot of Windscar Ridge, by its first post.
   ridge: { at: { x: 147, z: -143 }, look: { x: 168, z: -140 } },
   // The last post below the mast.

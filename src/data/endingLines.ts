@@ -24,7 +24,7 @@ export const VALLEY_LINES: readonly (readonly [quest: string, line: string])[] =
   ['fen-ledger', 'Fen has asked the marten next door something, for the first time in twenty winters.'],
   ['corm-news', 'Corm has checked something, and it was true.'],
   ['wren-sounds', "Wren's old notebook is full. The last page is in your words."],
-  ['tuck-rope', "Bram's rope is on Tuck's bridge. Neither of them has said so out loud."],
+  ['tuck-rope', "Bram's rope is on Tuck's bridge, and both of them have told the whole valley whose idea it was."],
   ['chimney-line', 'Tuck is thinking about climbing Nettle Chimney. Just thinking.'],
   ['ivy-springs', "The pools are warm again behind Ivy's dam."],
   ['pell-letter', "Pell's last letter found the right door."],

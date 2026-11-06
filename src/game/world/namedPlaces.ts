@@ -25,6 +25,7 @@ import { RADIO_HUT } from './summit';
 import { buildTrail, type Detour, WAY_UP, wayDistance } from './trail';
 import { LANDMARKS } from './landmarks';
 import { ACTIVITIES } from '../../data/activities';
+import { RACE_COURSES } from '../activities/raceCourses';
 import { buildWayScenes, SCENE_CLEARINGS } from './wayScenes';
 import { buildKettlesDressing } from './kettlesDressing';
 import { buildHoarfrostGlade, GLADE } from './hoarfrostGlade';
@@ -52,6 +53,19 @@ const CLEARINGS: readonly { x: number; z: number; r: number }[] = [
   // Tuck's bridge heads, and a step of room round every villager so no trunk grows through one.
   { x: TUCK_BRIDGE.ax - 1.5, z: TUCK_BRIDGE.az, r: 4.5 }, { x: TUCK_BRIDGE.bx + 1.5, z: TUCK_BRIDGE.bz, r: 4.5 },
   ...NPCS.map((n) => ({ x: n.pos.x, z: n.pos.z, r: 2.6 })),
+  // Room round every activity, wider for throws (their targets stand out ahead), and a lane down each
+  // race: critic round 64 saw a pine crown fill the pinecone toss and lost Pip among the deer run's trunks.
+  ...ACTIVITIES.map((a) => ({ x: a.pos.x, z: a.pos.z, r: a.radius + (a.kind === 'throw' ? 9 : 4) })),
+  ...Object.entries(RACE_COURSES).flatMap(([id, c]) => {
+    const start = ACTIVITIES.find((a) => a.id === id)?.pos;
+    const pts = start ? [start, ...c.gates] : [...c.gates];
+    return pts.flatMap((p, i) => {
+      const q = pts[i + 1];
+      const lane = [{ x: p.x, z: p.z, r: 5 }];
+      if (q) for (const t of [0.25, 0.5, 0.75]) lane.push({ x: p.x + (q.x - p.x) * t, z: p.z + (q.z - p.z) * t, r: 3.5 });
+      return lane;
+    });
+  }),
 ];
 
 /** Inside the gully or on its lip: the walls are bare, the floor holds only the frozen stream. */
