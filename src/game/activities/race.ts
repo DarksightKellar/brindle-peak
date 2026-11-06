@@ -202,8 +202,9 @@ export class RaceActivity implements ActivityInstance {
     const rise = h !== undefined && Math.abs(h - p.y) > HOOP_BAND ? ` · ${WORDS.hoopHeight(h - p.y)}` : '';
     const lead = aim > this.next ? WORDS.hoops(aim + 1, total) : label;
     // A hoop flown past is skipped, so "Hoop 8 of 8" could follow a walk down the slope through none:
-    // critic round 49 read it, then "through 1 of 8 hoops" at the end. The count through says so as it goes.
-    const missed = this.course.look === 'hoop' && this.reached < this.next ? ` · ${WORDS.hoopsThrough(this.reached)}` : '';
+    // critic round 49 read it, then "through 1 of 8 hoops" at the end. The count through says so as it
+    // goes, from the first hoop on: critic round 51 could not tell from the screen how its run stood.
+    const missed = this.course.look === 'hoop' && this.next > 0 ? ` · ${WORDS.hoopsThrough(this.reached)}` : '';
     return { label: `${lead}${missed} · ${WORDS.gateWay(Math.hypot(g.x - p.x, g.z - p.z), way)}${rise}`, fraction: total === 0 ? 0 : this.next / total };
   }
 

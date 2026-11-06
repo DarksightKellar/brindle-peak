@@ -10,7 +10,7 @@
  * Its size is set in screen pixels, not world units: a 7 px gem and a 3 px-wide, 44 px-tall column at
  * any distance (of the 216-pixel-high frame). Far off, the gem rides the top of the column; walking in,
  * the column fades out (inside ~30 u) and the gem slides down to sit over the target, then fades
- * inside ~8 u, where the E pill over the target takes over. Past the camera's far plane the whole
+ * inside ~5 u, where the E pill over the target takes over. Past the camera's far plane the whole
  * marker is drawn nearer along the same line of sight, so it still points the right way.
  *
  * The column is beauty-only (kept out of the normal pass, like the aurora) so it draws no outline; the
@@ -144,7 +144,9 @@ export function createGoalMarker(sampler: TerrainSampler, look: MarkerLook = GOA
     object: group,
     update(dt, target, from, camera, show): void {
       const near = target ? Math.hypot(target.x - from.x, target.z - from.z) : 0;
-      const gemFade = smooth(5, 8, near);
+      // Gone only once the E pill is up (a villager's reach is 5.5 u): critic round 51 stood a few units
+      // from Hollis with neither.
+      const gemFade = smooth(3.5, 5, near);
       if (!target || !show || gemFade <= 0) {
         group.visible = false;
         return;
