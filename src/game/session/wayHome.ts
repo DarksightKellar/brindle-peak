@@ -43,7 +43,8 @@ export interface WayHomeDeps {
   mast: Vec2;
   /** A conversation is open: the run waits for the radio to fall quiet. */
   talking(): boolean;
-  light(id: string): void;
+  /** `flare` while the run comes down the trail; quiet when a loaded save starts with them all lit. */
+  light(id: string, flare: boolean): void;
 }
 
 export interface WayHome {
@@ -68,10 +69,10 @@ export function createWayHome(d: WayHomeDeps): WayHome {
   const top = posts.length > 0 ? posts[0].s : 0;
   const lit = new Set<string>();
   const done = (): boolean => state.quests[RADIO_QUEST]?.status === 'complete';
-  const light = (id: string): void => {
+  const light = (id: string, flare = true): void => {
     if (lit.has(id) || state.lanterns[id] !== undefined) return;
     lit.add(id);
-    d.light(id);
+    d.light(id, flare);
   };
 
   /** Seconds since the radio fell quiet, and when the run began on that clock; negative until then. */
@@ -79,7 +80,7 @@ export function createWayHome(d: WayHomeDeps): WayHome {
   let begun = -1;
   let finished = false;
   if (done()) {
-    for (const p of posts) light(p.id);
+    for (const p of posts) light(p.id, false);
     finished = true;
   }
 

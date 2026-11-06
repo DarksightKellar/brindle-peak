@@ -26,7 +26,7 @@ import { buildNpc, buildPickup } from './npcBodies';
 import { buildColliders } from './colliders';
 import { BIRD_BULK } from './birdBulk';
 import { buildNamedPlaces } from './namedPlaces';
-import { buildLanternPost, setPostLit } from './lanternPosts';
+import { buildLanternPost, setPostLit, updatePostFlares } from './lanternPosts';
 import { SPECIES_SIZE } from './npcSpecies';
 
 /**
@@ -54,7 +54,8 @@ export interface WorldBuild {
   /** What the player walks into. Static: nothing in this world moves. */
   colliders: Collider[];
   setCollected(id: string): void;
-  setLanternLit(id: string): void;
+  /** `flare`: lit just now, in view of the player, rather than restored from the save. */
+  setLanternLit(id: string, flare?: boolean): void;
   update(dt: number, elapsed: number): void;
   dispose(): void;
 }
@@ -161,11 +162,12 @@ export function buildWorld(
       const o = pickupMap.get(id);
       if (o) o.visible = false;
     },
-    setLanternLit(id: string): void {
+    setLanternLit(id: string, flare = false): void {
       const post = pickupMap.get(id);
-      if (post) setPostLit(post);
+      if (post) setPostLit(post, flare);
     },
     update(dt: number, elapsed: number): void {
+      updatePostFlares(dt);
       updateWater(dt);
       updateSteam(elapsed);
       // Set from the clock, not accumulated per frame: the old `+=` drifted with the frame rate.

@@ -32,7 +32,7 @@ import { buildHoarfrostGlade, GLADE } from './hoarfrostGlade';
 import { buildTuckBridge } from './tuckBridge';
 import { GULLY_LINE, GULLY_RIM, TUCK_BRIDGE } from '../../core/terrain/carving';
 import { NPCS } from '../../data/npcs';
-import { WORLD_SEED } from '../../data/zones';
+import { SPAWN, WORLD_SEED } from '../../data/zones';
 
 export const BIG_PINE = { x: -347, z: 300 } as const;
 export const SPLIT_PINE = { x: -226, z: 118 } as const;
@@ -53,6 +53,13 @@ const CLEARINGS: readonly { x: number; z: number; r: number }[] = [
   // Tuck's bridge heads, and a step of room round every villager so no trunk grows through one.
   { x: TUCK_BRIDGE.ax - 1.5, z: TUCK_BRIDGE.az, r: 4.5 }, { x: TUCK_BRIDGE.bx + 1.5, z: TUCK_BRIDGE.bz, r: 4.5 },
   ...NPCS.map((n) => ({ x: n.pos.x, z: n.pos.z, r: 2.6 })),
+  // The fresh start and the walk to Nana's door: critic round 65 opened on a pine a step from Pip, its
+  // crown filling the frame, and wedged Pip against its trunk within a couple of keys.
+  { x: SPAWN.x, z: SPAWN.z, r: 5.5 },
+  ...[0.33, 0.66].map((t) => {
+    const nana = NPCS.find((n) => n.id === 'nana')?.pos ?? SPAWN;
+    return { x: SPAWN.x + (nana.x - SPAWN.x) * t, z: SPAWN.z + (nana.z - SPAWN.z) * t, r: 4 };
+  }),
   // Room round every activity, wider for throws (their targets stand out ahead), and a lane down each
   // race: critic round 64 saw a pine crown fill the pinecone toss and lost Pip among the deer run's trunks.
   ...ACTIVITIES.map((a) => ({ x: a.pos.x, z: a.pos.z, r: a.radius + (a.kind === 'throw' ? 9 : 4) })),
@@ -61,8 +68,10 @@ const CLEARINGS: readonly { x: number; z: number; r: number }[] = [
     const pts = start ? [start, ...c.gates] : [...c.gates];
     return pts.flatMap((p, i) => {
       const q = pts[i + 1];
-      const lane = [{ x: p.x, z: p.z, r: 5 }];
-      if (q) for (const t of [0.25, 0.5, 0.75]) lane.push({ x: p.x + (q.x - p.x) * t, z: p.z + (q.z - p.z) * t, r: 3.5 });
+      // Eight round a gate and six either side of the lane: the chase camera trails wide on a turn, and
+      // critic round 65 still saw the deer run's last gate through pines 7.8 and 9.5 u off it.
+      const lane = [{ x: p.x, z: p.z, r: 8 }];
+      if (q) for (const t of [0.2, 0.4, 0.6, 0.8]) lane.push({ x: p.x + (q.x - p.x) * t, z: p.z + (q.z - p.z) * t, r: 6 });
       return lane;
     });
   }),

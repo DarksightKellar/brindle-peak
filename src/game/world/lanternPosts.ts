@@ -155,12 +155,40 @@ export function buildLanternPost(sampler: TerrainSampler, x: number, z: number, 
   return root;
 }
 
+/**
+ * Seconds a newly lit post flares: its halo swells to several times its size and settles. Critic round 65
+ * walked past posts with the lantern and never saw one light; in daylight the lamp just switched on.
+ */
+const FLARE = 0.9;
+const FLARE_SWELL = 2.6;
+const flaring: { halo: THREE.Sprite; t: number }[] = [];
+
 /** Light a post: the glass glows, the halo, the far glint and the pool on the snow appear. */
-export function setPostLit(root: THREE.Object3D): void {
+export function setPostLit(root: THREE.Object3D, flare = false): void {
   const glass = root.getObjectByName('orb');
   if (glass instanceof THREE.Mesh) glass.material = LIT;
   for (const name of ['halo', 'glint', 'pool']) {
     const o = root.getObjectByName(name);
     if (o) o.visible = true;
+  }
+  const halo = root.getObjectByName('halo');
+  const still = typeof document !== 'undefined' && document.documentElement.dataset.reduceMotion === 'on';
+  if (flare && !still && halo instanceof THREE.Sprite) {
+    halo.userData.size ??= halo.scale.x;
+    halo.userData.opacity ??= halo.material.opacity;
+    flaring.push({ halo, t: 0 });
+  }
+}
+
+/** Run each flare down to the steady glow. */
+export function updatePostFlares(dt: number): void {
+  for (let i = flaring.length - 1; i >= 0; i--) {
+    const f = flaring[i];
+    f.t += dt;
+    const k = Math.min(1, f.t / FLARE);
+    const left = (1 - k) * (1 - k);
+    f.halo.scale.setScalar((f.halo.userData.size as number) * (1 + FLARE_SWELL * left));
+    f.halo.material.opacity = Math.min(1, (f.halo.userData.opacity as number) + 0.4 * left);
+    if (k >= 1) flaring.splice(i, 1);
   }
 }

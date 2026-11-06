@@ -116,7 +116,7 @@ export function interact(d: InteractVerbDeps): void {
 
   if (target.kind === 'lantern' && !d.state.lanterns[target.id] && d.state.abilities.lantern) {
     d.state.lanterns[target.id] = 1;
-    d.world.setLanternLit(target.id);
+    d.world.setLanternLit(target.id, true);
     d.bus.emit('lantern:lit', { id: target.id, lit: Object.keys(d.state.lanterns).length });
   }
 }

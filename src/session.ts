@@ -272,7 +272,7 @@ export function createSession(opts: SessionOptions): Session {
           if (state.abilities.lantern && state.lanterns[p.id] === undefined && !wayHome.lit(p.id)
             && Math.hypot(player.pos.x - p.pos.x, player.pos.z - p.pos.z) < LANTERN_PASS) {
             state.lanterns[p.id] = 1;
-            world.setLanternLit(p.id);
+            world.setLanternLit(p.id, true);
             bus.emit('lantern:lit', { id: p.id, lit: Object.keys(state.lanterns).length });
           }
           continue;

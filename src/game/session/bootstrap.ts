@@ -166,7 +166,7 @@ export function bootstrap(opts: BootOptions): Booted {
   for (const p of PICKUPS) if (state.lanterns[p.id] !== undefined) world.setLanternLit(p.id);
   // And the posts the trail lit for Pip on the way home, if the radio has already spoken.
   const wayHome = createWayHome({
-    state, pip: () => player.pos, mast: PEAK, talking: () => ui.dialogue.isOpen(), light: (id) => world.setLanternLit(id),
+    state, pip: () => player.pos, mast: PEAK, talking: () => ui.dialogue.isOpen(), light: (id, flare) => world.setLanternLit(id, flare),
   });
 
   // The opening script (docs/ONBOARDING.md). Constructed with everything else; stepped from the
