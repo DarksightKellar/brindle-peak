@@ -21,7 +21,7 @@ export type TransientLook =
   | 'sled' | 'kite' | 'arrow' | 'arrow-rim' | 'arrow-floor' | 'arrow-floor-rim' | 'beacon' | 'fish' | 'fin' | 'halo' | 'streak' | 'stake' | 'mitten';
 
 export type PieceLook =
-  | 'log' | 'snowball' | 'stone' | 'carrot' | 'coal' | 'twig' | 'hat' | 'scarf' | 'pool' | 'hole' | 'deer' | 'snowman-target' | 'empty'
+  | 'log' | 'snowball' | 'stone' | 'stone-held' | 'carrot' | 'coal' | 'twig' | 'hat' | 'scarf' | 'pool' | 'hole' | 'deer' | 'snowman-target' | 'empty'
   | StartLook;
 
 export type MarkerLook = TransientLook | PieceLook;
@@ -47,7 +47,7 @@ export interface PlacedMarker extends MarkerSpec {
 }
 
 export const PIECE_LOOKS: ReadonlySet<MarkerLook> = new Set<MarkerLook>([
-  'log', 'snowball', 'stone', 'carrot', 'coal', 'twig', 'hat', 'scarf', 'pool', 'hole', 'deer', 'snowman-target', 'empty',
+  'log', 'snowball', 'stone', 'stone-held', 'carrot', 'coal', 'twig', 'hat', 'scarf', 'pool', 'hole', 'deer', 'snowman-target', 'empty',
   'pennant', 'start-sled', 'start-kite', 'start-banner', 'start-windsock', 'start-stool', 'start-frame',
   'start-snowballs', 'start-cones', 'start-skates', 'start-shovel',
 ]);

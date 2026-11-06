@@ -186,6 +186,20 @@ describe('Orla and the snowman', () => {
     expect(DIALOGUE_FILLS['orla-snowman']?.(s)[0]).toMatch(/your snowman/);
     expect(DIALOGUE['orla-wait']?.fill).toBe('orla-snowman');
   });
+
+  // Critic round 67 had delivered the bundle and the temperature, and Ivy still sent word to her sister.
+  it("lets Ivy's idle talk move on as her two errands finish", () => {
+    const s = createGameState({ x: 0, y: 0, z: 0 }, 6);
+    const ivy = (): string => (DIALOGUE_FILLS['ivy-idle']?.(s) ?? []).join(' ');
+    expect(DIALOGUE['ivy-idle']?.fill).toBe('ivy-idle');
+    expect(ivy()).toMatch(/my sister in the pines/);
+    expect(ivy()).not.toMatch(/Forty-one/);
+    s.quests['ivy-springs'] = { status: 'complete', step: 0 };
+    expect(ivy()).toMatch(/Forty-one and holding/);
+    s.quests['ilsa-kindling'] = { status: 'complete', step: 0 };
+    expect(ivy()).not.toMatch(/my sister in the pines|Forty-one/);
+    expect(ivy()).toMatch(/coming down tomorrow/);
+  });
 });
 
 describe('the homecoming hears about errands', () => {

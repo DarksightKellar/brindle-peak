@@ -123,6 +123,9 @@ const BUILDERS: Readonly<Record<Solid, (b: GeoBuilder) => void>> = {
     b.add(GEO.box, propMatrix(0.18, -0.15, 0.22, 0.12, 0.3, 0.05, -0.4), 'PIP_SCARF');
   },
   stone: (b) => b.add(GEO.ico, propMatrix(0, 0.5, 0, 1, 0.62, 0.85, 0.4), 'ROCK_MID', 'ROCK_SNOWCAP', 0.5),
+  // The dam's stone in hand, warm in Pip's lantern light: drawn like the wall's cold blue stones, critic
+  // round 67 could not tell it from them, and took a signpost's lit arm for it.
+  'stone-held': (b) => b.add(GEO.ico, propMatrix(0, 0.5, 0, 1, 0.62, 0.85, 0.4), 'ROCK_WARM', 'SUN_MID', 0.5),
   // Points along +Z: the snowman's face is its local forward.
   carrot: (b) => b.add(GEO.cone5, propMatrix(0, 0, 0.16, 0.07, 0.34, 0.07, 0, Math.PI / 2), 'AMBER'),
   coal: (b) => b.add(GEO.octa, propMatrix(0, 0, 0, 0.065, 0.065, 0.065), 'PIP_GLASS'),

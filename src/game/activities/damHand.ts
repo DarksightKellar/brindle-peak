@@ -124,7 +124,7 @@ export class DamHand {
     const slipping = this.slipStart >= 0;
     const slip = slipping ? slipAt(now - this.slipStart, 0) : null;
     const off = slipping ? this.slipOffset : this.offset;
-    const stone = place(slip ? slip.drop : SWING.hover, off);
+    const stone: PlacedMarker = { ...place(slip ? slip.drop : SWING.hover, off), look: 'stone-held' };
     const over = !slipping && Math.abs(off) <= DAM.gap;
     const near = Math.max(0, 1 - (Math.abs(off) - DAM.gap) / (DAM.reach - DAM.gap));
     // Never faint: critic rounds 52 to 54 could not tell which stone was theirs or where its gap was.

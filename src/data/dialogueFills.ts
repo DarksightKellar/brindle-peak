@@ -153,6 +153,17 @@ export const DIALOGUE_FILLS: Readonly<Record<string, (s: GameState) => string[]>
       ? "The dam's holding. I can hear it."
       : 'The dam first. Hold each stone over its gap against the current, then set it.',
   ],
+  // Ivy between errands, as they stand: critic round 67 had delivered the bundle and the temperature and
+  // still heard "forty-one and holding" and the message for her sister.
+  'ivy-idle': (s) => {
+    const warm = s.quests['ivy-springs']?.status === 'complete';
+    const sister = s.quests['ilsa-kindling']?.status === 'complete';
+    if (warm && sister) return ["Ilsa's coming down tomorrow. To check the water, she says. She's never once checked the water."];
+    return [
+      ...(warm ? ["Forty-one and holding. The dam's doing its job."] : []),
+      ...(sister ? ["Ilsa's coming down tomorrow. Don't tell her I've been tidying."] : ["If you see my sister in the pines, say the pools are warm. Don't say I said it."]),
+    ];
+  },
   // Jory's errand as it stands: critic round 39 brought him the fish and was still asked for one.
   'jory-wait': (s) =>
     (s.quests['jory-first-step']?.step ?? 0) >= 1

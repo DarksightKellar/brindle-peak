@@ -80,10 +80,9 @@
     "id": "ivy-idle",
     "speaker": "ivy",
     "lines": [
-      "Forty-one and holding. The dam's doing its job.",
-      "If you see my sister in the pines, say the pools are warm. Don't say I said it.",
       "Soak your feet before you go. Everyone's feet are cold this time of year."
-    ]
+    ],
+    "fill": "ivy-idle"
   },
   {
     "id": "corm-root",

@@ -94,6 +94,9 @@ function hopHint(s: GameState, step: ReturnType<typeof nextStepFor>): string {
   return ' · the map can take you back';
 }
 
+/** Two errands' places closer than this are one place: the line names only the one it follows. */
+const SAME_PLACE = 6;
+
 /** Milliseconds the line says which errand it moved on to. */
 const SWITCH_SHOW = 5000;
 
@@ -214,10 +217,12 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
         const main = guide ? nextStepFor(s, p.pos, guide, 'main') : null;
         const unmet = guide && !main ? unmetAfterStory(s, p.pos, guide) : null;
         const line = goalLine(s, main, unmet?.name ? { name: unmet.name, zone: guide?.zoneNames[unmet.zone] ?? '' } : null);
-        // With the pin on an errand, the hello says where it is itself: critic round 54 read "say hello to
-        // Margit, in The Frozen Reach" with nothing saying how far or which way.
-        const away = unmet && helloAt ? Math.hypot(unmet.pos.x - p.pos.x, unmet.pos.z - p.pos.z) : 0;
-        const goal = unmet && helloAt
+        // The hello says where it is itself: critic round 54 read "say hello to Margit, in The Frozen Reach"
+        // with nothing saying how far or which way, and round 67 still did with no errand under way, when
+        // the hello is the compass's own goal. Then it gives the compass's number (the walk, route.ts).
+        const straight = unmet ? Math.hypot(unmet.pos.x - p.pos.x, unmet.pos.z - p.pos.z) : 0;
+        const away = helloAt ? straight : goalDistance ?? straight;
+        const goal = unmet
           ? `${line.replace(/\.$/, '')}: ${formatDistance(away)}, ${viewWay(unmet.pos.x - p.pos.x, unmet.pos.z - p.pos.z, viewYaw)}.`
           : line;
         if (goal !== lastGoal) {
@@ -242,6 +247,9 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
         otherErrands = nextAllowed && errands ? errands.others(s, lastFrom) : [];
         const notable = otherErrands
           .filter((o) => o.questId !== null && o.target !== null && (o.distance ?? Infinity) < NOTICE_RANGE)
+          // Not when it waits at the same place as the errand on the line: two errands with Skiff gave
+          // critic round 67 "Next: … 35 u" over "Errand nearby: … 35 u", the same walk said twice.
+          .filter((o) => !errandTarget || Math.hypot((o.target as Vec2).x - errandTarget.x, (o.target as Vec2).z - errandTarget.z) > SAME_PLACE)
           .map((o) => ({ id: `errand:${o.questId}:${o.stepIndex}`, label: `Errand nearby: ${o.questTitle}`, pos: o.target as Vec2 }));
         // Gus's counter, once Pip can pay for a feather: critic round 36 had 201 bells, read "Spend them on
         // Gus's feathers in the hamlet" and walked through the square without finding him.

@@ -27,6 +27,7 @@ import type { Collider } from '../../core/player/collide';
 import { GEO, GeoBuilder, propMatrix } from './geoBuilder';
 import { gullyDepth, TUCK_BRIDGE } from '../../core/terrain/carving';
 import { BIRD_BULK } from './birdBulk';
+import { ACTIVITIES } from '../../data/activities';
 
 export const WAY_UP: readonly (readonly [number, number])[] = [
   [-352, 336], [-262.4, 244.6], [-173.5, 153.9], [-100, 79], [-30, 36], [60, -57], [150, -150],
@@ -133,6 +134,8 @@ const OFF_ROUTE = 22;
 /** Detours whose junctions fall within this much trail of each other share one post. */
 const JUNCTION_BIN = 48;
 const ARMS_MAX = 3;
+/** A signpost keeps this far from any activity, out of the shots its camera frames. */
+const SIGN_CLEAR = 16;
 
 /** The nearest point of the trail to (x, z), with its direction of travel and distance along. */
 function nearestOnWay(x: number, z: number): WayPoint & { off: number } {
@@ -168,6 +171,13 @@ function detourSigns(b: GeoBuilder, sampler: TerrainSampler, detours: readonly D
     let x = at.x - at.dz * 3, z = at.z + at.dx * 3;
     const crowded = posts.some((q) => Math.hypot(q.x - x, q.z - z) < POST_GAP);
     if (crowded) { x += at.dx * 6; z += at.dz * 6; }
+    // Clear of every activity, sliding along the trail to the nearest open spot: one stood between the
+    // Stone Dam and its camera, and critic round 67 took its lit arm for the stone in hand.
+    const clear = (px: number, pz: number): boolean => ACTIVITIES.every((a) => Math.hypot(px - a.pos.x, pz - a.pos.z) >= SIGN_CLEAR);
+    if (!clear(x, z)) {
+      const slid = [4, -4, 8, -8, 12, -12, 16, -16, 20, -20, 24, -24].map((k) => [x + at.dx * k, z + at.dz * k]).find(([px, pz]) => clear(px, pz));
+      if (slid) [x, z] = slid;
+    }
     if (gullyDepth(x, z) > 0 || Math.hypot(x - (TUCK_BRIDGE.ax + TUCK_BRIDGE.bx) / 2, z - TUCK_BRIDGE.az) < 12) continue;
     const y = sampler.heightAt(x, z);
     b.cyl(x, y - 0.3, z, 0.13, 2.7, 'WOOD_MID');
