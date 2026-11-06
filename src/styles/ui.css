@@ -138,6 +138,11 @@
 .ui-fishrow.is-locked, .ui-achrow.is-locked { opacity: 0.55; }
 .ui-fishrow.is-locked .ui-fishrow__name, .ui-achrow.is-locked .ui-achrow__name { color: var(--snow-deep); }
 .ui-achrow.is-locked .ui-achrow__icon { color: var(--snow-deep); }
+/* Achievements as two columns: a fixed name column, the line beside it left-aligned. Pushed right with
+   margin-left: auto, each line started wherever its name ended, and critic round 59 read the page as
+   ragged. */
+.ui-achrow { display: grid; grid-template-columns: 14px 14em 1fr; column-gap: 12px; }
+.ui-achrow .ui-achrow__desc { margin-left: 0; }
 .ui-setting { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; border-bottom: 1px solid rgba(156, 184, 210, 0.2); font-size: 12px; }
 .ui-setting__key { color: var(--snow-mid); }
 .ui-setting__val { color: var(--lantern); font-variant-numeric: tabular-nums; }

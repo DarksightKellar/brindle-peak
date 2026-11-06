@@ -17,6 +17,8 @@ const LIT = 2.6;
 const BARE = 1.2;
 /** How far the light reaches, units. */
 const REACH = 7;
+/** Over Pip's head, units: high enough that no feather is a hand's breadth from the bulb. */
+const GLOW_HEIGHT = 2.2;
 
 export interface PipGlow {
   update(pos: Vec3, dusk: number, carrying: boolean): void;
@@ -31,7 +33,10 @@ export function createPipGlow(scene: THREE.Object3D): PipGlow {
     update(pos, dusk, carrying): void {
       light.intensity = (carrying ? LIT : BARE) * dusk;
       light.visible = dusk > 0.02;
-      light.position.set(pos.x + 0.4, pos.y + 1.1, pos.z);
+      // Over Pip's head, not at its chest: 0.4 u off the breast the light burnt a white-orange blob into
+      // the feathers, and critic round 59 took the bird to be on fire. From above it pools on the snow
+      // round Pip's feet and warms the bird evenly; the lantern's own glow says where the light is from.
+      light.position.set(pos.x, pos.y + GLOW_HEIGHT, pos.z);
     },
   };
 }
