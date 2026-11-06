@@ -79,6 +79,12 @@ const ASTERN = (Math.PI * 5) / 6;
  * Pip's side flicked them on and off as Pip walked (critic round 41 saw them flip on the next frame).
  */
 const BEHIND_GIVE = 0.2;
+/**
+ * Further off the view's centre than this (radians) and the distance says which side as well. Critic
+ * round 53 read "492 u" with the diamond well to the left, where the trail turns along the ridge foot,
+ * walked straight on into Windscar's face, and was winded there.
+ */
+const SIDE_SAY = 0.8;
 
 /** Most things-to-do marks the strip draws at once. */
 const TODO_MAX = 4;
@@ -147,6 +153,7 @@ export function createHudCompass(layer: HTMLElement): HudCompass {
   /** -1 turn left, 1 turn right, 0 the goal is in front. */
   let turnSide = 0;
   let saidBehind = false;
+  let saidSide = false;
 
   /** Place `node` at `target`'s bearing, or hide it. Returns the relative bearing, or null. */
   const place = (node: HTMLElement, target: Point | null, v: CompassView): number | null => {
@@ -199,7 +206,9 @@ export function createHudCompass(layer: HTMLElement): HudCompass {
       // you", pressed S, and overshot as the view swung. No key named: the director's call (round 47).
       saidBehind = Math.abs(rel) > HALF + (saidBehind ? -BEHIND_GIVE : BEHIND_GIVE);
       const round = way > 0 ? 'right' : 'left';
-      const text = `${Math.round(v.goalDistance ?? Math.hypot(v.goal.x - v.from.x, v.goal.z - v.from.z))} u${saidBehind ? ` · behind you, to your ${round}` : ''}`;
+      saidSide = !saidBehind && Math.abs(rel) > SIDE_SAY + (saidSide ? -BEHIND_GIVE / 2 : BEHIND_GIVE / 2);
+      const said = saidBehind ? ` · behind you, to your ${round}` : saidSide ? ` · on your ${rel > 0 ? 'right' : 'left'}` : '';
+      const text = `${Math.round(v.goalDistance ?? Math.hypot(v.goal.x - v.from.x, v.goal.z - v.from.z))} u${said}`;
       if (text !== lastDist) {
         lastDist = text;
         dist.textContent = text;
