@@ -111,6 +111,21 @@ vec2 snowSlope = vec2(0.0);
   m -= max(0.0, -dot(snowSlope, uSnowWind)) * 0.35;
   // Darker is bluer: a grey darkening on snow reads as soil.
   diffuseColor.rgb *= m < 0.0 ? 1.0 + m * vec3(1.0, 0.86, 0.6) : vec3(1.0 + m);
+  // Steep faces: broken ledges of stone in world space, a few units across, in flat tones like the
+  // drifts. The ground grid is 5.4 u, so a cliff drew as a few big flat triangles (critic round 63).
+  vec3 faceN = normalize(cross(dFdx(vSnowWorld), dFdy(vSnowWorld)));
+  float wall = 1.0 - smoothstep(0.55, 0.8, abs(faceN.y));
+  if (wall > 0.0) {
+    vec2 across = normalize(vec2(-faceN.z, faceN.x) + 1e-4);
+    float a = dot(snowP, across);
+    float t = vSnowWorld.y / 2.4 + (snowNoise(vec2(a / 7.0, 3.0)) - 0.5) * 1.6;
+    float course = fract(t), row = floor(t);
+    float broken = step(0.35, snowNoise(vec2(a / 3.2, row * 1.7)));
+    float ledge = step(0.82, course) * broken;
+    float shade = step(course, 0.35) * step(0.4, snowNoise(vec2(a / 5.0 + 9.0, row * 2.3)));
+    float vis = snowVis(2.4, snowFw, 2.0, 5.0);
+    diffuseColor.rgb *= 1.0 + wall * vis * (ledge * 0.28 - shade * 0.24 * vec3(1.0, 0.9, 0.75));
+  }
 }
 #else
 {
