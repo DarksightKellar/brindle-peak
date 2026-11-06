@@ -200,6 +200,22 @@ describe('Orla and the snowman', () => {
     expect(ivy()).not.toMatch(/my sister in the pines|Forty-one/);
     expect(ivy()).toMatch(/coming down tomorrow/);
   });
+
+  // Critic round 68 heard Hollis's sorry to Fen straight after "I'll have to say something to him.
+  // Eventually.", and never heard the deer named because Fen's errand stayed on offer.
+  it("holds Hollis's sorry until Pip has been back to Fen, and lets Tamsin name the deer anyway", () => {
+    const s = createGameState({ x: 0, y: 0, z: 0 }, 6);
+    const say = (id: string): string => (DIALOGUE_FILLS[id]?.(s) ?? []).join(' ');
+    expect(DIALOGUE['hollis-idle']?.fill).toBe('hollis-idle');
+    expect(DIALOGUE['tamsin-idle']?.fill).toBe('tamsin-idle');
+    expect(say('hollis-idle')).toMatch(/working up to it/);
+    expect(say('tamsin-idle')).toMatch(/roe deer/);
+    s.quests['fen-ledger'] = { status: 'active', step: 0 };
+    expect(say('hollis-idle')).toMatch(/said sorry to Fen/);
+    expect(say('tamsin-idle')).toBe('');
+    s.quests['fen-ledger'] = { status: 'complete', step: 0 };
+    expect(say('tamsin-idle')).toMatch(/came down off his branch/);
+  });
 });
 
 describe('the homecoming hears about errands', () => {

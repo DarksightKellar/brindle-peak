@@ -221,9 +221,8 @@
   {
     "id": "hollis-idle",
     "speaker": "hollis",
+    "fill": "hollis-idle",
     "lines": [
-      "The mitten's back on its hook, where it belongs.",
-      "I said sorry to Fen, the owl. Took me three tries. He nodded.",
       "Wind's picking up. Keep your ears tucked in, Nana's girl."
     ]
   },

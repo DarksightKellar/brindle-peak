@@ -164,6 +164,25 @@ export const DIALOGUE_FILLS: Readonly<Record<string, (s: GameState) => string[]>
       ...(sister ? ["Ilsa's coming down tomorrow. Don't tell her I've been tidying."] : ["If you see my sister in the pines, say the pools are warm. Don't say I said it."]),
     ];
   },
+  // Hollis's sorry to Fen, once Pip has been back to Fen: critic round 68 heard it the moment the mitten
+  // was home, one line after "I'll have to say something to him. Eventually."
+  'hollis-idle': (s) => {
+    const fen = s.quests['fen-ledger']?.status;
+    return [
+      "The mitten's back on its hook, where it belongs.",
+      fen === 'active' || fen === 'complete'
+        ? 'I said sorry to Fen, the owl. Took me three tries. He nodded.'
+        : "I still owe Fen, the owl, a sorry. I'm working up to it.",
+    ];
+  },
+  // Tamsin sits where the deer trail bends, so she knows Fen's answer whether or not Pip took his errand:
+  // critic round 68 left "Something on the Trail" on offer and never heard the deer named.
+  'tamsin-idle': (s) => {
+    const fen = s.quests['fen-ledger']?.status;
+    if (fen === 'complete') return ['Fen came down off his branch this morning to watch the roe deer go by. Sat on my stump the whole time.'];
+    if (fen === 'active') return [];
+    return ["A roe deer comes down the trail past my stump every morning, regular as porridge. Fen, the owl, watches the top of it and has never once asked me."];
+  },
   // Jory's errand as it stands: critic round 39 brought him the fish and was still asked for one.
   'jory-wait': (s) =>
     (s.quests['jory-first-step']?.step ?? 0) >= 1

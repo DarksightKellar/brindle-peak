@@ -34,7 +34,7 @@
     "lines": [
       "So listen for me. Fresh ears. Go to the hoarfrost glade and take a photograph.",
       "Holding still for a picture is the only time anyone really listens. You'll hear the frost.",
-      "Then go down to Kettle Springs and stand among the hot pools. Nothing sounds like that water.",
+      "Then go down to Kettle Springs and walk in among the hot pools. Nothing sounds like that water. You'll hear it as you go.",
       "Then come back and tell me what you heard. I'll put it on the last page."
     ]
   },
@@ -43,7 +43,7 @@
     "speaker": "wren",
     "lines": [
       "You're back. The hoarfrost glade first. Hold still for the picture, and listen.",
-      "Then stand among the hot pools at Kettle Springs. Then come and tell me."
+      "Then walk in among the hot pools at Kettle Springs, and listen. Then come and tell me."
     ]
   },
   {
@@ -282,6 +282,7 @@
   {
     "id": "tamsin-idle",
     "speaker": "tamsin",
+    "fill": "tamsin-idle",
     "lines": [
       "I'm knitting another. Measured, this time. I asked the hare to hold still, and he did.",
       "Turns out people like being asked. Who knew.",
