@@ -9,6 +9,7 @@
  */
 
 import { PIXEL_SIZE_OPTIONS } from '../render/pixelConfig';
+import { KEY } from '../../core/keys';
 
 /** Menu-facing alias of the single render-layer list; there must not be a second copy. */
 export const PIXEL_SIZES: readonly number[] = PIXEL_SIZE_OPTIONS;
@@ -53,19 +54,20 @@ export function createMenu(root: HTMLElement, onReset?: () => void): Menu {
     '<label class="ui-toggle ui-menu__nav"><input class="ui-toggle__motion" type="checkbox">' +
     '<span>Reduce motion</span></label>' +
     '<ul class="ui-keys">' +
-    '<li><b>WASD</b><span>walk</span></li>' +
-    '<li><b>Space</b><span>jump · flap · glide</span></li>' +
-    '<li><b>Shift</b><span>sprint</span></li>' +
-    '<li><b>Q · E</b><span>look</span></li>' +
-    '<li><b>F</b><span>interact</span></li>' +
-    '<li><b>Esc</b><span>pause</span></li>' +
-    '<li><b>Tab · J</b><span>journal</span></li>' +
-    '<li><b>M</b><span>map</span></li>' +
+    // Every key named here comes from core/keys.ts, the same table input listens to.
+    `<li><b>${KEY.walk.replace(/ /g, '')}</b><span>walk</span></li>` +
+    `<li><b>${KEY.jump}</b><span>jump · flap · glide</span></li>` +
+    `<li><b>${KEY.sprint}</b><span>sprint</span></li>` +
+    `<li><b>${KEY.look}</b><span>look</span></li>` +
+    `<li><b>${KEY.interact}</b><span>interact</span></li>` +
+    `<li><b>${KEY.pause}</b><span>pause</span></li>` +
+    `<li><b>${KEY.journalAll}</b><span>journal</span></li>` +
+    `<li><b>${KEY.map}</b><span>map</span></li>` +
     // What the journal's pages do with the keys: critic round 33 found them only by reading the pages.
-    '<li><b>↑↓ F</b><span>map: travel</span></li>' +
-    '<li><b>↑↓ F</b><span>quests: follow</span></li>' +
+    `<li><b>↑↓ ${KEY.interact}</b><span>map: travel</span></li>` +
+    `<li><b>↑↓ ${KEY.interact}</b><span>quests: follow</span></li>` +
     '</ul>' +
-    '<p class="ui-menu__hint">↑↓ choose · ←→ change · Enter select · Esc close</p>' +
+    `<p class="ui-menu__hint">↑↓ choose · ←→ change · ${KEY.interact} select · ${KEY.pause} close</p>` +
     // Far from Resume, and quiet: critic round 4 found it one row under the button a pause is for.
     `<button class="ui-btn ui-menu__reset" type="button">${RESET_LABEL}</button>` +
     '</div></section>';

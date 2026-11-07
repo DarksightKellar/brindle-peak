@@ -16,6 +16,7 @@
  */
 
 import type { RewardTier } from '../contracts';
+import { KEY } from '../keys';
 
 export type BeatId = 'walk' | 'talk' | 'map' | 'jump' | 'flap' | 'sprint' | 'journal';
 
@@ -117,15 +118,15 @@ const PLAIN: BeatPayout = { toast: null, icon: 'snowflake', tier: 'discovery', b
 export const BEATS: readonly TutorialBeat[] = [
   {
     id: 'walk',
-    prompt: 'W A S D — walk toward the cabin',
-    keys: ['W', 'A', 'S', 'D'],
+    prompt: `${KEY.walk} — walk toward the cabin`,
+    keys: KEY.walk.split(' '),
     // Not "A bell for the path": walking pays no bell, so the line must not promise one.
     payout: { toast: "You're on your way", icon: 'mountain', tier: 'discovery', breath: false },
   },
   {
     id: 'talk',
-    prompt: 'F — talk to Nana at the cabin door',
-    keys: ['F'],
+    prompt: `${KEY.interact} — talk to Nana at the cabin door`,
+    keys: [KEY.interact],
     payout: { toast: "Quest accepted — it's in your journal", icon: 'quest', tier: 'discovery', breath: false },
     context: 'openerInReach',
   },
@@ -137,38 +138,38 @@ export const BEATS: readonly TutorialBeat[] = [
      * reported as being thrown back in their face. The beat teaches the key, and it is the only beat
      * that points at the answer to "I don't know what to do".
      */
-    prompt: 'M — open the map to see where you are',
-    keys: ['M'],
+    prompt: `${KEY.map} — open the map to see where you are`,
+    keys: [KEY.map],
     payout: PLAIN,
     patience: TIP_PATIENCE,
   },
   {
     id: 'jump',
-    prompt: 'Space — jump',
-    keys: ['Space'],
+    prompt: `${KEY.jump} — jump`,
+    keys: [KEY.jump],
     payout: { toast: 'Up you go', icon: 'star', tier: 'discovery', breath: false },
     patience: TIP_PATIENCE,
   },
   {
     id: 'flap',
-    prompt: 'Space again in the air — flap to gain height',
-    keys: ['Space'],
+    prompt: `${KEY.jump} again in the air — flap to gain height`,
+    keys: [KEY.jump],
     payout: { toast: 'Each flap spends breath', icon: 'feather', tier: 'discovery', breath: true },
     patience: TIP_PATIENCE,
     context: 'airborne',
   },
   {
     id: 'sprint',
-    prompt: 'Hold Shift — run',
-    keys: ['Shift'],
+    prompt: `Hold ${KEY.sprint} — run`,
+    keys: [KEY.sprint],
     payout: { toast: 'Sprint spends your breath', icon: 'motion', tier: 'discovery', breath: true },
     patience: TIP_PATIENCE,
     context: 'moving',
   },
   {
     id: 'journal',
-    prompt: 'Tab — open your journal',
-    keys: ['Tab'],
+    prompt: `${KEY.journal} — open your journal`,
+    keys: [KEY.journal],
     payout: { toast: 'Everything you find goes in here', icon: 'book', tier: 'discovery', breath: false },
     patience: TIP_PATIENCE,
   },

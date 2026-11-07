@@ -24,6 +24,7 @@ import type { JournalContent, JournalModel } from './journalModel';
 import { formatJournal } from './journalModel';
 import { achHTML, fishHTML, notesHTML, questsHTML, settingsHTML, tryHTML } from './journalTabs';
 import { ACTIVITIES } from '../../data/activities';
+import { BINDINGS, KEY, keyName } from '../../core/keys';
 
 // The journal's public surface: the model is re-exported here so callers (and the tests) keep one
 // import for the whole surface.
@@ -52,7 +53,7 @@ export interface Journal {
   scroll(px: number): void;
   /** Up/down on the Quests page (the errand cursor) or the Map (the place to hop to). False when there is nothing to pick. */
   select(dir: number): boolean;
-  /** E/Enter: follow the errand under the cursor, or hop to the picked place. */
+  /** The interact key: follow the errand under the cursor, or hop to the picked place. */
   activate(s: GameState): void;
   /** Wire the map's hop; until then the map offers none. */
   setTravel(t: JournalTravel): void;
@@ -144,7 +145,7 @@ export function createJournal(root: HTMLElement, content: JournalContent = {}): 
     '<header class="ui-journal__head"><h2 class="ui-journal__title">Journal</h2>' +
     `<nav class="ui-tabs">${TABS.map((t) => `<button class="ui-tab" type="button">${t}</button>`).join('')}</nav></header>` +
     '<div class="ui-journal__body"></div>' +
-    '<footer class="ui-journal__foot">←→ pages · ↑↓ scroll · Esc / J close · M map · nothing here is missable</footer></div></section>';
+    `<footer class="ui-journal__foot">←→ pages · ↑↓ scroll · ${KEY.pause} / ${keyName(BINDINGS.journal[BINDINGS.journal.length - 1] ?? '')} close · ${KEY.map} map · nothing here is missable</footer></div></section>`;
   root.appendChild(rootEl);
   // Authored content by default, so the journal is complete without the host wiring anything.
   const src: JournalContent = { quests: QUESTS, achievements: ACHIEVEMENTS, fish: FISH, ...content };

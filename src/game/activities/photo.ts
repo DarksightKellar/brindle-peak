@@ -19,6 +19,7 @@ import { aimDirection, aimDot, bearingTo, composition, inFrame, inRange, PHOTO, 
 export { aimDirection, aimDot, bearingTo, composition, facingDot, inFrame, inRange, PHOTO, subjectOf } from './photoAim';
 import type { PlacedMarker } from './markerLooks';
 import { Exposure, EXPOSURE } from './exposure';
+import { KEY } from '../../core/keys';
 
 /** How far off the subject the viewfinder opens: inside the frame, outside the centring cone. */
 const OPEN_OFF = 0.3;
@@ -218,9 +219,9 @@ export class PhotoActivity implements ActivityInstance {
       return { label: steady ? WORDS.exposeHold : WORDS.exposeDrift(this.backToStar()), fraction: this.exposure.fraction, urgent: !steady };
     }
     const label = this.hint === 'aim'
-      ? 'Centred — press F'
-      : this.hint === 'tooClose' ? 'Too close. Step back, then press F'
-        : this.hint === 'tooFar' ? 'Too far. Step closer, then press F'
+      ? `Centred — press ${KEY.interact}`
+      : this.hint === 'tooClose' ? `Too close. Step back, then press ${KEY.interact}`
+        : this.hint === 'tooFar' ? `Too far. Step closer, then press ${KEY.interact}`
           : TURN_WORDS[this.turn ?? 'any'];
     return { label, fraction: null, urgent: this.hint === 'aim' };
   }

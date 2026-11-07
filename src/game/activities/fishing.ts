@@ -20,6 +20,7 @@ import { FISH, POOL_FISH } from '../../data/fish';
 import { WORDS } from './activityWords';
 import { fishSpotFor, floatPoint, standPoint, type FishSpot } from './fishSpots';
 import { catchMarkers, floatMarkers } from './fishingLooks';
+import { KEY } from '../../core/keys';
 
 export const FISHING = {
   /**
@@ -242,7 +243,7 @@ export class FishingActivity implements ActivityInstance {
   }
 
   progress(): ActivityReadout | null {
-    if (this.stage === 'bite') return { label: 'NOW — press F', fraction: null, urgent: true, cue: WORDS.cueBite };
+    if (this.stage === 'bite') return { label: `NOW — press ${KEY.interact}`, fraction: null, urgent: true, cue: WORDS.cueBite };
     if (this.stage === 'reel' && this.caught) return { label: this.caught.name, fraction: 1, urgent: true };
     const state = this.stage === 'spooked' ? 'Let it settle' : 'Waiting for a bite';
     return { label: `${state} · cast ${this.casts}`, fraction: null };

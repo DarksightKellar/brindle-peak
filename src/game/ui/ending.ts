@@ -14,6 +14,7 @@
 
 import type { GameState } from '../../core/contracts';
 import { valleyLines } from '../../data/endingLines';
+import { KEY } from '../../core/keys';
 
 export interface EndingStats {
   feathers: number;
@@ -74,7 +75,7 @@ export function createEnding(root: HTMLElement): Ending {
     <p class="ui-ending__body">The trail posts are lit all the way down the mountain, and Nana is at the blue door. Up on Brindle Peak, Edda's set is humming, and the valley has not stopped talking since: Bram with his count, and voices from every corner of it, some you have met and some you haven't yet, and the road crew bringing the plough up in the morning. Overhead, the green burns on.</p>
     <p class="ui-ending__body ui-ending__valley"></p>
     <dl class="ui-ending__stats"></dl>
-    <p class="ui-ending__foot">Press <b>F</b> to keep wandering</p>
+    <p class="ui-ending__foot">Press <b>${KEY.interact}</b> to keep wandering</p>
     </div>`;
   root.appendChild(panel);
   const statsEl = panel.querySelector('.ui-ending__stats') as HTMLElement;

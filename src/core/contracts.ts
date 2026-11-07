@@ -166,10 +166,10 @@ export interface InputFrame {
   jumpHeld: boolean;
   sprintHeld: boolean;
   interactPressed: boolean;
-  /** E (or Enter) is down this frame: a throw is drawn while it is held and flies on release. */
+  /** The interact key is down this frame: a throw is drawn while it is held and flies on release. */
   interactHeld: boolean;
   cancelPressed: boolean;
-  /** Manual look axis, -1..1 (Q/E held; +1 turns the view right). The rig turns at its own rate. */
+  /** Manual look axis, -1..1 (the look keys held, core/keys.ts; +1 turns the view right). The rig turns at its own rate. */
   lookX: number;
   /** Camera yaw in radians: rotates camera-space input into world space. */
   camYaw: number;

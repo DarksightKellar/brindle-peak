@@ -111,7 +111,7 @@ const TAILS: Record<SfxName, number> = {
   achievement: 0.78,
   flap: 0.24,
   'step-snow': 0.1,
-  'step-ice': 0.2,
+  'step-ice': 0.1,
   'step-rock': 0.05,
   glide: 0.62,
   splash: 0.4,
@@ -184,8 +184,10 @@ export function createSfx(rt: AudioRuntime): SfxPlayer {
         });
         break;
       case 'step-ice':
-        burst(ctx, dest, rt.noise, at, rng.range(0, 0.6), { dur: 0.12, peak: p(0.05), filter: 'highpass', hz: 2600, q: 0.6 });
-        tone(ctx, dest, at, { type: 'sine', hz: rng.range(2000, 2250), dur: 0.18, peak: p(0.05) });
+        // A dry scuff on hard ice with the faintest tick. It used to ring a 2 kHz sine for 0.18 s at the
+        // snow step's level, and a pure tone that high reads far louder than noise: way too loud (director).
+        burst(ctx, dest, rt.noise, at, rng.range(0, 0.6), { dur: 0.055, peak: p(0.04), filter: 'bandpass', hz: rng.range(2300, 2900), q: 0.9 });
+        tone(ctx, dest, at, { type: 'sine', hz: rng.range(1500, 1700), dur: 0.06, peak: p(0.01) });
         break;
       case 'step-rock':
         burst(ctx, dest, rt.noise, at, rng.range(0, 0.6), { dur: 0.025, peak: p(0.11), filter: 'highpass', hz: 1800 });

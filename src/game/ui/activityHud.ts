@@ -22,6 +22,7 @@
  */
 
 import type { ActivityKind, ActivityReadout } from '../../core/contracts';
+import { KEY } from '../../core/keys';
 
 export interface ActivityHud {
   /** `hint` replaces the kind's generic line when an activity needs its own (activities/activityWords.ts). */
@@ -35,17 +36,17 @@ export interface ActivityHud {
 
 const HINTS: Readonly<Record<ActivityKind, string>> = {
   // Critic round 17 asked where "the spot" was: the bobbing light is it.
-  build: 'Press F to set the next piece where the light bobs.',
-  fish: 'Watch the float. Press F the moment it dips.',
+  build: `Press ${KEY.interact} to set the next piece where the light bobs.`,
+  fish: `Watch the float. Press ${KEY.interact} the moment it dips.`,
   // The viewfinder overlay already lists the keys, so this line only states the goal.
-  photo: 'Centre it in the frame, then press F.',
+  photo: `Centre it in the frame, then press ${KEY.interact}.`,
   // Round 8's critic could not tell what "brightens": the arc grows bold and reaches the target.
-  throw: 'A / D aims, the way the line below says. Then hold F: the arc swells and shrinks. Let go as it reaches the target.',
+  throw: `${KEY.steer} aims, the way the line below says. Then hold ${KEY.interact}: the arc swells and shrinks. Let go as it reaches the target.`,
   // The race is the one activity that leaves the controls with the player; the next gate is the bright one.
   // Shift too: a race spends no breath, and critic round 37 ran every race at a walk.
-  race: 'Run for the bright gate. Shift sprints, and a race spends no breath.',
-  skate: 'Skate a lap. Tipping one way? Hold the other, A or D, till it steadies.',
-  sled: 'Steer down the hill with A / D.',
+  race: `Run for the bright gate. ${KEY.sprint} sprints, and a race spends no breath.`,
+  skate: `Skate a lap. Tipping one way? Hold the other, ${KEY.left} or ${KEY.right}, till it steadies.`,
+  sled: `Steer down the hill with ${KEY.steer}.`,
 };
 
 export function hintFor(kind: ActivityKind): string {
@@ -73,7 +74,7 @@ export function createActivityHud(root: HTMLElement): ActivityHud {
     '<p class="ui-activity__hint"></p>' +
     '<div class="ui-activity__track"><i class="ui-activity__fill"></i></div>' +
     '<p class="ui-activity__label"></p>' +
-    '<footer class="ui-activity__foot">Esc — stop</footer>';
+    `<footer class="ui-activity__foot">${KEY.pause} — stop</footer>`;
   root.appendChild(panel);
   // The moment itself, large in the middle of the view (ActivityReadout.cue).
   const cue = document.createElement('p');

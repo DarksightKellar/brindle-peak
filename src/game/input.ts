@@ -10,37 +10,38 @@
 
 import type { InputFrame } from '../core/contracts';
 import { emptyInput } from '../core/contracts';
+import { BINDINGS } from '../core/keys';
 
 export interface InputSource {
   /** Read and clear the accumulated frame. Call exactly once per frame. */
   sample(camYaw: number): InputFrame;
-  /** Manual look axis right now: -1 (Q, turn left) .. +1 (E, turn right). */
+  /** Manual look axis right now: -1 (turn left) .. +1 (turn right); keys in core/keys.ts. */
   readonly lookX: number;
   destroy(): void;
 }
 
-const MOVE_KEYS: Record<string, [number, number]> = {
-  w: [0, 1],
-  arrowup: [0, 1],
-  s: [0, -1],
-  arrowdown: [0, -1],
-  a: [-1, 0],
-  arrowleft: [-1, 0],
-  d: [1, 0],
-  arrowright: [1, 0],
-};
+// Every binding comes from core/keys.ts, the same table the on-screen hints name keys from.
+const axis = (keys: readonly string[], v: [number, number]): [string, [number, number]][] => keys.map((k) => [k, v]);
+const MOVE_KEYS: Record<string, [number, number]> = Object.fromEntries([
+  ...axis(BINDINGS.up, [0, 1]),
+  ...axis(BINDINGS.down, [0, -1]),
+  ...axis(BINDINGS.left, [-1, 0]),
+  ...axis(BINDINGS.right, [1, 0]),
+]);
 
 /*
- * Manual look on Q and E, either side of W, so the left hand never leaves the movement keys (the
- * director's binding; interact moved from E to F for it). The arrows stay movement keys: the pause
- * menu, the journal and dialogue choices all read them as the move axes.
+ * Manual look, either side of W, so the left hand never leaves the movement keys. The arrows stay
+ * movement keys: the pause menu, the journal and dialogue choices all read them as the move axes.
  */
-const LOOK_KEYS: Record<string, number> = { q: -1, e: 1 };
+const LOOK_KEYS: Record<string, number> = Object.fromEntries([
+  ...BINDINGS.lookLeft.map((k): [string, number] => [k, -1]),
+  ...BINDINGS.lookRight.map((k): [string, number] => [k, 1]),
+]);
 
-const JUMP_KEYS = new Set([' ', 'spacebar', 'space']);
-const INTERACT_KEYS = new Set(['f', 'enter']);
-const SPRINT_KEYS = new Set(['shift']);
-const CANCEL_KEYS = new Set(['escape']);
+const JUMP_KEYS = new Set(BINDINGS.jump);
+const INTERACT_KEYS = new Set(BINDINGS.interact);
+const SPRINT_KEYS = new Set(BINDINGS.sprint);
+const CANCEL_KEYS = new Set(BINDINGS.pause);
 
 export function createInput(canvas: HTMLCanvasElement): InputSource {
   const down = new Set<string>();
@@ -129,8 +130,8 @@ export function createInput(canvas: HTMLCanvasElement): InputSource {
         moveX: mx,
         moveZ: mz,
         jumpPressed,
-        jumpHeld: isDown(' ', 'spacebar', 'space'),
-        sprintHeld: isDown('shift'),
+        jumpHeld: isDown(...JUMP_KEYS),
+        sprintHeld: isDown(...SPRINT_KEYS),
         interactPressed,
         interactHeld: [...INTERACT_KEYS].some((k) => down.has(k)),
         cancelPressed,

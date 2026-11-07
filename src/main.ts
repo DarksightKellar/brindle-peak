@@ -60,14 +60,14 @@ resize();
 // --- overlay keys -------------------------------------------------------------------------
 window.addEventListener('keydown', (e) => {
   const k = e.key.toLowerCase();
-  if (k === 'tab' || k === 'j') {
+  if (BINDINGS.journal.includes(k)) {
     e.preventDefault();
     session.toggleJournal();
-  } else if (k === 'm') {
+  } else if (BINDINGS.map.includes(k)) {
     // The map's own key (docs/GUIDE.md §2). It is a page of the journal, not a second overlay.
     e.preventDefault();
     session.toggleMap();
-  } else if (k === 'escape') {
+  } else if (BINDINGS.pause.includes(k)) {
     // Routing lives in the session: it knows which overlay is on top, and dialogue/activities consume
     // Escape through the input frame instead.
     session.escape();
@@ -76,6 +76,7 @@ window.addEventListener('keydown', (e) => {
 
 // --- debug hook ---------------------------------------------------------------------------
 import { setViewFadeEnabled } from './game/render/viewFade';
+import { BINDINGS } from './core/keys';
 
 const debug: GameDebug = {
   session,

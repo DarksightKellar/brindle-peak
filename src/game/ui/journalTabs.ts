@@ -13,6 +13,7 @@ import { compassWord, formatDistance } from '../../core/guide/compass';
 import type { JournalModel, JournalSettingsView } from './journalModel';
 import { esc } from './html';
 import { icon } from './icons';
+import { KEY } from '../../core/keys';
 
 /** `value` and `note` replace the plain count when a stat has two numbers to tell apart (the bells). */
 const statHTML = (label: string, r: JournalModel['feathers'], value = esc(r.text), note = ''): string =>
@@ -209,6 +210,6 @@ export function settingsHTML(settings: (() => JournalSettingsView) | undefined):
   return (
     `<ul class="ui-settings">${rows
       .map(([k, val]) => `<li class="ui-setting"><span class="ui-setting__key">${k}</span><span class="ui-setting__val">${val}</span></li>`)
-      .join('')}</ul><p class="ui-empty">Esc closes the journal.</p>`
+      .join('')}</ul><p class="ui-empty">${KEY.pause} closes the journal.</p>`
   );
 }

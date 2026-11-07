@@ -4,7 +4,7 @@
  *
  *   the hot pools  — each one simmers and bubbles; walk up to one and it fills the ear
  *   stoves         — Nana's cabin and the hamlet houses tick and crackle (more after dusk)
- *   lake ice       — sings as it settles, somewhere on the ice around you, only where there is ice
+ *   lake ice       — now and then a low moan as it settles, somewhere on the ice around you
  *   pines          — snow slides off a bough near you; chickadees call from them by day
  *   the owl        — Fen hoots from his branch after dusk, and other owls from deep in the pines
  *   wind           — everywhere, but set by where you stand: stronger the higher and more open the
@@ -84,7 +84,7 @@ const WIND = 0.24, WHISTLE = 0.09, SIMMER = 0.2;
 /** How quickly a bed follows, seconds (time constant). */
 const BED_TAU = 0.8;
 /** Most events a second, before distance thins them. */
-const RATE = { bubble: 7, crackle: 5, ice: 1 / 8, bough: 1 / 7, bird: 1 / 6, owl: 1 / 12 } as const;
+const RATE = { bubble: 7, crackle: 5, ice: 1 / 22, bough: 1 / 7, bird: 1 / 6, owl: 1 / 12 } as const;
 type EventKind = keyof typeof RATE;
 const KINDS = Object.keys(RATE) as EventKind[];
 /** Schedule this far ahead of the clock. */
@@ -200,13 +200,13 @@ export function createAmbience(ctx: BaseAudioContext, out: AudioNode): Ambience 
     return { env, tail: [env, g, p] };
   };
 
-  function tone(at: number, hz: number, toHz: number, dur: number, peak: number, gain: number, pan: number): void {
+  function tone(at: number, hz: number, toHz: number, dur: number, peak: number, gain: number, pan: number, attack = 0.03): void {
     const osc = ctx.createOscillator();
     osc.type = 'sine';
     osc.frequency.setValueAtTime(hz, at);
     osc.frequency.exponentialRampToValueAtTime(toHz, at + dur);
     const v = voice(at, gain, pan);
-    v.env.gain.exponentialRampToValueAtTime(peak, at + Math.min(0.03, dur * 0.25));
+    v.env.gain.exponentialRampToValueAtTime(peak, at + Math.min(attack, dur * 0.4));
     v.env.gain.exponentialRampToValueAtTime(0.0001, at + dur);
     osc.connect(v.env);
     osc.start(at);
@@ -278,12 +278,14 @@ export function createAmbience(ctx: BaseAudioContext, out: AudioNode): Ambience 
       burst(at, rng.range(0.006, 0.016), rng.range(1.6, 3.2), 'highpass', hz, hz, g, pan);
       if (rng.range(0, 1) < 0.15) burst(at + 0.01, 0.06, 2.2, 'bandpass', 900, 900, g, pan);
     },
-    // Lake ice: a falling, dispersive "pew", sometimes with a low knock under it.
+    // Lake ice settling, far off under the surface: a low, slow moan that swells in and sinks, sometimes
+    // with a soft thud under it. It was a bright, sudden "pew" every few seconds; the director found it
+    // jarring. Rarer now, quieter, and with a gentle onset so it never startles.
     ice: (at, g, pan) => {
-      const hz = rng.range(1600, 2600);
-      tone(at, hz, hz * 0.09, rng.range(0.45, 0.8), 0.35, g, pan);
-      tone(at + 0.02, hz * 0.62, hz * 0.06, rng.range(0.5, 0.9), 0.2, g, pan);
-      if (rng.range(0, 1) < 0.5) burst(at, 0.25, 1.2, 'lowpass', 180, 180, g, pan);
+      const hz = rng.range(520, 900), dur = rng.range(1.2, 1.9);
+      tone(at, hz, hz * 0.4, dur, 0.1, g, pan, 0.25);
+      tone(at + 0.05, hz * 0.75, hz * 0.32, dur * 1.1, 0.05, g, pan, 0.3);
+      if (rng.range(0, 1) < 0.4) burst(at, 0.45, 0.45, 'lowpass', 150, 150, g, pan);
     },
     // Snow sliding off a bough: a soft, dull rush.
     bough: (at, g, pan) => burst(at, rng.range(0.5, 0.9), 0.8, 'lowpass', 900, 260, g, pan),

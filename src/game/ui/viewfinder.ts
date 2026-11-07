@@ -10,6 +10,7 @@
  * It fades with the camera's ease in and out, so the frame arrives with the view, not before it.
  */
 import '../../styles/photo.css';
+import { KEY } from '../../core/keys';
 
 export interface Viewfinder {
   /** blend: 0 = chase camera .. 1 = fully in the viewfinder. */
@@ -26,7 +27,7 @@ export function createViewfinder(root: HTMLElement): Viewfinder {
     '<i class="ui-finder__corner is-tl"></i><i class="ui-finder__corner is-tr"></i>' +
     '<i class="ui-finder__corner is-bl"></i><i class="ui-finder__corner is-br"></i>' +
     '<i class="ui-finder__mark"></i>' +
-    '<p class="ui-finder__keys">A / D turn · W / S tilt · E shoot · Esc stop</p>';
+    `<p class="ui-finder__keys">${KEY.steer} turn · ${KEY.tilt} tilt · ${KEY.interact} shoot · ${KEY.pause} stop</p>`;
   root.appendChild(frame);
   let wasCentred = false;
 
