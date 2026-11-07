@@ -133,8 +133,9 @@ change, `npx vite-node tools/story-check.ts` must print clean.
   least one terminal node.
 - **Length per node:** the existing content runs 3 lines per node. The writer may choose 2–5; longer than 5
   will overflow the dialogue panel. The panel is fixed-height.
-- **Pip's voice:** the player character speaks as `'pip'`, lowercase, terse, a little deadpan. Pip is not
-  the writer's mouthpiece and does not narrate.
+- **Pip's voice:** the player character speaks as `'pip'`, lowercase, few words, a little deadpan, but in
+  plain speech, not slogans. Pip is not the writer's mouthpiece and does not narrate.
+- **Everyone's voice:** whole, natural sentences; no clipped fragments or tagline diction (docs/STORY.md, Voice).
 - **No unearned references:** a line may only name a person, place, object or event the player has already
   been shown — by the narrator (intro card, goal line, zone name), earlier in the same conversation, or by
   another NPC the quest already sent them to. This is mechanically checked by `tools/story-check.ts`.

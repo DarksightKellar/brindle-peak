@@ -3,9 +3,9 @@
     "id": "wren-root",
     "speaker": "wren",
     "lines": [
-      "You're Nana's Pip. She said you'd come up the valley before the snow.",
-      "I'm Wren. I write what the valley sounds like: springs, ice, pines knocking.",
-      "The book's nearly full. One page left, and nothing worth putting on it."
+      "You must be Nana's Pip. She said you'd be coming up the valley before the snow.",
+      "I'm Wren. I write down what the valley sounds like: the springs, the ice, the pines knocking together.",
+      "My book's nearly full now. There's one page left, and I can't think of anything worth putting on it."
     ],
     "choices": [
       {
@@ -22,8 +22,8 @@
     "id": "wren-chat",
     "speaker": "wren",
     "lines": [
-      "It's not the page. It's me. Everything sounds like something I've already written.",
-      "My very first page was the mast on Brindle Peak, humming in the cold. I was younger than you."
+      "Oh, it's not the page, it's me. Everything I hear sounds like something I've already written down.",
+      "The very first page I ever wrote was the mast on Brindle Peak, humming in the cold. I was younger than you are."
     ],
     "next": "wren-errand"
   },
@@ -32,40 +32,40 @@
     "speaker": "wren",
     "fill": "wren-hum",
     "lines": [
-      "So listen for me. Fresh ears. Go to the hoarfrost glade and take a photograph.",
-      "Holding still for a picture is the only time anyone really listens. You'll hear the frost.",
-      "Then go down to Kettle Springs and walk in among the hot pools. Nothing sounds like that water. You'll hear it as you go.",
-      "Then come back and tell me what you heard. I'll put it on the last page."
+      "So would you listen for me? You've got fresh ears. Go to the hoarfrost glade and take a photograph there.",
+      "Holding still for a picture is about the only time anybody really listens. You'll hear the frost.",
+      "Then go down to Kettle Springs and walk in among the hot pools. Nothing else sounds like that water, and you'll hear it as you go.",
+      "Then come back and tell me what you heard, and I'll put it on the last page."
     ]
   },
   {
     "id": "wren-wait",
     "speaker": "wren",
     "lines": [
-      "You're back. The hoarfrost glade first. Hold still for the picture, and listen.",
-      "Then walk in among the hot pools at Kettle Springs, and listen. Then come and tell me."
+      "Oh, you're back. Go to the hoarfrost glade first, and hold still for the picture so you can listen.",
+      "Then walk in among the hot pools at Kettle Springs and listen there too. Then come and tell me."
     ]
   },
   {
     "id": "wren-still",
     "speaker": "wren",
     "lines": [
-      "The glade first, for the frost. Then the hot pools at Kettle Springs. Then me."
+      "Go to the glade first, for the frost. Then the hot pools at Kettle Springs. And then come back to me."
     ]
   },
   {
     "id": "wren-done",
     "speaker": "wren",
     "lines": [
-      "You've been to both. Go on, then. What did you hear?"
+      "You've been to both? Go on, then, tell me. What did you hear?"
     ],
     "choices": [
       {
-        "text": "the frost ticked. like a stove cooling.",
+        "text": "the frost ticked, like a stove cooling down.",
         "next": "wren-frost"
       },
       {
-        "text": "the springs. like a kettle arguing with itself.",
+        "text": "the springs sounded like a kettle arguing with itself.",
         "next": "wren-kettle"
       }
     ]
@@ -74,8 +74,8 @@
     "id": "wren-frost",
     "speaker": "wren",
     "lines": [
-      "A stove cooling. Oh, that's it exactly. I'd stopped hearing it.",
-      "And the springs? No, keep that one. I'll go down and hear it for myself."
+      "Like a stove cooling down. Oh, that's exactly it. I'd stopped being able to hear it.",
+      "And the springs? No, keep that one to yourself. I'll go down and hear it for myself."
     ],
     "next": "wren-write"
   },
@@ -83,8 +83,8 @@
     "id": "wren-kettle",
     "speaker": "wren",
     "lines": [
-      "A kettle arguing with itself. Oh, that's it exactly. I'd stopped hearing it.",
-      "And the frost? No, keep that one. I'll go up to the glade and listen for myself."
+      "A kettle arguing with itself. Oh, that's exactly it. I'd stopped being able to hear it.",
+      "And the frost? No, keep that one to yourself. I'll go up to the glade and listen for myself."
     ],
     "next": "wren-write"
   },
@@ -92,25 +92,25 @@
     "id": "wren-write",
     "speaker": "wren",
     "lines": [
-      "That's the last page. The book's full.",
-      "Take it. I'll start a new one tomorrow, with my ears washed out."
+      "There. That's the last page, and the book's full.",
+      "You take it. I'll start a new one tomorrow, with my ears washed out."
     ]
   },
   {
     "id": "tamsin-root",
     "speaker": "tamsin",
     "lines": [
-      "Oh. Mind the needles, they get everywhere. I'm Tamsin. I knit.",
-      "This is a headband for the hare by the road head. His ears go flat with cold.",
-      "I've never measured him. I didn't like to ask. So it might not fit at all."
+      "Oh! Mind the needles, they get everywhere. I'm Tamsin. I knit things.",
+      "This is a headband for the hare down by the road head. His ears go flat in the cold, poor thing.",
+      "Only I've never measured him. I didn't like to ask. So it might not fit him at all."
     ],
     "choices": [
       {
-        "text": "why not ask him?",
+        "text": "why not just ask him?",
         "next": "tamsin-chat"
       },
       {
-        "text": "how will you know it fits?",
+        "text": "how will you know if it fits?",
         "next": "tamsin-errand"
       }
     ]
@@ -119,8 +119,8 @@
     "id": "tamsin-chat",
     "speaker": "tamsin",
     "lines": [
-      "Walk up to a hare and ask him to hold still while I measure his ears? I'd sooner knit in the dark.",
-      "So I guess. I always guess. Would you help me find out if I guessed right?"
+      "Walk up to a hare and ask him to hold still while I measure his ears? I'd rather knit in the dark.",
+      "So I guess. I always guess. Would you help me find out whether I guessed right?"
     ],
     "next": "tamsin-errand"
   },
@@ -128,35 +128,35 @@
     "id": "tamsin-errand",
     "speaker": "tamsin",
     "lines": [
-      "He lives by the road head, in Hearth Hollow. Hollis, he's called.",
-      "Take it to him and ask him to try it on. I'd only fret.",
-      "And have a go at the pinecone toss while you're here, if you like. I like watching someone else be bad at something.",
-      "Then come back and tell me if it fits. Honestly. I'd rather know."
+      "He lives down by the road head, in Hearth Hollow. Hollis, he's called.",
+      "Would you take it to him and ask him to try it on? I'd only fret if I went myself.",
+      "And have a go at the pinecone toss while you're here, if you like. I do enjoy watching someone else be bad at something.",
+      "Then come back and tell me if it fits. Honestly, mind. I'd rather know."
     ]
   },
   {
     "id": "tamsin-wait",
     "speaker": "tamsin",
     "lines": [
-      "Still got it? Hollis, the hare by the road head. Ask him to try it on.",
-      "If it's too tight, tell me true. I'd rather know."
+      "Still got it with you? It's for Hollis, the hare by the road head. Ask him to try it on.",
+      "And if it's too tight, you tell me. I'd rather know."
     ]
   },
   {
     "id": "tamsin-done",
     "speaker": "tamsin",
     "lines": [
-      "It fits? Tight on the ears, but it fits? Oh, thank goodness.",
-      "Then the next one gets more room round the ears. Keep this one. It was practice.",
-      "And next time I'll ask him myself. Out loud."
+      "It fits? A bit tight on the ears, but it fits? Oh, thank goodness for that.",
+      "Then I'll give the next one more room round the ears. You keep this one. It was practice.",
+      "And next time, I'll ask him myself. Out loud and everything."
     ]
   },
   {
     "id": "fen-root",
     "speaker": "fen",
     "lines": [
-      "You're up early. Or late. Hard to tell from a pine.",
-      "I watch the pines. Everything that moves through here goes in my tally. Nearly everything."
+      "You're up early. Or late. It's hard to tell from up a pine.",
+      "I keep watch over the pines. Everything that moves through here goes down in my tally. Well, nearly everything."
     ],
     "choices": [
       {
@@ -173,8 +173,8 @@
     "id": "fen-chat",
     "speaker": "fen",
     "lines": [
-      "The wood is all comings and goings. Somebody should keep track. It isn't prying if you write it down.",
-      "Most folk talk around an owl, hoping he'll fill in the rest. I don't."
+      "The wood's full of comings and goings, and somebody ought to keep track of them. It isn't prying if you write it down.",
+      "Most folk talk around an owl and hope he'll fill in the rest. I don't, as it happens."
     ],
     "next": "fen-errand"
   },
@@ -182,47 +182,47 @@
     "id": "fen-errand",
     "speaker": "fen",
     "lines": [
-      "From this branch I see the creek. Up the hill there's a deer trail, and the trees hide it from me.",
-      "Something goes down that trail every day. I see it go in at the top. I never see what it is.",
-      "Run the trail, fast, and you'll see where it bends: past the glade and the split pine.",
-      "Tamsin, the marten who knits by the split pine, sits at the bend. Ask her what comes past."
+      "From this branch I can see the creek. Up the hill there's a deer trail, but the trees hide it from me.",
+      "Something comes down that trail every day. I see it go in at the top, but I never see what it is.",
+      "If you run the trail, fast, you'll see where it bends, past the glade and the split pine.",
+      "Tamsin, the marten who knits by the split pine, sits right at the bend. Ask her what comes past."
     ]
   },
   {
     "id": "fen-wait",
     "speaker": "fen",
     "lines": [
-      "You're back. Run the deer trail, fast. See where it bends.",
-      "Then ask Tamsin, by the split pine, what comes down it. Then tell me."
+      "You're back. Run the deer trail for me, fast, and see where it bends.",
+      "Then ask Tamsin, by the split pine, what comes down it, and come and tell me."
     ]
   },
   {
     "id": "fen-still",
     "speaker": "fen",
     "lines": [
-      "The deer trail first, fast. Then Tamsin, by the split pine. She sees what comes past."
+      "Run the deer trail first, fast. Then ask Tamsin, by the split pine. She sees whatever comes past."
     ]
   },
   {
     "id": "fen-done",
     "speaker": "fen",
     "lines": [
-      "A roe deer? From the glade, down to drink at the creek, every morning?",
-      "There. That's the last line in the tally.",
-      "Twenty winters I've watched this wood. I could have asked the marten next door any day."
+      "A roe deer? Coming down from the glade to drink at the creek, every morning?",
+      "There. That's the last line in my tally.",
+      "Twenty winters I've watched this wood, and I could have asked the marten next door any day I liked."
     ]
   },
   {
     "id": "ilsa-root",
     "speaker": "ilsa",
     "lines": [
-      "You're Pip. Nana's told me about you. Don't stand still, you'll freeze.",
-      "I'm Ilsa. I carry things. Firewood, parcels, whatever wants carrying.",
-      "This one's for my sister. We had words, and I'd rather not be the one to carry it over."
+      "You're Pip, aren't you? Nana's told me all about you. Don't stand still too long, you'll freeze.",
+      "I'm Ilsa. I carry things for people. Firewood, parcels, whatever needs carrying.",
+      "This one's for my sister. Only we had words, and I'd rather not be the one to take it over."
     ],
     "choices": [
       {
-        "text": "what were the words about?",
+        "text": "what did you have words about?",
         "next": "ilsa-chat"
       },
       {
@@ -235,9 +235,9 @@
     "id": "ilsa-chat",
     "speaker": "ilsa",
     "lines": [
-      "She says I carry everyone's load and then sulk that nobody carries mine.",
-      "I say she sits in her steam and waits for people to come to her.",
-      "We're both right. That's the worst way to have a row."
+      "She says I carry everybody else's load and then sulk because nobody carries mine.",
+      "And I say she sits in her steam and waits for everyone to come to her.",
+      "We're both right, which is the worst way to have a row."
     ],
     "next": "ilsa-errand"
   },
@@ -246,54 +246,54 @@
     "speaker": "ilsa",
     "lines": [
       "My sister Ivy keeps the hot pools at Kettle Springs, down the valley.",
-      "Put it in her hands, not on the step. She'll say I should have come myself.",
-      "Don't argue with her. Just come back and tell me it landed."
+      "Put it in her hands, would you, not on the step. She'll say I should have come myself.",
+      "Don't argue with her about it. Just come back and tell me it got there."
     ]
   },
   {
     "id": "ilsa-wait",
     "speaker": "ilsa",
     "lines": [
-      "Still carrying it? Good. Ivy, my sister, is at the pools, in the steam.",
-      "If she starts, don't argue. Hand it over and say it's from me."
+      "Still carrying it? That's all right. Ivy, my sister, is down at the pools, in the steam.",
+      "If she starts on about me, don't argue. Just hand it over and tell her it's from me."
     ]
   },
   {
     "id": "ilsa-done",
     "speaker": "ilsa",
     "lines": [
-      "It landed? She took it?",
-      "And she said to come down myself. Of course she did.",
-      "Then tomorrow I'll go down. Carrying nothing. I'll let her feed me.",
-      "Sit a minute first. No, sit. I'm practising."
+      "It got there? She took it?",
+      "And she said I should come down myself. Of course she did.",
+      "Well, then. Tomorrow I'll go down there, carrying nothing at all, and let her feed me.",
+      "But sit down for a minute first. No, really, sit. I'm practising."
     ]
   },
   {
     "id": "fen-mitten",
     "speaker": "fen",
     "lines": [
-      "You asked me straight out. Hardly anyone does. Most hint and hope.",
-      "I saw it. Hollis, the hare, hung it on a low branch to dry.",
-      "Wind took it into the creek pool below the split pine. The pine with two tops, standing over the rest, a short walk up the creek from my branch. Fish there and you'll hook it.",
-      "I didn't take it. Tell him that. He's been thinking it for two days."
+      "You asked me straight out. Hardly anybody does that. Most folk drop hints and hope.",
+      "I did see it. Hollis, the hare, hung it on a low branch to dry.",
+      "The wind took it into the creek pool below the split pine. That's the pine with two tops, standing over the rest, a short walk up the creek from my branch. Fish there and you'll hook it.",
+      "I never took it. Tell him that from me. He's been thinking it for two days."
     ]
   },
   {
     "id": "tamsin-trail",
     "speaker": "tamsin",
     "lines": [
-      "Fen, the owl, wants to know what uses the deer trail? He could have asked me.",
-      "It's the roe deer from the hoarfrost glade. She comes past my stump every morning, down to the creek to drink.",
-      "Tell him that. And tell him he's allowed to come and ask himself."
+      "Fen, the owl, wants to know what comes down the deer trail? He could have just asked me.",
+      "It's the roe deer from the hoarfrost glade. She comes past my stump every morning on her way down to the creek for a drink.",
+      "Tell him that. And tell him he's allowed to come and ask me himself, you know."
     ]
   },
   {
     "id": "wren-idle",
     "speaker": "wren",
     "lines": [
-      "I've started a new book. I write slower now. I listen longer first.",
-      "Listen. That knocking is the pines in the cold. I'd stopped hearing it.",
-      "If you hear something I haven't, come and tell me. I'll write it down."
+      "I've started a new book. I write more slowly now, and I listen for longer first.",
+      "Listen, can you hear that knocking? That's the pines in the cold. I'd stopped noticing it.",
+      "If you hear anything I haven't, come and tell me, and I'll write it down."
     ]
   },
   {
@@ -301,8 +301,8 @@
     "speaker": "tamsin",
     "fill": "tamsin-idle",
     "lines": [
-      "I'm knitting another. Measured, this time. I asked the hare to hold still, and he did.",
-      "Turns out people like being asked. Who knew.",
+      "I'm knitting him another one. Measured, this time. I asked the hare to hold still, and he did.",
+      "It turns out people quite like being asked. Who knew?",
       "Mind the needles on the stump. They're sharper than they look."
     ]
   },
@@ -310,18 +310,18 @@
     "id": "fen-idle",
     "speaker": "fen",
     "lines": [
-      "The tally's whole. A roe deer, every morning, down to the creek.",
-      "I asked the marten by the split pine something yesterday. She talked for an hour. I may do it again.",
-      "Ask me something, if you like. I answer when I'm asked."
+      "My tally's complete now. A roe deer, every morning, down to the creek.",
+      "I asked the marten by the split pine a question yesterday. She talked for an hour. I might do it again.",
+      "Ask me something, if you like. I always answer when I'm asked."
     ]
   },
   {
     "id": "ilsa-idle",
     "speaker": "ilsa",
     "lines": [
-      "Tomorrow I'm going down to Ivy, my sister. I'll let her feed me.",
-      "Don't tell her. She'll make a row of it, and I'll secretly enjoy it.",
-      "Sit a while. I'm practising sitting. I'm not much good at it yet."
+      "I'm going down to see Ivy, my sister, tomorrow. I'm going to let her feed me.",
+      "Don't tell her, though. She'll make a big fuss about it, and I'll secretly enjoy every minute.",
+      "Sit with me a while. I'm practising sitting still. I'm not very good at it yet."
     ]
   }
 ]

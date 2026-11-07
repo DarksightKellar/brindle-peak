@@ -60,8 +60,8 @@ reaches the district office is the radio mast on Brindle Peak.
 6. *Home* — back at the station, Nana asks what Pip got up to. A generated summary of the player's
    actual journal. Sleep. Credits.
 
-**Tone rules for all writers:** short messages, the way you'd text a friend. No speeches. Nobody
-explains the theme. Humour is dry and observational. Nobody is cruel. Nobody dies.
+**Tone rules for all writers:** people talk the way they would in person, in warm, ordinary, whole
+sentences, never clipped or tagline-like (see docs/STORY.md, Voice). No speeches. Nobody explains the theme. Humour is dry and observational. Nobody is cruel. Nobody dies.
 
 ## 5. World — Brindle Peak Valley
 

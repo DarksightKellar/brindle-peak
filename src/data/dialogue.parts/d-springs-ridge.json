@@ -3,9 +3,9 @@
     "id": "ivy-root",
     "speaker": "ivy",
     "lines": [
-      "Don't splash. I'm Ivy. I keep the pools, and the pools are going cold.",
-      "Two degrees down since the first snow. Everyone says it's the weather.",
-      "It isn't. It's the stone dam on the low pool. Somebody's been knocking stones out of it."
+      "Careful, don't splash. I'm Ivy. I look after the pools, and the pools are going cold.",
+      "They're two degrees down since the first snow. Everyone keeps telling me it's the weather.",
+      "But it isn't. It's the stone dam on the low pool. Somebody's been knocking stones out of it."
     ],
     "choices": [
       {
@@ -22,9 +22,9 @@
     "id": "ivy-chat",
     "speaker": "ivy",
     "lines": [
-      "Whoever comes off the otter slide too fast. I'm not naming anyone.",
-      "Every slider who hits the dam takes a stone with them, and the warm water goes out the gap.",
-      "Eleven winters I've kept these pools. I'm not losing them to somebody's fun."
+      "Whoever comes off the otter slide too fast. I'm not naming any names.",
+      "Everyone who slides into the dam knocks a stone loose, and the warm water runs out through the gap.",
+      "I've kept these pools for eleven winters, and I'm not losing them to somebody's bit of fun."
     ],
     "next": "ivy-errand"
   },
@@ -33,9 +33,9 @@
     "speaker": "ivy",
     "fill": "ivy-dam",
     "lines": [
-      "Then get the temperature off Corm, the raven by the steam. The glass is on his rock.",
-      "He's sat beside it a whole year and never once read it. Make him read it.",
-      "I want a number. Not news."
+      "Then get the temperature off Corm, the raven who sits by the steam. The thermometer's on his rock.",
+      "He's sat right next to it for a whole year and never once read it. Make him read it.",
+      "I want a proper number, mind, not news."
     ]
   },
   {
@@ -43,17 +43,17 @@
     "speaker": "ivy",
     "fill": "ivy-dam-wait",
     "lines": [
-      "Then Corm, on his rock by the steam. Make him read the glass.",
-      "A number, mind. Not something he heard."
+      "And then Corm, on his rock by the steam. Make him read the thermometer.",
+      "I want a number, mind, not something he's heard."
     ]
   },
   {
     "id": "ivy-done",
     "speaker": "ivy",
     "lines": [
-      "Forty-one. Off the glass? Corm actually read it?",
+      "Forty-one? Off the thermometer? Corm actually read it?",
       "That's up on last week. The dam's holding. Listen to that steam.",
-      "Here. A warm stone from the bottom of the pool. Keep it in a pocket.",
+      "Here, have a warm stone from the bottom of the pool. Keep it in a pocket.",
       "And if you see my sister, don't tell her I was worried."
     ]
   },
@@ -61,26 +61,26 @@
     "id": "ivy-bundle",
     "speaker": "ivy",
     "lines": [
-      "From Ilsa, my sister? She sent it with you instead of coming.",
-      "Don't say we don't look alike. Everyone says it.",
-      "She'd carry the whole valley before she'd knock on my door. Dried apples. Her good scarf.",
-      "Tell her it landed. And to come down herself next time. I'll feed her."
+      "This is from Ilsa, my sister? She sent it with you instead of coming herself.",
+      "And don't tell me we don't look alike. Everyone says that.",
+      "She'd carry the whole valley on her back before she'd knock on my door. Dried apples, and her good scarf.",
+      "Tell her it got here. And tell her to come down herself next time, and I'll feed her."
     ]
   },
   {
     "id": "ivy-blue",
     "speaker": "ivy",
     "lines": [
-      "Which house is blue? From down here, the one with the green door.",
-      "At dusk the steam turns everything up the hill blue. That one most.",
-      "Pell, the postmaster, should come down and look. He never comes down."
+      "Which house is blue? From down here, it's the one with the green door.",
+      "At dusk the steam turns everything up the hill blue, and that one most of all.",
+      "Pell, the postmaster, ought to come down and look for himself. He never comes down here."
     ]
   },
   {
     "id": "ivy-idle",
     "speaker": "ivy",
     "lines": [
-      "Soak your feet before you go. Everyone's feet are cold this time of year."
+      "Soak your feet before you go. Everybody's feet are cold this time of year."
     ],
     "fill": "ivy-idle"
   },
@@ -88,13 +88,13 @@
     "id": "corm-root",
     "speaker": "corm",
     "lines": [
-      "News! You'll want the news. I'm Corm. I hear it all, and I pass it on.",
-      "Word is the bakery in Hollowpine Hamlet is shut. Also, word is it's open.",
-      "Word is the post's stopped. Also, it's running. I've been saying all four since breakfast."
+      "News! You'll be wanting the news. I'm Corm. I hear everything, and I pass it all on.",
+      "Word is the bakery in Hollowpine Hamlet is shut. Mind you, word is it's open, too.",
+      "And word is the post's stopped. Also that it's running. I've been saying all four since breakfast."
     ],
     "choices": [
       {
-        "text": "which is true?",
+        "text": "which one's true?",
         "next": "corm-chat"
       },
       {
@@ -108,7 +108,7 @@
     "speaker": "corm",
     "lines": [
       "No idea! That's the trouble. I say what I hear, and I hear everything.",
-      "Just once I'd like to say a thing and have it be true."
+      "Just once, I'd like to say something and have it be true."
     ],
     "next": "corm-errand"
   },
@@ -116,8 +116,8 @@
     "id": "corm-check",
     "speaker": "corm",
     "lines": [
-      "Checked? I'd have to go and ask. People look at you funny when you ask.",
-      "Hearing's easier. Hearing comes to you."
+      "Checked? I'd have to go and ask people. They look at you funny when you ask.",
+      "Hearing's easier. Things you hear come to you."
     ],
     "next": "corm-errand"
   },
@@ -125,35 +125,35 @@
     "id": "corm-errand",
     "speaker": "corm",
     "lines": [
-      "Orla, who runs the bakery, would know if it's open.",
-      "Pell, the postmaster, would know if the post's running.",
-      "Ask them for me? Then come back and give it to me straight. I'll pass it on right, for once."
+      "Orla, who runs the bakery, would know whether it's open.",
+      "And Pell, the postmaster, would know whether the post's running.",
+      "Would you ask them for me? Then come back and tell me straight, and I'll pass it on right, for once."
     ]
   },
   {
     "id": "corm-wait",
     "speaker": "corm",
     "lines": [
-      "Back? With news? No? Orla first, at the bakery. Is it open?",
+      "You're back! With news? No? Orla first, at the bakery. Is it open?",
       "Then Pell, the postmaster. Is the post running?",
-      "Then me. Slowly. I want to get it right."
+      "Then come back to me and tell me slowly. I want to get it right."
     ]
   },
   {
     "id": "corm-still",
     "speaker": "corm",
     "lines": [
-      "Orla, at the bakery: is it open? Pell, the postmaster: is the post running? Then back to me."
+      "Ask Orla, at the bakery, whether it's open, and Pell, the postmaster, whether the post's running. Then come back to me."
     ]
   },
   {
     "id": "corm-done",
     "speaker": "corm",
     "lines": [
-      "The bakery's open. Post runs inside the valley. Nothing goes over the pass.",
-      "And all of it true? Checked? By somebody who asked?",
-      "Well. I'll pass that on, every word. I could get used to this.",
-      "Here, for your trouble. That's not hearsay. That's bells."
+      "The bakery's open. The post runs inside the valley, but nothing goes over the pass.",
+      "And it's all true? Checked? By somebody who actually asked?",
+      "Well! I'll pass that on, every word of it. I could get used to this.",
+      "Here, for your trouble. And that's not hearsay, those are real bells."
     ]
   },
   {
@@ -161,28 +161,28 @@
     "speaker": "corm",
     "lines": [
       "The pool temperature? I heard it was freezing. Jory, the mouse, told me so.",
-      "Ivy wants a reading? Off the glass? Not what I heard?",
-      "Fine. The glass is right here. I've never once read it. ...Forty-one.",
-      "Tell her forty-one. First thing I've ever checked. It felt strange."
+      "Ivy wants a reading? Off the thermometer? Not just what I heard?",
+      "Oh, fine. The thermometer's right here. I've never once read it. ...Forty-one.",
+      "Tell her it's forty-one. That's the first thing I've ever checked. It felt very strange."
     ]
   },
   {
     "id": "corm-idle",
     "speaker": "corm",
     "lines": [
-      "I've checked things this week. Actual things. It's exhausting.",
-      "The bakery's open. The post runs inside the valley. Both true. Somebody asked.",
-      "Bring me anything you hear. I'll check it. Probably."
+      "I've checked things this week. Real, actual things. It's exhausting.",
+      "The bakery's open, and the post runs inside the valley. Both true. Somebody asked.",
+      "Bring me anything you hear, and I'll check it. Probably."
     ]
   },
   {
     "id": "jory-root",
     "speaker": "jory",
     "lines": [
-      "I have lived at Kettle Springs my whole life. I have never been cold.",
-      "The warm pool keeps the chill off. That is the whole reason I stay.",
-      "The pines are not far. I have heard they are not far.",
-      "I would like to go as far as the pines. Once. And come back."
+      "I have lived at Kettle Springs my whole life, and I have never once been cold.",
+      "The warm pool keeps the chill off me. That is the whole reason I stay.",
+      "People tell me the pines are not very far away.",
+      "I would like to walk as far as the pines, just once. And then come back."
     ],
     "choices": [
       {
@@ -201,8 +201,8 @@
     "speaker": "jory",
     "lines": [
       "The pines are where the cold starts. Everyone says so.",
-      "I have never felt it. I think I would like to know.",
-      "Or maybe I would not. I am not sure. Would you go first?"
+      "I have never felt it, and I think I would like to know what it is like.",
+      "Or perhaps I would not. I am not sure. Would you go first?"
     ],
     "next": "jory-errand"
   },
@@ -210,9 +210,9 @@
     "id": "jory-errand",
     "speaker": "jory",
     "lines": [
-      "Then catch me a fish from the warm pool first. For the walk, when I go. A mouse takes lunch.",
-      "Then walk to Pinewind Wood for me. Go first, and look at it properly.",
-      "Come back and tell me what it is like. Then I will decide."
+      "Then would you catch me a fish from the warm pool first? It is for the walk, when I go. A mouse should take a lunch.",
+      "And then walk to Pinewind Wood for me. Go first, and have a proper look at it.",
+      "Then come back and tell me what it is like, and I will decide."
     ]
   },
   {
@@ -220,36 +220,36 @@
     "speaker": "jory",
     "fill": "jory-wait",
     "lines": [
-      "Then tell me what they are like. All of it. The cold too."
+      "And then tell me what they are like. All of it, the cold as well."
     ]
   },
   {
     "id": "jory-done",
     "speaker": "jory",
     "lines": [
-      "The pines are like that? Tall, and creaking, and the snow is quiet?",
-      "And it was cold, but you came back. You are standing right here.",
-      "And the fish. I have it wrapped in a leaf, for the walk. I checked it twice.",
-      "Then I think I can go. Not today. Tomorrow. As far as the pines.",
-      "Here. For going first. I am not good at thank you."
+      "The pines are like that? Tall, and creaking, and the snow is quiet there?",
+      "And it was cold, but you came back. You are standing right here in front of me.",
+      "And the fish. I have it wrapped in a leaf, ready for the walk. I have checked it twice.",
+      "So I think I can go. Not today, but tomorrow. As far as the pines.",
+      "Here, this is for going first. I am not very good at saying thank you."
     ]
   },
   {
     "id": "jory-idle",
     "speaker": "jory",
     "lines": [
-      "I put one foot out of the warm pool this morning. Then both.",
-      "It was cold. I stood and counted to forty. Then I got back in.",
-      "Tomorrow I will count to fifty. Then the pines. You will see."
+      "This morning I put one foot out of the warm pool. And then both of them.",
+      "It was cold. I stood there and counted to forty, and then I got back in.",
+      "Tomorrow I will count to fifty. And then the pines. You will see."
     ]
   },
   {
     "id": "tuck-root",
     "speaker": "tuck",
     "lines": [
-      "Careful on the planks. I'm Tuck. I keep this bridge.",
-      "I tie it, I tighten it, I check it every hour. I don't cross it. Different job.",
-      "The rope's going. See the fraying there? Another storm and it parts."
+      "Careful on the planks, there. I'm Tuck. I look after this bridge.",
+      "I tie it, I tighten it, and I check it every hour. I don't cross it, mind. That's a different job.",
+      "The rope's wearing out, see? Look at the fraying there. One more storm and it'll snap."
     ],
     "choices": [
       {
@@ -257,7 +257,7 @@
         "next": "tuck-chat"
       },
       {
-        "text": "i've brought you rope.",
+        "text": "i've brought you some rope.",
         "next": "tuck-rope-seen"
       }
     ]
@@ -267,7 +267,7 @@
     "speaker": "tuck",
     "lines": [
       "Hold on. Is that Bram's good rope? From the woodstore by the big pine?",
-      "He sent it up? With you? He hasn't said a word to me in years."
+      "He sent it all the way up here? With you? He hasn't said a word to me in years."
     ],
     "next": "tuck-done"
   },
@@ -276,8 +276,8 @@
     "speaker": "tuck",
     "lines": [
       "Somebody has to stand at this end and watch the knots hold. That's me.",
-      "Sable, the fox at the wind post, says I'm scared. Sable files reports. I tie knots.",
-      "We'll leave it there."
+      "Sable, the fox up at the wind post, says I'm scared. Well, Sable files reports, and I tie knots.",
+      "We'll leave it at that."
     ],
     "next": "tuck-rope-seen"
   },
@@ -285,40 +285,40 @@
     "id": "tuck-done",
     "speaker": "tuck",
     "lines": [
-      "Forty feet, no splices. He measured it before he gave it you, didn't he.",
-      "There. Tied, tightened, tested. It'll hold a storm.",
-      "Tell Bram it's still forty feet. Not an inch off. He can come up and measure it himself.",
-      "I didn't cross it. I didn't need to.",
-      "Here. I found this tied into the old rope years back. Show Bram. He'll know it."
+      "Forty feet, no splices. He measured it before he gave it to you, didn't he?",
+      "There we are. Tied, tightened and tested. That'll hold through a storm.",
+      "Tell Bram it's still forty feet, not an inch short. He can come up and measure it himself if he likes.",
+      "I didn't cross it, you'll notice. I didn't need to.",
+      "And here. I found this tied into the old rope years ago. Show it to Bram. He'll know what it is."
     ]
   },
   {
     "id": "tuck-chimney",
     "speaker": "tuck",
     "lines": [
-      "Nettle Chimney is climbable? The tall face past the bridge? You went up it?",
-      "Then there's a way up this ridge that isn't a bridge.",
-      "I've never said I wouldn't climb. Only that I wouldn't cross.",
-      "Tell Sable I'm thinking about it. Just thinking."
+      "Nettle Chimney can be climbed? The tall rock face past the bridge? You went up it?",
+      "Then there's a way up this ridge that doesn't go over a bridge.",
+      "I've never said I wouldn't climb, you know. Only that I wouldn't cross.",
+      "Tell Sable I'm thinking about it. Only thinking, mind."
     ]
   },
   {
     "id": "tuck-idle",
     "speaker": "tuck",
     "lines": [
-      "I check this bridge every hour. I don't cross it. Different job.",
-      "Wind's up. Rope doesn't mind wind. It minds age.",
-      "Mind the planks on your way over. I mean that kindly."
+      "I check this bridge every hour. I don't cross it, though. That's a different job.",
+      "The wind's up. The rope doesn't mind the wind. It's age it minds.",
+      "Watch the planks on your way over. I mean that kindly."
     ]
   },
   {
     "id": "sable-root",
     "speaker": "sable",
     "lines": [
-      "Sable, wind post, Windscar Ridge. I measure the wind and file a report, whatever it says.",
-      "Today's report so far reads 'windy'. That won't do.",
-      "I need two readings: one high, one low. The kite gets me the high one, over the crest.",
-      "The lantern ascent gets me the low one. I read the wind off the flames as you pass them."
+      "Sable, at the wind post on Windscar Ridge. I measure the wind here and file a report, whatever it says.",
+      "So far, today's report just says 'windy'. That won't do at all.",
+      "I need two readings, one high and one low. The kite can get me the high one, up over the crest.",
+      "And the lantern ascent will get me the low one. I'll read the wind off the flames as you pass them."
     ],
     "choices": [
       {
@@ -336,9 +336,9 @@
     "id": "sable-chat",
     "speaker": "sable",
     "lines": [
-      "A report that only files the good days is a lie with a stamp on it.",
-      "Tuck, the marten at the bridge, says the wind will take his bridge one day. I say the rope will.",
-      "One of us will be right. I'll file it either way."
+      "If I only filed reports on the good days, they wouldn't be reports, would they? They'd be fibs with a stamp on.",
+      "Tuck, the marten at the bridge, says the wind will take his bridge one day. I say the rope will go first.",
+      "One of us will turn out to be right, and I'll file it either way."
     ],
     "next": "sable-errand"
   },
@@ -346,55 +346,55 @@
     "id": "sable-errand",
     "speaker": "sable",
     "lines": [
-      "The kite goes first. Get it up off the crest, above the ridge line.",
+      "The kite goes first. Get it up off the crest, above the line of the ridge.",
       "Then run the lantern ascent, gate to gate. I'll watch the flames from here.",
-      "Then come back, and I'll write it up."
+      "Then come back to me, and I'll write it all up."
     ]
   },
   {
     "id": "sable-wait",
     "speaker": "sable",
     "lines": [
-      "The report's still blank. Kite above the crest, please.",
-      "Then the lantern ascent, up the ridge. Then back to me."
+      "The report's still blank, I'm afraid. The kite, above the crest, please.",
+      "Then the lantern ascent, up the ridge. Then come back to me."
     ]
   },
   {
     "id": "sable-done",
     "speaker": "sable",
     "lines": [
-      "Kite reading: forty, gusting. Lantern reading: the same, lower down. Consistent.",
-      "That's a report worth filing. I'll stamp it twice.",
-      "For the record, the bridge stood through all of it. Don't tell Tuck I wrote that.",
-      "Here. For the readings."
+      "The kite reading's forty, gusting. The lanterns say the same, lower down. That's consistent.",
+      "Now that's a report worth filing. I'll stamp it twice.",
+      "And for the record, the bridge stood up through all of it. Don't tell Tuck I wrote that down.",
+      "Here, this is for the readings."
     ]
   },
   {
     "id": "sable-b",
     "speaker": "sable",
     "lines": [
-      "I've a new question. It's been on my desk a year.",
-      "Nettle Chimney is the tall face on this ridge. Nobody's tried it. I want it on the record.",
-      "Take the chimney scramble to the top. Then tell Tuck the face is climbable.",
-      "He won't cross a bridge. He's never said a word about climbing. Then come and tell me."
+      "I've got a new question for you. It's been sitting on my desk for a year.",
+      "Nettle Chimney is the tall rock face on this ridge. Nobody's ever tried it, and I'd like it on the record.",
+      "Take the chimney scramble up to the top. Then go and tell Tuck, the marten at the bridge, that the face can be climbed.",
+      "He won't cross a bridge, but he's never said a word about climbing. Then come and tell me."
     ]
   },
   {
     "id": "sable-bwait",
     "speaker": "sable",
     "lines": [
-      "The chimney's still not on the record. Take the scramble to the top.",
-      "Then Tuck. Then me. I'll file it either way."
+      "The chimney still isn't on the record. Take the scramble up to the top.",
+      "Then go to Tuck, and then come back to me. I'll file it either way."
     ]
   },
   {
     "id": "sable-bdone",
     "speaker": "sable",
     "lines": [
-      "Climbable. Witnessed. I'll file it.",
+      "It can be climbed, and there's a witness. I'll file that.",
       "And Tuck's thinking about it? Tuck's never thought about anything but knots.",
-      "Two ways up this ridge now. One for crossers. One for climbers.",
-      "Here. For the climb. I'll race you up it next time."
+      "So that's two ways up this ridge now. One for crossers, and one for climbers.",
+      "Here, this is for the climb. I'll race you up it next time."
     ]
   },
   {
@@ -402,8 +402,8 @@
     "speaker": "sable",
     "lines": [
       "Forty, gusting. Filed. I file everything.",
-      "Somebody keeps lighting the lanterns on the ridge. Good. I like a flicker.",
-      "Mind the crest. The wind doesn't file reports. It just pushes."
+      "Somebody keeps lighting the lanterns along the ridge. Good. I like a bit of flicker.",
+      "Watch yourself on the crest. The wind doesn't file reports. It just pushes."
     ]
   }
 ]

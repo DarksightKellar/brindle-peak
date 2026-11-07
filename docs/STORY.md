@@ -51,8 +51,15 @@ no connection is a stranger saying a riddle.
 ## Voice
 
 Warm, direct, unhurried. People who live somewhere cold and know each other well: they do not explain
-themselves, but they do answer questions. Short sentences are fine — fragments are not, unless the fragment
-answers something the player just asked.
+themselves, but they do answer questions. It is a cozy game, and people in it talk the way people talk:
+whole sentences, with the little words left in ("Oh, there you are", "would you", "mind", "you know").
+They are in no hurry and are not trying to say things in as few words as possible.
+
+**No tagline diction (the director's rule).** Nobody speaks in clipped fragments stacked for effect
+("Thinner. The road does that."), punchy closers ("That's not hearsay. That's bells."), or aphorisms
+("Winter wants one."). If a line sounds like a trailer, a poster or a writer being clever, rewrite it as
+something a real neighbour would say across a kitchen table. Character quirks stay (Bram counts, Margit
+measures, Jory speaks formally), but they come out in ordinary speech.
 
 **No line may be a non-sequitur.** If you cannot say what the previous line said and what this line answers,
 delete the line.
@@ -63,14 +70,14 @@ delete the line.
 > Nana: "Line's down. Whole valley."
 > Nana: "Kettle's on. Boots off."
 
-### After (the target: same terseness, everything grounded)
+### After (the target: everything grounded, said the way a person would say it)
 
 > Nana: "There you are. I heard the truck go back down without you on it."
 > Nana: "You walked up from the road head? In this? Sit down before you argue with me."
 > Nana: "The radio's been dead since Tuesday. Whole valley's deaf until someone climbs to the mast, and
 > my knees are done arguing with that hill."
 
-Same voice. The difference is that a truck exists because she mentions it arriving, the road head is
+The difference is that a truck exists because she mentions it arriving, the road head is
 established as where Pip came from, and the mast is introduced as an object before it becomes an errand.
 
 ## Writing a conversation

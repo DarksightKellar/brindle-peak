@@ -144,7 +144,7 @@ writeFileSync(
  * file. The brief the writers worked to is docs/BEATS.md.
  *
  * Conventions: node ids are \`<npc>-<slot>\`. \`next\` chains without input; \`choices\` are the only branch
- * points, never more than two. Pip speaks as 'pip' — lowercase, terse, a little deadpan.
+ * points, never more than two. Pip speaks as 'pip': lowercase, few words, a little deadpan, but still plain speech.
  */
 
 import type { DialogueChoice, DialogueNode } from '../core/contracts';

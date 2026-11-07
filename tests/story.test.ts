@@ -198,7 +198,7 @@ describe('Orla and the snowman', () => {
     expect(ivy()).toMatch(/my sister in the pines/);
     expect(ivy()).not.toMatch(/Forty-one/);
     s.quests['ivy-springs'] = { status: 'complete', step: 0 };
-    expect(ivy()).toMatch(/Forty-one and holding/);
+    expect(ivy()).toMatch(/forty-one and holding/);
     s.quests['ilsa-kindling'] = { status: 'complete', step: 0 };
     expect(ivy()).not.toMatch(/my sister in the pines|Forty-one/);
     expect(ivy()).toMatch(/coming down tomorrow/);
@@ -255,7 +255,7 @@ describe('the homecoming hears about errands', () => {
     // And the goal line, asked from further off, keeps the same name until Pip has met them.
     expect(unmetAfterStory(s, { x: from.x + 30, z: from.z }, guide)?.id).toBe(next?.id);
     for (const n of NPCS) s.talked[n.id] = true;
-    expect((DIALOGUE_FILLS['nana-heard']?.(s) ?? []).at(-1)).toMatch(/the valley's yours/);
+    expect((DIALOGUE_FILLS['nana-heard']?.(s) ?? []).at(-1)).toMatch(/the valley's all yours/);
   });
 
   it('has Nana say who lit the posts: Pip, the valley, or both', () => {

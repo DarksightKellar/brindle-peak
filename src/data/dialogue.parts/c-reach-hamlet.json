@@ -3,9 +3,9 @@
     "id": "skiff-root",
     "speaker": "skiff",
     "lines": [
-      "You're the bird from up the valley. Nana's girl.",
-      "Look at this. Three feet of ice and no water to float a boat.",
-      "I've got a sled up in the rafters. Been there since the freeze. Nobody rides it."
+      "You're the bird from up the valley, aren't you? Nana's girl.",
+      "Look at all this. Three feet of ice, and not a drop of water to float a boat on.",
+      "I've got a sled up in the rafters. It's been up there since the lake froze, and nobody ever rides it."
     ],
     "choices": [
       {
@@ -23,9 +23,9 @@
     "id": "skiff-chat",
     "speaker": "skiff",
     "lines": [
-      "An otter with a boat in a field. That's what.",
-      "The pike are down there somewhere. Sitting in the dark, laughing at me.",
-      "I know where they sit. Ask me later if you need to find them."
+      "An otter with a boat stuck in a field, that's what.",
+      "The pike are down there somewhere, sitting in the dark and laughing at me.",
+      "I know where they sit, mind you. Ask me later if you ever want to find them."
     ],
     "next": "skiff-errand"
   },
@@ -34,8 +34,8 @@
     "speaker": "skiff",
     "fill": "skiff-hill",
     "lines": [
-      "Then find Margit, the raven who counts the ice. She's out there now.",
-      "Ask her if it'll hold a sled. And don't let her talk your ear off."
+      "Then go and find Margit, the raven who measures the ice. She's out there now.",
+      "Ask her whether it'll hold a sled. And don't let her talk your ear off."
     ],
     "next": "skiff-pip"
   },
@@ -43,8 +43,8 @@
     "id": "skiff-pip",
     "speaker": "pip",
     "lines": [
-      "a sled nobody rides.",
-      "and a raven who counts ice."
+      "so, a sled that nobody rides...",
+      "and a raven who measures the ice. got it."
     ]
   },
   {
@@ -52,8 +52,8 @@
     "speaker": "skiff",
     "fill": "skiff-wait-hill",
     "lines": [
-      "Ask the raven, Margit, if the ice holds. She's precise about it.",
-      "Then come back and tell me."
+      "Ask the raven, Margit, whether the ice will hold. She's very precise about it.",
+      "Then come back and tell me what she says."
     ]
   },
   {
@@ -61,26 +61,26 @@
     "speaker": "skiff",
     "fill": "skiff-still-hill",
     "lines": [
-      "Then ask the raven, Margit, if the ice holds a sled."
+      "Then go and ask the raven, Margit, whether the ice will hold a sled."
     ]
   },
   {
     "id": "skiff-done",
     "speaker": "skiff",
     "lines": [
-      "So the raven says it holds. Good enough for me.",
-      "Then mine comes down off the roof. Here. Not a loan: yours, on any slope you like.",
-      "Use it hard. That's all a sled wants. Same as a boat."
+      "So the raven says it'll hold? That's good enough for me.",
+      "Then mine's coming down off the roof. Here you are. It's not a loan, it's yours, on any slope you like.",
+      "Ride it hard. That's all a sled wants, same as a boat."
     ]
   },
   {
     "id": "skiff-pike",
     "speaker": "skiff",
     "lines": [
-      "Margit, the raven, wants my pike spot? She sent you to ask me?",
-      "Fine. Off the end of the old jetty, where the bottom drops away.",
-      "They sit there all winter in the dark. Don't tell anyone else.",
-      "And tell her I said to write it down right."
+      "Margit, the raven, wants to know where my pike are? She sent you to ask me, did she?",
+      "Oh, fine. Off the end of the old jetty, where the bottom drops away.",
+      "They sit there all winter long, in the dark. Don't you go telling anybody else.",
+      "And tell her I said to write it down properly."
     ]
   },
   {
@@ -88,27 +88,27 @@
     "speaker": "skiff",
     "lines": [
       "Flour for Orla, up at the bakery? Aye, it's in the hold.",
-      "Boat's frozen in, but the hold's dry. Three sacks, sealed in oilcloth.",
-      "I'll haul them up the hill by sled this evening. Tell her that.",
-      "And tell her I'll want the first loaf. Captain's due."
+      "The boat's frozen in, but the hold's dry enough. Three sacks, all sealed up in oilcloth.",
+      "I'll haul them up the hill on the sled this evening. You can tell her that.",
+      "And tell her I'll be wanting the first loaf. That's the captain's due."
     ]
   },
   {
     "id": "skiff-idle",
     "speaker": "skiff",
     "lines": [
-      "Still no water. Still a captain. Somebody has to be.",
-      "Ride that sled for me. It's been waiting longer than I have.",
-      "Come spring, I'll take you out on real water. You'll see."
+      "Still no water, and I'm still a captain. Somebody has to be.",
+      "Do ride that sled for me. It's been waiting even longer than I have.",
+      "Come the spring, I'll take you out on real water. You'll see."
     ]
   },
   {
     "id": "margit-root",
     "speaker": "margit",
     "lines": [
-      "The ice is forty-one centimetres at the centre. Forty-three at the edge.",
-      "The otter with the boat, Skiff, calls that luck. I call it a measurement.",
-      "I'm counting today. You fish. Bring me something worth writing down."
+      "The ice is forty-one centimetres thick at the centre, and forty-three at the edge.",
+      "Skiff, the otter with the boat, calls that luck. I call it a measurement.",
+      "I'm counting today. You could fish, if you like, and bring me something worth writing down."
     ],
     "choices": [
       {
@@ -117,7 +117,7 @@
         "takes": true
       },
       {
-        "text": "why count the ice?",
+        "text": "why measure the ice?",
         "next": "margit-chat"
       }
     ]
@@ -126,9 +126,9 @@
     "id": "margit-chat",
     "speaker": "margit",
     "lines": [
-      "Because the lake doesn't lie. People do. Numbers don't.",
-      "Skiff thinks the ice insulted him. I think it's a record.",
-      "Go on. The hole's drilled. I'll count while you pull."
+      "Because the lake doesn't lie. People do, now and then, but numbers never do.",
+      "Skiff seems to think the ice froze just to insult him. I think it's a record.",
+      "Go on, the hole's already drilled. I'll count while you pull."
     ],
     "next": "margit-errand"
   },
@@ -136,9 +136,9 @@
     "id": "margit-errand",
     "speaker": "margit",
     "lines": [
-      "Fish the hole. I'll count the minutes. Whatever bites, I'll write it down.",
-      "Then ask the otter with the boat, Skiff, where the pike sit.",
-      "He knows. He just won't say it out loud. Not to me."
+      "Fish the hole, and I'll count the minutes. Whatever bites, I'll write it down.",
+      "Then ask Skiff, the otter with the boat, where the pike sit.",
+      "He knows perfectly well. He just won't say it out loud, not to me."
     ]
   },
   {
@@ -146,14 +146,14 @@
     "speaker": "margit",
     "lines": [
       "You're back. The hole's still open, and I'm still counting.",
-      "Fish it. Then get Skiff to tell you where the pike sit."
+      "Fish it first, then get Skiff to tell you where the pike sit."
     ]
   },
   {
     "id": "margit-still",
     "speaker": "margit",
     "lines": [
-      "Fish the hole. I'm counting. Then ask the otter, Skiff, where the pike sit."
+      "Fish the hole while I count. Then ask Skiff, the otter, where the pike sit."
     ]
   },
   {
@@ -161,16 +161,16 @@
     "speaker": "margit",
     "fill": "margit-catch",
     "lines": [
-      "Here's the good bait. Use it off the jetty. Then bring me the next number."
+      "Here's the good bait for you. Use it off the jetty, and bring me back the next number."
     ]
   },
   {
     "id": "margit-sled",
     "speaker": "margit",
     "lines": [
-      "Skiff, the otter with the boat, wants to know if it holds a sled?",
-      "Forty-one centimetres at the centre. It would hold Skiff and his boat.",
-      "Tell him yes. Tell him it's a measurement, not luck.",
+      "Skiff, the otter with the boat, wants to know if the ice will hold a sled?",
+      "It's forty-one centimetres at the centre. It would hold Skiff and his boat both.",
+      "Tell him yes. And tell him it's a measurement, not luck.",
       "And tell him to stop sulking at the lake. It doesn't notice."
     ]
   },
@@ -178,18 +178,18 @@
     "id": "margit-idle",
     "speaker": "margit",
     "lines": [
-      "It's forty-one at the centre, forty-three at the edge. Same as yesterday.",
-      "Same is good. Same is a record holding.",
-      "Fish if you like. I'll count. I always count."
+      "It's forty-one at the centre and forty-three at the edge, same as yesterday.",
+      "Same is good, you know. It means the record's holding.",
+      "Fish if you like, and I'll count. I always count."
     ]
   },
   {
     "id": "orla-root",
     "speaker": "orla",
     "lines": [
-      "You must be Pip. Sit down, you look frozen through.",
-      "The oven's on, but I've no flour. Skiff, the otter with the boat, has it.",
-      "Would you ask him for me?"
+      "You must be Pip. Come and sit down, you look frozen through.",
+      "The oven's on, but I've run out of flour. Skiff, the otter with the boat, has got it.",
+      "Would you go and ask him for me?"
     ],
     "choices": [
       {
@@ -198,7 +198,7 @@
         "takes": true
       },
       {
-        "text": "why is flour on a boat?",
+        "text": "why is the flour on a boat?",
         "next": "orla-chat"
       }
     ]
@@ -207,9 +207,9 @@
     "id": "orla-chat",
     "speaker": "orla",
     "lines": [
-      "Skiff ferries it up the lake each autumn. This year the ice won.",
-      "So the sacks sit in his hold, frozen in, and my oven eats wood.",
-      "He'll know if any of it's dry. Ask nicely. He sulks about that boat."
+      "Skiff brings it up the lake for me every autumn. This year the ice beat him to it.",
+      "So the sacks are sitting in his hold, frozen in, and my oven's just burning wood.",
+      "He'll know if any of it's still dry. Ask him nicely, mind. He's touchy about that boat."
     ],
     "next": "orla-errand"
   },
@@ -218,7 +218,7 @@
     "speaker": "orla",
     "fill": "orla-green",
     "lines": [
-      "Skiff's boat is iced in, down on the Frozen Reach. He'll know what's aboard."
+      "Skiff's boat is iced in down on the Frozen Reach. He'll know what's on board."
     ],
     "next": "orla-pip"
   },
@@ -227,15 +227,15 @@
     "speaker": "pip",
     "fill": "orla-pip-green",
     "lines": [
-      "flour in a boat, frozen in. poor oven."
+      "flour stuck in a frozen boat. poor oven."
     ]
   },
   {
     "id": "orla-wait",
     "speaker": "orla",
     "lines": [
-      "No flour? Skiff's telling you about the one that got away, I expect.",
-      "Take your time. The oven's holding."
+      "No flour yet? I expect Skiff's been telling you about the one that got away.",
+      "Take your time, love. The oven'll keep."
     ],
     "fill": "orla-snowman"
   },
@@ -243,9 +243,9 @@
     "id": "orla-done",
     "speaker": "orla",
     "lines": [
-      "The flour's coming? Tonight? Then the oven stays on.",
-      "And there's a snowman on the green, leaning at my window. Yours, I'd bet. It's just right.",
-      "Here. Two tins of soup. One for you, one for Nana.",
+      "The flour's coming? Tonight? Oh, then the oven can stay on.",
+      "And there's a snowman out on the green, leaning on my window. That's yours, I'd bet. It's just right.",
+      "Here, take two tins of soup. One's for you, and one's for Nana.",
       "And Skiff wants the first loaf, does he? He'll get it. Thank you, love."
     ]
   },
@@ -253,27 +253,27 @@
     "id": "orla-news",
     "speaker": "orla",
     "lines": [
-      "Corm, the raven, says we're closed? I've been open since five.",
-      "Flour or no flour, the oven's lit. That's open.",
-      "Tell him to come and eat something. Then tell him to check his facts."
+      "Corm, the raven, is telling people we're closed? I've been open since five this morning.",
+      "Flour or no flour, the oven's lit, and as far as I'm concerned that means we're open.",
+      "Tell him to come in and eat something. And then tell him to check his facts."
     ]
   },
   {
     "id": "orla-blue",
     "speaker": "orla",
     "lines": [
-      "Which house is blue? Mine. Look at the door. I painted it in spring.",
-      "Pell asks me this every winter. Then he asks somebody else.",
-      "Tell him the bakery. Blue door, flour on the step. He can't miss it."
+      "Which house is blue? Mine is. Look at the door, I painted it in the spring.",
+      "Pell asks me that every single winter. And then he goes and asks somebody else.",
+      "Tell him it's the bakery. Blue door, flour on the step. He can't miss it."
     ]
   },
   {
     "id": "orla-b",
     "speaker": "orla",
     "lines": [
-      "I've lit the market lamps for a night bake. Four loaves won't feed this queue.",
-      "I'd like a picture of the lamps for the window. And a bell rung when the bread's out.",
-      "Gus, who sells bells across the square, has the loudest one. Borrow him for an hour."
+      "I've lit the market lamps for a night bake. Four loaves won't feed a queue like this.",
+      "I'd love a picture of the lamps for the window. And somebody to ring a bell when the bread comes out.",
+      "Gus, who sells bells across the square, has the loudest one. Could you borrow him for an hour?"
     ],
     "choices": [
       {
@@ -291,8 +291,8 @@
     "id": "orla-bchat",
     "speaker": "orla",
     "lines": [
-      "He's loud. People hear the bell and know the bread's out.",
-      "He'll talk your ear off, but he'll do it."
+      "He's loud. Folk hear that bell and know the bread's out.",
+      "He'll talk your ear off, mind, but he'll do it."
     ],
     "next": "orla-berrand"
   },
@@ -301,8 +301,8 @@
     "speaker": "orla",
     "fill": "orla-lamps",
     "lines": [
-      "Then go and get Gus from his shop, and his bell.",
-      "Then come back and tell me the queue's fed."
+      "Then go and fetch Gus from his shop, and bring his bell.",
+      "Then come back and tell me the queue's been fed."
     ]
   },
   {
@@ -310,7 +310,7 @@
     "speaker": "orla",
     "fill": "orla-lamps-wait",
     "lines": [
-      "Then go and get Gus from the bell shop, with his bell."
+      "Then go and fetch Gus from the bell shop, and his bell with him."
     ]
   },
   {
@@ -318,25 +318,25 @@
     "speaker": "orla",
     "fill": "orla-lamps-still",
     "lines": [
-      "Then go and get Gus from the bell shop, with his loud bell."
+      "And then you'll need to fetch Gus from the bell shop, with his loud bell."
     ]
   },
   {
     "id": "orla-bdone",
     "speaker": "orla",
     "lines": [
-      "Nine loaves. The queue's fed.",
-      "You take the credit. I'm going to sit down for five minutes.",
-      "Thank you, Pip. Really."
+      "Nine loaves! The whole queue's been fed.",
+      "You can take the credit. I'm going to sit down for five minutes.",
+      "Thank you, Pip. I mean it."
     ]
   },
   {
     "id": "orla-idle",
     "speaker": "orla",
     "lines": [
-      "Nine loaves one day, four the next. Somewhere in between is right.",
-      "Sit down, Pip. You look frozen through. There's always a heel of bread.",
-      "Tell Nana there's a loaf here whenever she wants one."
+      "Nine loaves one day, four the next. The right number's somewhere in between.",
+      "Sit yourself down, Pip, you look frozen through. There's always a heel of bread for you here.",
+      "And tell Nana there's a loaf here for her whenever she wants one."
     ],
     "fill": "orla-bell"
   },
@@ -344,9 +344,9 @@
     "id": "pell-root",
     "speaker": "pell",
     "lines": [
-      "I've one letter left in the bag, and it's been in there a week.",
-      "It says 'The blue house, road head.' I've four blue houses on my round.",
-      "I numbered them. It didn't help."
+      "I've got one letter left in my bag, and it's been sitting in there for a week.",
+      "It just says 'The blue house, road head.' But I've got four blue houses on my round.",
+      "I even numbered them. It didn't help."
     ],
     "choices": [
       {
@@ -355,7 +355,7 @@
         "takes": true
       },
       {
-        "text": "why four blue houses?",
+        "text": "why are there four blue houses?",
         "next": "pell-chat"
       }
     ]
@@ -364,9 +364,9 @@
     "id": "pell-chat",
     "speaker": "pell",
     "lines": [
-      "Paint fades up here. Frost takes the blue first, then it all goes grey.",
-      "So four doors that were blue once. And only one letter.",
-      "Nana's cabin at the road head is my best guess. Take it and ask."
+      "The paint fades up here. The frost takes the blue first, and then it all goes grey.",
+      "So I've got four doors that were blue once, and only the one letter.",
+      "Nana's cabin at the road head is my best guess. Would you take it and ask her?"
     ],
     "next": "pell-errand"
   },
@@ -374,8 +374,8 @@
     "id": "pell-errand",
     "speaker": "pell",
     "lines": [
-      "Take the letter down to Hearth Hollow. Give it to Nana at the cabin.",
-      "Into her hands, mind. Not the step. Then I'll sleep."
+      "Take the letter down to Hearth Hollow and give it to Nana at the cabin.",
+      "Into her hands, mind, not on the step. Then I'll be able to sleep."
     ],
     "next": "pell-pip"
   },
@@ -383,16 +383,16 @@
     "id": "pell-pip",
     "speaker": "pip",
     "lines": [
-      "a blue door at the road head.",
-      "nana's is blue."
+      "a blue door at the road head...",
+      "nana's door is blue."
     ]
   },
   {
     "id": "pell-wait",
     "speaker": "pell",
     "lines": [
-      "Still got it? Nana's cabin is in Hearth Hollow, at the road head.",
-      "Into her hands. That's all I ask."
+      "Still got it? Nana's cabin is in Hearth Hollow, up at the road head.",
+      "Put it into her hands. That's all I ask."
     ]
   },
   {
@@ -400,8 +400,8 @@
     "speaker": "pell",
     "lines": [
       "You gave it to Nana? And it was the right house?",
-      "One letter. One correct delivery. I'll take that.",
-      "By her stove, she's keeping it? That's where good letters go. A job done right."
+      "One letter, delivered to the right door. I'll take that.",
+      "And she's keeping it by her stove? That's where the good letters go. That's a job done properly."
     ],
     "next": "pell-b"
   },
@@ -410,19 +410,19 @@
     "speaker": "pell",
     "lines": [
       "Gus, the bell-seller, wants to know how far his shop bell carries?",
-      "I heard it ring, from the far end of my round. Clean.",
-      "It carries the whole hamlet. Every door I knocked, it got there first.",
-      "Tell him the whole hamlet. He'll go pink. Let him."
+      "I heard it ring from the far end of my round. Nice and clean, it was.",
+      "It carries right across the hamlet. Every door I knocked on, the sound had got there before me.",
+      "Tell him the whole hamlet. He'll go all pink. Let him."
     ]
   },
   {
     "id": "pell-news",
     "speaker": "pell",
     "lines": [
-      "Is the post running? Corm, the raven, sent you to ask? Typical.",
-      "Inside the valley, yes. I walk it every morning, door to door.",
-      "Over the pass, no. Nothing goes over till the road's cleared.",
-      "Tell him both halves. He only ever repeats one."
+      "Is the post running? Corm, the raven, sent you to ask me? Typical.",
+      "Inside the valley, yes, it is. I walk it every morning, door to door.",
+      "Over the pass, no. Nothing goes over until the road's been cleared.",
+      "Tell him both halves, mind. He only ever passes on one of them."
     ]
   },
   {
@@ -430,8 +430,8 @@
     "speaker": "pell",
     "lines": [
       "That letter found Nana by luck. The next one might not.",
-      "Orla, the mouse with the bakery, knows every door in the hamlet. Ask her which house is blue.",
-      "Ivy, the otter who keeps the springs, sees the whole hill from below. Ask her too."
+      "Orla, the mouse with the bakery, knows every door in the hamlet. Would you ask her which house is blue?",
+      "And Ivy, the otter who looks after the springs, can see the whole hill from down there. Ask her as well."
     ],
     "choices": [
       {
@@ -449,8 +449,8 @@
     "id": "pell-bchat",
     "speaker": "pell",
     "lines": [
-      "Ivy sees every house on the hill from the pools. That's her post, in a way.",
-      "Orla sees every door from her counter. Between them, they've the whole round."
+      "From the pools, Ivy can see every house on the hill. That's her post, in a way.",
+      "And Orla sees every door from behind her counter. Between the two of them, they've got my whole round."
     ],
     "next": "pell-berrand"
   },
@@ -458,42 +458,42 @@
     "id": "pell-berrand",
     "speaker": "pell",
     "lines": [
-      "Ask Orla which house is blue. Ask Ivy, at the springs, too.",
-      "Then come back. I'll have the ledger open."
+      "So ask Orla which house is blue, and ask Ivy, down at the springs, as well.",
+      "Then come back to me. I'll have the ledger open."
     ]
   },
   {
     "id": "pell-bwait",
     "speaker": "pell",
     "lines": [
-      "You're back. The ledger's open. Which house is blue?",
-      "Ask Orla, at the bakery, first. Then Ivy, down at Kettle Springs."
+      "You're back. I've got the ledger open. So, which house is blue?",
+      "Ask Orla at the bakery first, and then Ivy, down at Kettle Springs."
     ]
   },
   {
     "id": "pell-bstill",
     "speaker": "pell",
     "lines": [
-      "Ask Orla, at the bakery, which house is blue. Then Ivy, at the springs. I'll keep the ledger open."
+      "Ask Orla, at the bakery, which house is blue, and then Ivy, at the springs. I'll keep the ledger open."
     ]
   },
   {
     "id": "pell-bdone",
     "speaker": "pell",
     "lines": [
-      "Orla says her door. Ivy says the green one, from where she sits.",
-      "Two answers. Both right, from where they stand. No use to a postmaster.",
-      "So I'll stop writing colours. I'll write names. Everyone knows a name.",
-      "Thank you, Pip. I can sleep now."
+      "Orla says it's her door. Ivy says it's the green one, from where she sits.",
+      "So that's two answers, and they're both right from where they're standing. Which is no use at all to a postman.",
+      "So I'll stop writing colours on the letters and write names instead. Everyone knows a name.",
+      "Thank you, Pip. I'll be able to sleep now."
     ]
   },
   {
     "id": "pell-idle",
     "speaker": "pell",
     "lines": [
-      "Names on the front now, not colours. Not one letter astray since.",
-      "Turns out everybody knows where everybody lives. I only had to ask.",
-      "Mind the step. I've sanded it, but it's sneaky."
+      "I write names on the front now, not colours. Not a single letter's gone astray since.",
+      "It turns out everybody knows where everybody else lives. I only had to ask.",
+      "Mind the step. I've sanded it, but it still catches people out."
     ]
   },
   {
@@ -501,9 +501,9 @@
     "speaker": "gus",
     "fill": "gus-hello",
     "lines": [
-      "I sell bells. Every size. And I've never once heard the big one ring.",
-      "My shop bell, though. One clean strike, and I want to know how far it goes.",
-      "Pell, the postmaster, walks the whole hamlet. Ask him if he heard it."
+      "I sell bells, every size there is. And I've never once heard the big one ring.",
+      "My shop bell, though. One clean strike, and I'd love to know how far it goes.",
+      "Pell, the postmaster, walks the whole hamlet. Would you ask him if he heard it?"
     ],
     "choices": [
       {
@@ -522,8 +522,8 @@
     "speaker": "gus",
     "lines": [
       "It's the biggest bell in the valley! Nobody's rung it in years.",
-      "What if I pull the rope and it goes clunk? In front of everyone?",
-      "So. The shop bell first. If that carries, maybe the big one will."
+      "What if I pull the rope and it just goes clunk? In front of everybody?",
+      "So I'll try the shop bell first. If that one carries, maybe the big one will too."
     ],
     "next": "gus-errand"
   },
@@ -532,7 +532,7 @@
     "speaker": "gus",
     "fill": "gus-ring",
     "lines": [
-      "Then ask Pell how far the sound travelled. He'll know. He hears every door."
+      "Then ask Pell how far the sound travelled. He'll know, he hears every door."
     ]
   },
   {
@@ -540,7 +540,7 @@
     "speaker": "gus",
     "fill": "gus-ring-wait",
     "lines": [
-      "Then Pell, out on his round, will tell you how far it carried."
+      "And then Pell, out on his round, can tell you how far it carried."
     ]
   },
   {
@@ -548,36 +548,36 @@
     "speaker": "gus",
     "fill": "gus-ring-still",
     "lines": [
-      "Then Pell, the postmaster, will tell you how far it carried."
+      "And then Pell, the postmaster, can tell you how far it carried."
     ]
   },
   {
     "id": "gus-done",
     "speaker": "gus",
     "lines": [
-      "It carries the hamlet? The whole hamlet?",
-      "Then the big bell could reach the valley. I've got to try it. Soon. Fairly soon.",
-      "Here, take these. Bells for your trouble. Spend them on my feathers. They buy you breath."
+      "It carries across the hamlet? The whole hamlet?",
+      "Then the big bell could reach the whole valley! I'll have to try it. Soon. Well, fairly soon.",
+      "Here, take these bells for your trouble. You can spend them on my feathers. They'll give you more breath for flying."
     ]
   },
   {
     "id": "gus-bake",
     "speaker": "gus",
     "lines": [
-      "Orla, at the bakery, wants me? For an hour? To ring?",
-      "I'll ring for bread any day. Loaves out, bell rings, queue comes.",
-      "Lock the shop? No. Nobody steals bells. They'd be heard.",
-      "Tell her I'm on my way. Bringing the loud one."
+      "Orla, at the bakery, wants me? For a whole hour? To ring?",
+      "I'd ring for bread any day. The loaves come out, the bell rings, and the queue comes running.",
+      "Lock up the shop? No, nobody steals bells. They'd be heard.",
+      "Tell her I'm on my way, and I'm bringing the loud one."
     ]
   },
   {
     "id": "gus-idle",
     "speaker": "gus",
     "lines": [
-      "Bells! Bells for sale! ...Oh, it's you. Hello.",
-      "I'm working up to the big bell. I've held the rope. That's a start.",
+      "Bells! Bells for sale! ...Oh, it's you. Hello again.",
+      "I'm working my way up to the big bell. I've held the rope, which is a start.",
       "One day I'll pull it, and the whole valley will hear. You'll see.",
-      "Those two feathers by my feet are forty bells each. Longer breath for the climb."
+      "Those two feathers by my feet are forty bells each. They'll give you longer breath for the climb."
     ]
   }
 ]

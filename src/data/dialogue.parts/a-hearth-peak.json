@@ -3,18 +3,19 @@
     "id": "nana-root",
     "speaker": "nana",
     "lines": [
-      "There you are. Thinner. The road does that.",
-      "Bad timing, love. The radio's gone quiet, and the set up at the mast on Brindle Peak is dead for want of power.",
-      "Bram, who keeps the woodstore by the big pine, has spare batteries. And take my old camera: Edda up there has been after one. She'll tell you why."
+      "Oh, there you are! Come here and let me look at you. That long road's worn you thin.",
+      "I'm sorry, love, you've come at a bad time. The radio's gone quiet. The set up at the mast on Brindle Peak has run out of power, and nobody can get through.",
+      "Bram, who looks after the woodstore by the big pine, keeps spare batteries. Would you fetch them for me?",
+      "And take my old camera with you. Edda, who keeps the set up there, has been wanting one for ages. She'll tell you why."
     ],
     "choices": [
       {
-        "text": "i'll get them from bram.",
+        "text": "i'll go and see bram.",
         "next": "nana-errand",
         "takes": true
       },
       {
-        "text": "why can't the radio wait?",
+        "text": "can't the radio wait a bit?",
         "next": "nana-chat"
       }
     ]
@@ -23,10 +24,10 @@
     "id": "nana-chat",
     "speaker": "nana",
     "lines": [
-      "Because the snow's early, and when it comes the road closes behind it.",
-      "The radio is how the valley checks on itself. Orla's flour, Skiff's ice, whose chimney's gone cold.",
-      "Edda keeps the set at the mast. She's sat with a dead box since.",
-      "I'd go myself. These knees did that climb sixty winters. They're done."
+      "Not really, love. The snow's come early this year, and once it settles in, the road closes behind it.",
+      "The radio's how we all keep an eye on each other up here. Who's short of flour, whether the lake ice is holding, whose chimney's stopped smoking.",
+      "Edda's been sitting up there with a dead set ever since it went. She won't say so, but she'll be lonely.",
+      "I'd go up myself, but these knees have done that climb for sixty winters, and they've told me they're finished with it."
     ],
     "next": "nana-errand"
   },
@@ -34,27 +35,27 @@
     "id": "nana-errand",
     "speaker": "nana",
     "lines": [
-      "He'll want something done first. He always does. Then bring the batteries here."
+      "He'll want you to do something for him first. He always does, bless him. Once you've got them, bring the batteries back here to me."
     ]
   },
   {
     "id": "nana-wait",
     "speaker": "nana",
     "lines": [
-      "Still empty-handed? Don't fret. It's early yet.",
-      "Bram keeps the batteries in his woodstore, by the big pine.",
-      "He's particular, not mean. Whatever he asks, it'll be quick and it'll be fussy.",
-      "Bring them here first, before the hill. There's more you'll need to know."
+      "No batteries yet? Oh, don't worry, there's plenty of day left.",
+      "Bram keeps them in his woodstore, over by the big pine.",
+      "He's fussy, but he isn't unkind. Whatever he asks you to do, it'll be quick, and he'll be particular about it.",
+      "Bring them back here before you head up the hill, mind. There are a few things I'll need to tell you."
     ]
   },
   {
     "id": "nana-done",
     "speaker": "nana",
     "lines": [
-      "You got them off him. Heavy, aren't they? That's the radio's voice in there.",
-      "Here. Take my lantern. There are posts all along the trail. Light them as you pass.",
-      "Lit, they'll show you the way back down to me.",
-      "Edda keeps the set at the mast. Give these to her and nobody else."
+      "You got them off him! Heavy, aren't they? That's the radio's voice you're carrying in there.",
+      "Here, take my lantern as well. There are lantern posts all the way up the trail, so light them as you go past.",
+      "Once they're lit, they'll show you the way back down to me.",
+      "Edda keeps the set at the mast. Make sure you give these to her and nobody else."
     ],
     "choices": [
       {
@@ -62,7 +63,7 @@
         "next": "nana-edda"
       },
       {
-        "text": "i'll go now.",
+        "text": "i'll head up now.",
         "next": "nana-send"
       }
     ]
@@ -71,9 +72,9 @@
     "id": "nana-edda",
     "speaker": "nana",
     "lines": [
-      "Edda is an owl. Proud, kind, and she can't abide a fuss.",
-      "We've talked on that set every evening for thirty years.",
-      "She'll ask if I'm well. Tell her yes. She'll pretend she wasn't worried."
+      "Edda's an owl. She's proud, and she's kind, and she can't stand anyone making a fuss of her.",
+      "The two of us have talked on that radio every evening for thirty years.",
+      "She'll ask you whether I'm keeping well. Tell her yes. And she'll pretend she wasn't worried about me."
     ],
     "next": "nana-send"
   },
@@ -81,33 +82,33 @@
     "id": "nana-send",
     "speaker": "nana",
     "lines": [
-      "Climb slow. The wind up there will have the feathers off you if you let it.",
-      "And when it's done, come back down. I'll want to hear it from you."
+      "Take the climb slowly. The wind up on the ridge will have the feathers off you if you let it.",
+      "And when it's all done, come back down to me. I want to hear all about it from you."
     ]
   },
   {
     "id": "nana-climb-wait",
     "speaker": "nana",
     "lines": [
-      "Still here, love? Edda's waiting on those batteries at the mast.",
-      "Up through Windscar Ridge, lighting the posts as you go. Go on."
+      "Still here, love? Edda's waiting up at the mast for those batteries.",
+      "Go up through Windscar Ridge and light the posts as you pass. Go on, off you go."
     ]
   },
   {
     "id": "nana-letter",
     "speaker": "nana",
     "lines": [
-      "A letter? From Pell, the postmaster, all the way across the valley?",
-      "'The blue house, road head.' Well, that's me. I painted it again in autumn, so there'd be no doubt.",
-      "Hm. I'll need to read that again. And again, probably.",
-      "This one stays by the stove. When you're next in the hamlet, tell Pell it found the right door, love. He frets."
+      "A letter, for me? From Pell, the postmaster, all the way across the valley?",
+      "'The blue house, road head.' Well, that's me. I painted it again in the autumn so there'd be no mistaking it.",
+      "Oh. Oh, I'll need to read this one again. And probably again after that.",
+      "This is staying by the stove. Next time you're in the hamlet, would you tell Pell it found the right door? He worries."
     ]
   },
   {
     "id": "nana-home-done",
     "speaker": "nana",
     "lines": [
-      "There you are. I heard you on the radio. The whole valley did."
+      "There you are! I heard you on the radio, love. The whole valley heard you."
     ],
     "next": "nana-home-posts"
   },
@@ -115,12 +116,12 @@
     "id": "nana-home-posts",
     "speaker": "nana",
     "lines": [
-      "Edda says you did her looking for her. She sounded twenty winters younger.",
-      "Now. Tell me one thing. Just one, tonight. I'll have the rest out of you tomorrow."
+      "Edda says you did her looking for her. She sounded twenty years younger, I'm telling you.",
+      "Now, tell me one thing. Just the one, tonight. I'll get the rest out of you in the morning."
     ],
     "choices": [
       {
-        "text": "bram's pile is four hundred and eighty-one.",
+        "text": "bram's pile came to four hundred and eighty-one.",
         "next": "nana-home-wood"
       },
       {
@@ -134,8 +135,8 @@
     "id": "nana-home-wood",
     "speaker": "nana",
     "lines": [
-      "I know. He told the whole valley on the radio. Then he told it again.",
-      "He'll count it tonight, twice. First night in years he'll like the answer."
+      "Oh, I know. He told the whole valley on the radio, and then he told them all again.",
+      "He'll count it twice tonight, I expect. But it's the first time in years he'll like the answer."
     ],
     "next": "nana-home-close"
   },
@@ -143,8 +144,8 @@
     "id": "nana-home-sky",
     "speaker": "nana",
     "lines": [
-      "The lights? Of course. Edda never could see the green. Now she knows it's there.",
-      "Was it as bright as they say? No, don't tell me. I'll picture it."
+      "The northern lights? Of course. Edda never could see the green, you know. Now at least she knows it's there.",
+      "Was it as bright as they say? No, don't tell me. I'd rather picture it myself."
     ],
     "next": "nana-home-close"
   },
@@ -152,8 +153,8 @@
     "id": "nana-home-close",
     "speaker": "nana",
     "lines": [
-      "But tonight, sit out here with me a minute. I want to look at those posts.",
-      "And Pip. I'm glad it was you that went up."
+      "But for tonight, come and sit out here with me for a minute. I'd like to look at those posts.",
+      "And Pip? I'm glad it was you who went up."
     ],
     "fill": "nana-heard"
   },
@@ -161,9 +162,9 @@
     "id": "nana-idle",
     "speaker": "nana",
     "lines": [
-      "Sit a minute and get warm. Whatever's out there will keep.",
+      "Sit down for a minute and get yourself warm. Whatever's out there will keep.",
       "There's always a cup in this house for you. You know where they live.",
-      "Go on when you're ready. The valley's still yours to walk."
+      "Off you go whenever you're ready. The valley's still there for you to walk."
     ]
   },
   {
@@ -171,18 +172,18 @@
     "speaker": "hollis",
     "fill": "hollis-hello",
     "lines": [
-      "I've lost a mitten. The left one. The good one.",
-      "I know who took it. Fen, the owl who watches from the pines.",
-      "Go and see what he says for himself."
+      "I've lost a mitten. The left one, and it was the good one, too.",
+      "And I know who took it. Fen, the owl who sits watching from the pines.",
+      "Go and ask him what he's got to say for himself."
     ],
     "choices": [
       {
-        "text": "i'll ask fen.",
+        "text": "i'll go and ask fen.",
         "next": "hollis-wait",
         "takes": true
       },
       {
-        "text": "why would fen take a mitten?",
+        "text": "why would an owl take a mitten?",
         "next": "hollis-chat"
       }
     ]
@@ -191,10 +192,10 @@
     "id": "hollis-chat",
     "speaker": "hollis",
     "lines": [
-      "He's an owl. He watches. He's got them big eyes.",
-      "And he never says anything. Guilty, if you ask me.",
-      "The pines. Creek side. That's where he sits.",
-      "Go on, then. He's not going anywhere."
+      "He's an owl, isn't he? He sits up there and watches everybody with those great big eyes.",
+      "And he never says a word to anyone. Looks guilty to me.",
+      "He sits in the pines, over on the creek side.",
+      "Go on, then. He won't be going anywhere."
     ],
     "next": "hollis-wait"
   },
@@ -202,19 +203,19 @@
     "id": "hollis-wait",
     "speaker": "hollis",
     "lines": [
-      "Fen, the owl in the pines, won't volunteer a thing. Put it to him straight.",
-      "Drop a line in the creek pool below the split pine, too. In case he dropped it in, flying off.",
-      "Come back and tell me what he said."
+      "Fen, the owl in the pines, won't tell you anything unless you ask him. So ask him straight out.",
+      "And while you're over there, try dropping a line in the creek pool below the split pine. Just in case he dropped it in when he flew off.",
+      "Then come back and tell me what he said."
     ]
   },
   {
     "id": "hollis-done",
     "speaker": "hollis",
     "lines": [
-      "You fished it out of the creek? Below the split pine?",
-      "So it wasn't Fen. The wind. Huh.",
-      "I'll have to say something to him. Eventually.",
-      "Here. My spare. One mitten's no use to me. Don't argue, I don't want to owe you."
+      "You fished it out of the creek? Under the split pine?",
+      "So it wasn't Fen after all. It was the wind. Well, I never.",
+      "I suppose I'll have to say something to him. One of these days.",
+      "Here, have my spare. One mitten's no use to me on its own. And don't argue, I don't like owing anybody."
     ]
   },
   {
@@ -222,33 +223,33 @@
     "speaker": "hollis",
     "fill": "hollis-idle",
     "lines": [
-      "Wind's picking up. Keep your ears tucked in, Nana's girl."
+      "The wind's picking up. Keep yourself wrapped up warm, Nana's girl."
     ]
   },
   {
     "id": "hollis-fit",
     "speaker": "hollis",
     "lines": [
-      "A headband? From Tamsin, the marten in the pines? For me?",
-      "...Tight round the ears. But it holds. And it's warm. Don't tell anyone I said warm.",
-      "Tell her it fits. And tell her she could have just asked me."
+      "A headband? From Tamsin, the marten up in the pines? For me?",
+      "...It's a bit tight round the ears. But it stays on, and it's warm. Don't you go telling anyone I said it was warm.",
+      "Tell her it fits. And tell her she could've just asked me, you know."
     ]
   },
   {
     "id": "bram-batteries",
     "speaker": "bram",
     "lines": [
-      "Four hundred and... no. That one's sticking out. Start again.",
-      "Batteries. Nana sent you. They're in the woodstore, behind that heap.",
-      "The end of the pile came down. No end, the rows lean, and I can't count a leaning row. Put it back and they're yours."
+      "Four hundred and... no, hang on, that one's sticking out. I'll have to start again.",
+      "Batteries? Nana sent you, did she? They're in the woodstore, behind that heap there.",
+      "The end of my pile came down, you see. Without an end the rows all lean, and I can't count a leaning row. Put it back up for me and they're yours."
     ],
     "choices": [
       {
-        "text": "why does it have to be straight?",
+        "text": "why does it need to be straight?",
         "next": "bram-why"
       },
       {
-        "text": "fine. i'll stack it.",
+        "text": "all right. i'll stack it.",
         "next": "bram-how"
       }
     ]
@@ -257,8 +258,8 @@
     "id": "bram-why",
     "speaker": "bram",
     "lines": [
-      "A straight pile, you count the rows. A crooked one, you count every log. Three times today. Three numbers.",
-      "Can't go into winter with three numbers. Winter wants one."
+      "When a pile's straight, you just count the rows. When it's crooked, you have to count every single log. I've counted it three times today and got three different numbers.",
+      "And I can't go into winter with three numbers. I need the one."
     ],
     "next": "bram-how"
   },
@@ -266,24 +267,24 @@
     "id": "bram-how",
     "speaker": "bram",
     "lines": [
-      "Eight logs, square across each other. I'll know if you've cheated. I'll count."
+      "It wants eight logs on the end, laid square across each other. And I'll know if you've cheated, because I'll count them."
     ]
   },
   {
     "id": "bram-stack",
     "speaker": "bram",
     "lines": [
-      "Still a heap. I can see it from here.",
-      "Eight logs, square across each other. Then come and tell me."
+      "That's still a heap. I can see it from here, you know.",
+      "Eight logs, square across each other. Then come and tell me it's done."
     ]
   },
   {
     "id": "bram-paid",
     "speaker": "bram",
     "lines": [
-      "Let me count. Four hundred and seventy-three in the rows. Eight on the end. Yours.",
-      "Four hundred and eighty-one. Twice running. Do you know how long it's been?",
-      "Here. The spare batteries. Mind them, they're the only ones in the valley."
+      "Right, let me count. Four hundred and seventy-three in the rows, and eight on the end. They're yours.",
+      "Four hundred and eighty-one. The same number twice in a row. Do you know how long it's been since that happened?",
+      "Here you are, the spare batteries. Do be careful with them, they're the only ones in the valley."
     ],
     "next": "bram-rope"
   },
@@ -291,56 +292,56 @@
     "id": "bram-rope",
     "speaker": "bram",
     "lines": [
-      "And since you're going up: the bridge rope on Windscar Ridge is going. Everyone knows it.",
-      "Tuck, the marten who keeps that bridge, hasn't spoken to me in years. He won't come down and ask.",
-      "So take the good rope. Forty feet, coiled, no splices. I checked.",
-      "Tell Tuck I want it back the same length. I'll measure."
+      "And since you're going up there anyway: the bridge rope on Windscar Ridge is wearing through. Everyone knows it.",
+      "Tuck, the marten who looks after that bridge, hasn't spoken to me in years. He'd never come down here and ask.",
+      "So take him my good rope. Forty feet of it, coiled, no splices. I checked it myself.",
+      "And tell Tuck I want it back the same length. I'll be measuring it."
     ]
   },
   {
     "id": "bram-rope-wait",
     "speaker": "bram",
     "lines": [
-      "Tuck's at the bridge on Windscar Ridge. Forty feet, mind. I'll know if it isn't."
+      "Tuck's up at the bridge on Windscar Ridge. Forty feet, mind. I'll know if it comes back short."
     ]
   },
   {
     "id": "bram-rope-done",
     "speaker": "bram",
     "lines": [
-      "It's tied? He took it? From me?",
-      "Still forty feet, he says. Come up and measure it, he says.",
-      "And what's that, bent at the bow? Give it here. That's my woodshed key.",
-      "I stood on it the winter we stopped talking. He's kept it tied in his rope all this time.",
-      "Well. Come spring I'll walk up there with my tape. Somebody has to check."
+      "It's tied on? He took it? From me?",
+      "'Still forty feet,' he says. 'Come up and measure it yourself,' he says. Well.",
+      "And what's that you've got there, with the bent bow? Give it here. That's the key to my woodshed.",
+      "I trod on it and bent it the winter we stopped talking. And he's kept it tied in his rope all this time.",
+      "Well. Come the spring, I'll walk up there with my tape measure. Somebody has to check it."
     ]
   },
   {
     "id": "bram-idle",
     "speaker": "bram",
     "lines": [
-      "Four hundred and seventy-nine, eighty, eighty-one. Right. From the top. Don't talk, I'm counting.",
-      "Wood's the one thing in this valley that stays counted. I like that.",
-      "People don't. People keep changing their numbers.",
-      "Go on. Mind the pile on your way past."
+      "Four hundred and seventy-nine, eighty, eighty-one. Right, from the top. Don't talk to me, I'm counting.",
+      "Wood's the one thing in this valley that stays counted. I like that about it.",
+      "People don't, mind. People keep changing their numbers on you.",
+      "Go on, then. Watch the pile on your way past."
     ]
   },
   {
     "id": "edda-early",
     "speaker": "edda",
     "lines": [
-      "A visitor, up here? You've climbed a long way to see a dead set.",
-      "I keep the radio at this mast. The whole valley talks through it.",
-      "Talked. It's dead for want of power. I'm waiting on batteries from below.",
-      "Nana Quill, at the cabin, is seeing to it. Tell her I'm still here."
+      "A visitor, all the way up here? You've climbed a long way to look at a dead radio.",
+      "I keep the radio set here at the mast. The whole valley talks to each other through it.",
+      "Well, they did. It's run out of power, and I'm waiting on batteries from down below.",
+      "Nana Quill, down at the cabin, is seeing to it. If you see her, tell her I'm still up here."
     ]
   },
   {
     "id": "edda-meet",
     "speaker": "edda",
     "lines": [
-      "You'll be Nana's Pip. I'd know that lantern anywhere. And those are my batteries.",
-      "There. Hear the hum? The set's warm. But it only reaches the valley when the aurora's up."
+      "You'll be Nana's Pip. I'd know that lantern anywhere. And those must be my batteries.",
+      "There, can you hear it humming? The set's warming up. But it can only reach the valley when the aurora's out."
     ],
     "next": "edda-ask"
   },
@@ -348,14 +349,14 @@
     "id": "edda-ask",
     "speaker": "edda",
     "lines": [
-      "Here's my trouble. I'm an owl. I see the night in greys.",
-      "Three nights I've called on a bright cloud. Orla, Skiff, Wren, little Gus by his bell: nobody heard.",
-      "Nana's camera sees green. I don't.",
-      "Catch the aurora in a photograph, and tell me the moment it's up."
+      "Now, here's my trouble. I'm an owl, and I see the night in greys.",
+      "Three nights now I've called out on a cloud I thought was bright, and nobody down in the valley heard a thing.",
+      "Nana's camera can see green. I can't.",
+      "So if you can catch the aurora in a photograph, come and tell me the moment it's up."
     ],
     "choices": [
       {
-        "text": "where do i look?",
+        "text": "where should i look?",
         "next": "edda-look"
       },
       {
@@ -368,34 +369,34 @@
     "id": "edda-look",
     "speaker": "edda",
     "lines": [
-      "North, over the shoulder of the peak. It starts low, like a stain. Let it climb.",
-      "Then come straight to me. It doesn't stay long."
+      "Look north, over the shoulder of the peak. It starts off low, like a stain on the sky. Give it time to climb.",
+      "Then come straight to me. It doesn't stay out for long."
     ]
   },
   {
     "id": "edda-ifnot",
     "speaker": "edda",
     "lines": [
-      "Then we wait another night. But the snow's coming, and the road shuts with it.",
-      "Look north, over the shoulder of the peak. Then come straight to me."
+      "Then we'll wait another night. But the snow's on its way, and when it comes, the road shuts.",
+      "Look north, over the shoulder of the peak. And come straight to me when you see it."
     ]
   },
   {
     "id": "edda-wait",
     "speaker": "edda",
     "lines": [
-      "The set's warm and my talon's on the dial. The rest is the sky's.",
-      "North, over the shoulder of the peak. Green, low at first, then climbing. Get it on the camera, then tell me."
+      "The set's warm and I've got my talon on the dial. The rest is up to the sky.",
+      "Look north, over the shoulder of the peak. It's green, low down at first, and then it climbs. Get it on the camera, then come and tell me."
     ]
   },
   {
     "id": "edda-line-up",
     "speaker": "edda",
     "lines": [
-      "It's up? Then here we go. Stand by me.",
-      "Brindle Peak calling the valley. Brindle Peak calling. Anyone there? Over.",
-      "Nothing. Static. The sky has to find us first. Give it a...",
-      "There."
+      "It's up? Then here we go. Come and stand by me.",
+      "Brindle Peak calling the valley. Brindle Peak calling. Is anyone there? Over.",
+      "Nothing yet, only static. The sky has to find us first. Give it a moment...",
+      "There!"
     ],
     "next": "edda-line-bram"
   },
@@ -403,7 +404,7 @@
     "id": "edda-line-bram",
     "speaker": "bram",
     "lines": [
-      "Hearth Hollow, by the big pine. Woodstore's full. Four hundred and eighty-one. Over."
+      "Hearth Hollow here, by the big pine. The woodstore's full. Four hundred and eighty-one logs. Over."
     ],
     "next": "edda-line-orla"
   },
@@ -412,7 +413,7 @@
     "speaker": "orla",
     "fill": "orla-radio",
     "lines": [
-      "Come and have some, any of you. Over."
+      "Come up and have some, any of you. Over."
     ],
     "next": "edda-line-skiff"
   },
@@ -420,7 +421,7 @@
     "id": "edda-line-skiff",
     "speaker": "skiff",
     "lines": [
-      "Boathouse on the Frozen Reach. The ice is holding. Lake's quiet. Over."
+      "The boathouse on the Frozen Reach here. The ice is holding, and the lake's nice and quiet. Over."
     ],
     "next": "edda-line-ivy"
   },
@@ -428,7 +429,7 @@
     "id": "edda-line-ivy",
     "speaker": "ivy",
     "lines": [
-      "Anyone cold, come down. Over."
+      "Anyone who's cold, come on down. Over."
     ],
     "next": "edda-line-wren",
     "fill": "ivy-radio"
@@ -437,7 +438,7 @@
     "id": "edda-line-wren",
     "speaker": "wren",
     "lines": [
-      "Wren, in Pinewind Wood. The mast's humming again. I can hear it from here. Over."
+      "It's Wren, in Pinewind Wood. The mast's humming again, I can hear it from here. Over."
     ],
     "next": "edda-line-gus"
   },
@@ -445,8 +446,8 @@
     "id": "edda-line-gus",
     "speaker": "gus",
     "lines": [
-      "Gus here, at the bell shop in the hamlet! I'm holding the big bell's rope!",
-      "Next time you call, I'll ring it. I will. Over."
+      "It's Gus, at the bell shop in the hamlet! I'm holding the big bell's rope right now!",
+      "Next time you call, I'm going to ring it. I really am. Over."
     ],
     "next": "edda-line-pass"
   },
@@ -454,8 +455,8 @@
     "id": "edda-line-pass",
     "speaker": "edda",
     "lines": [
-      "Hear that, faint, under the rest? That's the road crew, below the pass.",
-      "They're bringing the plough up in the morning. The road stays open."
+      "Can you hear that, faint, under the others? That's the road crew, down below the pass.",
+      "They're bringing the plough up in the morning. The road's staying open."
     ],
     "next": "edda-line-nana"
   },
@@ -464,8 +465,8 @@
     "speaker": "nana",
     "lines": [
       "Edda, is that you? Is Pip up there with you?",
-      "Oh, good. That's good. Don't tell me anything. I want it from her.",
-      "And everyone along the trail: if there's a post near you, light it. She'll be coming down in the dark."
+      "Oh, good. Oh, that's good. No, don't tell me anything, I want to hear it from her.",
+      "And everyone along the trail, if there's a post near you, light it. She'll be coming down in the dark."
     ],
     "next": "edda-line-end"
   },
@@ -473,10 +474,10 @@
     "id": "edda-line-end",
     "speaker": "edda",
     "lines": [
-      "That's the valley, and the line holding.",
-      "Thirty winters I've kept this set. Never heard it so crowded.",
-      "Go on home, Pip. Follow the lights down.",
-      "I'll mind the set. Brindle Peak, over and out."
+      "That's the whole valley, and the line's holding.",
+      "Thirty winters I've kept this set, and I've never heard it so crowded.",
+      "Go on home now, Pip. Follow the lights down.",
+      "I'll look after the set. Brindle Peak, over and out."
     ],
     "fill": "radio-unmet"
   },
@@ -484,10 +485,10 @@
     "id": "edda-idle",
     "speaker": "edda",
     "lines": [
-      "The line's holding. They've not stopped talking since.",
-      "Bram, down by the big pine, has read me his count four times.",
-      "Give Nana my love. She'll pretend she doesn't need it.",
-      "Mind the ridge on the way down. The wind's in a mood tonight."
+      "The line's held ever since. They've hardly stopped talking.",
+      "Bram, down by the big pine, has read me his count four times now.",
+      "Give Nana my love, would you? She'll pretend she doesn't need it.",
+      "Watch yourself on the ridge going down. The wind's in a mood tonight."
     ]
   }
 ]
