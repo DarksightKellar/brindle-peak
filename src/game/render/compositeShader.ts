@@ -19,6 +19,8 @@ uniform vec3 uEdge, uFogColor, uFogFarColor, uShadowLinear, uShadowSrgb, uGrade,
 uniform float uNormalDepthBias, uNear, uFar, uFogDensity, uHueShift;
 uniform vec4 uFogShape; // haze cap, fade start, fade end, fade max
 uniform vec3 uSatTaper; // luma where the saturation taper starts, where it ends, saturation there
+uniform mat4 uViewToWorld, uInvProj; // camera.matrixWorld and projectionMatrixInverse, for the settling snow
+uniform float uTexelAngle; // 2 tan(fov / 2) / internal height: metres per texel at one metre
 varying vec2 vUv;
 // Snap to a low-res texel centre so every fragment of a block reads one texel and the neighbour
 // offsets land on real neighbours (the reference assumes a 1:1 grid).
@@ -141,6 +143,26 @@ float flakes(vec2 texel, vec3 s) {
   float near = flakeLayer(texel, s, 31.0, 52.0, 2.0, 0.28 + 0.3 * heavy, 37.0) * bold;
   return max(max(far, mid), near) * min(s.z, 1.0);
 }
+// Snow settling: now and then a point on the ground near the player brightens for a moment and fades,
+// as a flake lands. World-anchored, so it stays put as the camera moves; only on ground that faces up,
+// only near (fog would eat it further out), and more of it when the snow is heavier. Each world cell is
+// about one texel across at its distance, so a landing is a single pixel, never a blob.
+float settle(vec2 uv, float dist, vec3 viewNormal, vec3 s) {
+  if (dist > 30.0) return 0.0;
+  vec3 up = mat3(uViewToWorld) * viewNormal;
+  if (up.y < 0.72) return 0.0;
+  vec4 r = uInvProj * vec4(uv * 2.0 - 1.0, 1.0, 1.0);
+  vec3 dir = r.xyz / r.w;
+  vec3 world = (uViewToWorld * vec4(dir * (dist / -dir.z), 1.0)).xyz;
+  float cell = exp2(ceil(log2(max(dist * uTexelAngle * 1.3, 0.004))));
+  vec2 id = floor(world.xz / cell) + vec2(log2(cell) * 131.0, 0.0);
+  float h = hash21(id);
+  if (h > 0.0045 * min(s.z, 2.0)) return 0.0;
+  float period = 3.5 + 6.0 * hash21(id + 5.3);
+  float t = mod(s.y / 14.0 + period * hash21(id + 9.1), period);
+  float e = t < 0.05 ? t / 0.05 : exp(-(t - 0.05) * 4.5);
+  return e * (1.0 - smoothstep(18.0, 30.0, dist));
+}
 // Fog, in two stages (ART_BIBLE §6). Uncapped haze mixed every distant hill and tree line to the one
 // fog colour, and the 2.6x grade then turned that colour a vivid flat blue: placeholder spikes on a
 // blue mesa. Now a light cold haze in linear light is capped low, so nothing loses its own light and
@@ -162,7 +184,10 @@ void main() {
   float open = dist >= uFar * 0.999 ? 0.0 : 1.0;
   vec3 lit = gradeSrgb(linearToSrgb(mix(col, uFogColor, hazeAt(dist) * open)), open);
   lit = mix(lit, gradeSrgb(linearToSrgb(uFogFarColor), 0.0), fadeAt(dist) * open);
-  if (uSnow.z > 0.0) lit = mix(lit, vec3(0.96, 0.98, 1.0), flakes(floor(vUv * uRes), uSnow));
+  if (uSnow.z > 0.0) {
+    lit = mix(lit, vec3(1.0), 0.75 * settle(uv, dist, normalAt(uv), uSnow) * open);
+    lit = mix(lit, vec3(0.96, 0.98, 1.0), flakes(floor(vUv * uRes), uSnow));
+  }
   gl_FragColor = vec4(lit, 1.0);
 }
 `;

@@ -327,6 +327,7 @@ export function createSession(opts: SessionOptions): Session {
     ui.hud.setCourse(runner.isRunning() ? live?.compassTarget?.() ?? null : null);
     pushFrame({ state, player, ui, mech, audio, store, persist, blocked, weather }, dt);
     const look = dusk.update(dt, state, elapsed);
+    audio.setPlace(sample.zone, look.dusk);
     glow.update(player.pos, look.dusk, state.abilities.lantern);
     pipeline.render();
   };

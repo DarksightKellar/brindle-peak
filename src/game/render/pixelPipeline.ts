@@ -101,6 +101,7 @@ export function createPixelPipeline(canvas: HTMLCanvasElement, kit: SceneKit): P
       uGrade: { value: new THREE.Vector3(GRADE.lift, GRADE.saturation, GRADE.splitTonality) },
       uHueShift: { value: GRADE.hueShift }, uSnow: { value: new THREE.Vector3(0, 0, 0) },
       uSatTaper: { value: new THREE.Vector3(SAT_TAPER.from, SAT_TAPER.to, SAT_TAPER.saturation) },
+      uViewToWorld: { value: new THREE.Matrix4() }, uInvProj: { value: new THREE.Matrix4() }, uTexelAngle: { value: 0.004 },
     },
   });
 
@@ -145,6 +146,10 @@ export function createPixelPipeline(canvas: HTMLCanvasElement, kit: SceneKit): P
     }
     (material.uniforms.uNear.value as number) = camera.near;
     (material.uniforms.uFar.value as number) = camera.far;
+    (material.uniforms.uViewToWorld.value as THREE.Matrix4).copy(camera.matrixWorld);
+    (material.uniforms.uInvProj.value as THREE.Matrix4).copy(camera.projectionMatrixInverse);
+    (material.uniforms.uTexelAngle.value as number) =
+      (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2)) / (material.uniforms.uRes.value as THREE.Vector2).y;
     renderer.setRenderTarget(null);
     renderer.render(quadScene, quadCamera);
   }

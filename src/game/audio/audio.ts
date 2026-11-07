@@ -11,7 +11,8 @@
  */
 import { clamp } from '../../core/contracts';
 import { closeRuntime, createAudioRuntime, isAudioSupported, resumeRuntime, type AudioRuntime } from './context';
-import { createScore, type Score, type ScoreMode, type Weather } from './score';
+import { ambienceFor, createAmbience, type Ambience } from './ambience';
+import { createMusic, createTrackChooser, trackFor, type MusicPlayer } from './music';
 import { createSfx, type SfxPlayer } from './sfx';
 
 export type SfxName =
@@ -33,6 +34,8 @@ export interface AudioKit {
   setAltitude(y: number): void;
   setWeather(w: 'calm' | 'snow' | 'gust'): void;
   setMode(m: 'ground' | 'air' | 'glide' | 'climb' | 'sled'): void;
+  /** Where the player is (zone id) and how far into blue hour (0..1): picks the track and the ambience. */
+  setPlace(zone: string, dusk: number): void;
   sfx(name: SfxName): void;
   chirp(syllables: number, pitch: number): void;
   setVolume(master: number, music: number): void;
@@ -53,14 +56,17 @@ const MASTER_MAKEUP = 7.1;
 
 export function createAudio(): AudioKit {
   let rt: AudioRuntime | null = null;
-  let score: Score | null = null;
+  let music: MusicPlayer | null = null;
+  let ambience: Ambience | null = null;
   let player: SfxPlayer | null = null;
   let destroyed = false;
+  const chooser = createTrackChooser();
 
-  // Pre-unlock state, mirrored into the score on creation.
+  // Pre-unlock state, applied the moment the context exists.
   let altitude = 0;
-  let weather: Weather = 'calm';
-  let mode: ScoreMode = 'ground';
+  let weather: 'calm' | 'snow' | 'gust' = 'calm';
+  let zone = 'hearth';
+  let dusk = 0;
   let masterVol = 0.9;
   let musicVol = 0.7;
 
@@ -79,13 +85,10 @@ export function createAudio(): AudioKit {
       if (!rt) {
         rt = createAudioRuntime();
         if (!rt) return;
-        score = createScore(rt);
+        music = createMusic(rt);
+        ambience = createAmbience(rt.ctx, rt.master);
         player = createSfx(rt);
-        score.setAltitude(altitude);
-        score.setWeather(weather);
-        score.setMode(mode);
         applyVolume();
-        score.update();
       }
       resumeRuntime(rt);
     },
@@ -93,17 +96,19 @@ export function createAudio(): AudioKit {
     setAltitude(y: number): void {
       if (!Number.isFinite(y)) return;
       altitude = clamp(y, 0, 120);
-      score?.setAltitude(altitude);
     },
 
     setWeather(w: 'calm' | 'snow' | 'gust'): void {
       weather = w;
-      score?.setWeather(w);
     },
 
-    setMode(m: 'ground' | 'air' | 'glide' | 'climb' | 'sled'): void {
-      mode = m;
-      score?.setMode(m);
+    setMode(): void {
+      // The recorded score doesn't bend to the player's verb; kept so callers needn't know.
+    },
+
+    setPlace(z: string, d: number): void {
+      zone = z;
+      dusk = Number.isFinite(d) ? clamp(d, 0, 1) : 0;
     },
 
     sfx(name: SfxName): void {
@@ -122,16 +127,23 @@ export function createAudio(): AudioKit {
 
     update(dt: number): void {
       if (destroyed || dt <= 0) return;
-      score?.update();
+      const gust = weather === 'gust';
+      const track = chooser.update(dt, trackFor({ zone, altitude, dusk }));
+      if (rt && rt.ctx.state === 'running') {
+        music?.play(track, gust);
+        ambience?.update(ambienceFor(zone, gust, dusk));
+      }
     },
 
     destroy(): void {
       if (destroyed) return;
       destroyed = true;
-      score?.dispose();
+      music?.dispose();
+      ambience?.dispose();
       player?.dispose();
       if (rt) closeRuntime(rt);
-      score = null;
+      music = null;
+      ambience = null;
       player = null;
       rt = null;
     },
