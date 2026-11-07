@@ -71,4 +71,20 @@ describe('snowfall veil', () => {
     snow.setEnabled(false);
     expect(snow.update(1, 1).fall).toBeCloseTo(before, 6);
   });
+
+  it('starts at the place it loads in, then eases between places', () => {
+    const snow = createSnowfall();
+    expect(snow.update(1 / 60, 0.6, 2).amount).toBe(2);
+    const next = snow.update(1 / 20, 0.6, 1).amount;
+    expect(next).toBeLessThan(2);
+    expect(next).toBeGreaterThan(1.9);
+  });
+
+  it('speeds the drift up in a gust instead of jumping it', () => {
+    const snow = createSnowfall();
+    const calm = snow.update(1 / 20, 0.6).drift;
+    const gust = snow.update(1 / 20, 2.4).drift;
+    expect(gust - calm).toBeGreaterThan(calm);
+    expect(gust - calm).toBeLessThan(1);
+  });
 });

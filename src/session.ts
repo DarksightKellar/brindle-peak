@@ -318,7 +318,9 @@ export function createSession(opts: SessionOptions): Session {
 
     const weather =
       sample.zone === 'ridge' ? (gusting ? 'gust' : 'snow') : sample.zone === 'pinewind' ? 'snow' : 'calm';
-    pipeline.setSnow(snowfall.update(dt, gusting ? 2.4 : 0.6));
+    // Snow by place: heavy in the wood and on the ridge, where gusts blow it sideways; steady elsewhere.
+    const heavySnow = sample.zone === 'ridge' || sample.zone === 'pinewind';
+    pipeline.setSnow(snowfall.update(dt, gusting ? 2.4 : 0.6, heavySnow ? 2 : 1));
 
     // State first, then feedback, then the save decision — the ordering rule lives in frameFeedback.ts.
     ui.hud.setViewYaw(view ? view.yaw : rig.yaw());

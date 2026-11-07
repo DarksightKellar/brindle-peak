@@ -107,31 +107,39 @@ vec3 gradeSrgb(vec3 c, float taper) {
   o = clamp(o, 0.0, 1.0);
   return clamp(o + uShadowSrgb * clamp(uGrade.x, 0.0, 1.0) * (1.0 - o), 0.0, 1.0);
 }
-// Snow. Discrete flakes cannot work at 384x216: a point sprite is never smaller than one internal
-// pixel, so every flake is a 5x5 device-pixel square, and the measured A/B showed those squares are
-// what read as dead pixels. Weather is a band-limited drifting veil in *texel* space (cell >= 4
-// texels), peak amplitude a few percent, so neighbouring blocks differ by < 0.01 and no isolated
-// high-contrast dot is representable.
-// The veil used to hash with sin(dot(p, ...)) on lattice coordinates that grew with the fall offset.
-// After ten minutes of play the argument was in the millions, GPU sin lost its precision there, and the
-// hash stopped varying down the screen: the veil turned into hard vertical stripes over sky and snow
-// (critic round 2, Kettle Springs onward, worst at dusk). Now the lattice tiles (period cells) and
-// the offset wraps on that tile, so every argument stays small for ever, and the hash has no sin.
+// Snow: falling flakes (weather.ts owns the motion and how much). It used to be a faint drifting veil,
+// chosen when single-pixel flakes on still frames measured as dead pixels; in play the veil barely
+// showed and the director called it not great. Moving flakes at three depths read as snowfall.
+// The hash has no sin, and every lattice wraps on a tile, so nothing loses precision with time.
 float hash21(vec2 p) {
   vec3 p3 = fract(vec3(p.xyx) * 0.1031);
   p3 += dot(p3, p3.yzx + 33.33);
   return fract((p3.x + p3.y) * p3.z);
 }
-float vnoise(vec2 p, float period) {
-  vec2 i = floor(p), f = fract(p), u = f * f * (3.0 - 2.0 * f);
-  vec2 a = mod(i, period), b = mod(i + 1.0, period);
-  return mix(mix(hash21(a), hash21(vec2(b.x, a.y)), u.x), mix(hash21(vec2(a.x, b.y)), hash21(b), u.x), u.y);
+// Flakes: one per cell of a grid that falls down the screen, each at its own place in its cell and
+// swaying a little, size internal pixels square. Three layers at three speeds give depth: far ones
+// small, slow and faint, near ones bigger and quicker. Everything wraps on a tile, as the veil does.
+float flakeLayer(vec2 texel, vec3 s, float cell, float speed, float size, float density, float seed) {
+  float t = s.y / 14.0; // s.y falls 14 texels a second (weather.ts FALL)
+  float tile = cell * 64.0;
+  vec2 q = vec2(texel.x - mod(s.x * speed / 14.0, tile), texel.y + mod(t * speed, tile));
+  vec2 id = mod(floor(q / cell), 64.0);
+  float h = hash21(id + seed);
+  if (h > density) return 0.0;
+  float sway = cell * 0.16;
+  vec2 off = vec2(hash21(id + seed + 7.1), hash21(id + seed + 3.7)) * (cell - size - 2.0 * sway) + vec2(sway, 0.0);
+  off.x += sin(mod(t * (0.6 + h), 6.2832) + h * 40.0) * sway;
+  vec2 local = mod(q, cell) - floor(off);
+  return (local.x >= 0.0 && local.x < size && local.y >= 0.0 && local.y < size) ? 1.0 : 0.0;
 }
-float snowVeil(vec2 texel, vec3 s) {
-  // drift / fall in texels, from weather.ts — the shader owns no clock. Each layer wraps its offset
-  // on its own tile (64 cells of 22 texels, 128 cells of 4), so the wrap is seamless.
-  vec2 broad = mod(s.xy, 1408.0), fine = mod(s.xy * 1.7, 512.0);
-  return (vnoise((texel + broad) / 22.0, 64.0) * 0.62 + vnoise((texel + fine) / 4.0 + 13.0, 128.0) * 0.38 - 0.5) * 2.0;
+// s.z: how much (0 none, 1 a steady fall, 2 heavy). Heavier is more flakes and brighter ones.
+float flakes(vec2 texel, vec3 s) {
+  float heavy = clamp(s.z - 1.0, 0.0, 1.0);
+  float soft = mix(0.45, 0.6, heavy), bold = mix(0.75, 0.9, heavy);
+  float far = flakeLayer(texel, s, 7.0, 16.0, 1.0, 0.22 + 0.25 * heavy, 11.0) * soft * 0.6;
+  float mid = flakeLayer(texel, s, 13.0, 28.0, 1.0, 0.3 + 0.3 * heavy, 23.0) * soft;
+  float near = flakeLayer(texel, s, 31.0, 52.0, 2.0, 0.28 + 0.3 * heavy, 37.0) * bold;
+  return max(max(far, mid), near) * min(s.z, 1.0);
 }
 // Fog, in two stages (ART_BIBLE §6). Uncapped haze mixed every distant hill and tree line to the one
 // fog colour, and the 2.6x grade then turned that colour a vivid flat blue: placeholder spikes on a
@@ -154,7 +162,7 @@ void main() {
   float open = dist >= uFar * 0.999 ? 0.0 : 1.0;
   vec3 lit = gradeSrgb(linearToSrgb(mix(col, uFogColor, hazeAt(dist) * open)), open);
   lit = mix(lit, gradeSrgb(linearToSrgb(uFogFarColor), 0.0), fadeAt(dist) * open);
-  if (uSnow.z > 0.0) lit = clamp(lit + snowVeil(floor(vUv * uRes), uSnow) * uSnow.z * vec3(0.92, 0.96, 1.0), 0.0, 1.0);
+  if (uSnow.z > 0.0) lit = mix(lit, vec3(0.96, 0.98, 1.0), flakes(floor(vUv * uRes), uSnow));
   gl_FragColor = vec4(lit, 1.0);
 }
 `;
