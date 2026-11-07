@@ -47,8 +47,41 @@ export function keysFor(action: Action, joiner = ' · '): string {
   return [...new Set(BINDINGS[action].filter((k) => !k.startsWith('arrow')).map(keyName))].join(joiner);
 }
 
+/**
+ * A phone or tablet: the game shows its touch controls, and the hints name them instead of keys.
+ * `?touch=1` / `?touch=0` in the address forces it either way, for testing on a desktop.
+ */
+function detectTouch(): boolean {
+  if (typeof window === 'undefined' || typeof location === 'undefined') return false;
+  const forced = new URLSearchParams(location.search).get('touch');
+  if (forced === '1') return true;
+  if (forced === '0') return false;
+  // The primary pointer only: a laptop with a touchscreen still has a mouse and keys first.
+  return window.matchMedia?.('(pointer: coarse)').matches === true;
+}
+export const TOUCH = detectTouch();
+
+/** On touch, the on-screen buttons by their labels, and the stick and drag for the rest. */
+const TOUCH_KEY = {
+  interact: 'Action',
+  jump: 'Jump',
+  sprint: 'Run',
+  pause: 'Pause',
+  map: 'Map',
+  journal: 'Journal',
+  journalAll: 'Journal',
+  look: 'Drag',
+  up: 'up',
+  down: 'down',
+  left: 'left',
+  right: 'right',
+  walk: 'Stick',
+  steer: 'Tilt the stick to',
+  tilt: 'tilt the stick',
+} as const;
+
 /** The names hints use, read once. */
-export const KEY = {
+const KEYBOARD_KEY = {
   interact: keyFor('interact'),
   jump: keyFor('jump'),
   sprint: keyFor('sprint'),
@@ -68,6 +101,8 @@ export const KEY = {
   /** Up and down, as the viewfinder's tilt names them: "W / S". */
   tilt: `${keyFor('up')} / ${keyFor('down')}`,
 } as const;
+
+export const KEY: { readonly [K in keyof typeof KEYBOARD_KEY]: string } = TOUCH ? TOUCH_KEY : KEYBOARD_KEY;
 
 /** The action a key does, if any. */
 export function actionOf(key: string): Action | null {

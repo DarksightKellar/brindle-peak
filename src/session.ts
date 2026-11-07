@@ -92,6 +92,10 @@ export interface Session {
   setPixelSize(n: number): void;
   setVolume(master: number, music: number): void;
   isBlocking(): boolean;
+  /** What has the screen: an overlay, an activity, or nothing (play). The touch controls show by it. */
+  mode(): 'dialogue' | 'journal' | 'menu' | 'ending' | 'activity' | 'play';
+  /** A tap at canvas pixel (x, y) is on whatever interact would reach now. */
+  tapHits(x: number, y: number): boolean;
   /** What the player collides with. Exposed for the verification harness. */
   readonly colliders: readonly Collider[];
   /** Live footprint count, for the verification harness. */
@@ -136,6 +140,8 @@ export function createSession(opts: SessionOptions): Session {
     polaroid.take(id, WORDS.photoResult(subject?.what ?? 'view'), subject?.kind === 'ground' ? LENS : 1);
   });
   const promptAt = createPromptAnchor(kit.camera, opts.canvas, world.npcs);
+  /** What interact would reach this frame; the touch tap test asks about it. */
+  let reach: ReturnType<typeof interactions.update> = null;
   // The live instance, kept so its optional first-person view() can steer the camera rig.
   let live: ActivityInstance | null = null;
 
@@ -289,6 +295,7 @@ export function createSession(opts: SessionOptions): Session {
     }
 
     const nearest = blocked ? null : interactions.update(player.pos);
+    reach = nearest;
     focusShadow(kit, player.pos.x, player.pos.z);
     footprintTracker.follow(player, dt);
     pip.sync(player, dt, state.abilities.lantern);
@@ -365,6 +372,9 @@ export function createSession(opts: SessionOptions): Session {
     setVolume: (m, mu) => audio.setVolume(m, mu),
     isBlocking: () => ui.dialogue.isOpen() || ui.journal.isOpen() || ui.menu.isOpen()
       || ui.ending.isOpen() || runner.isRunning(),
+    mode: () => (ui.ending.isOpen() ? 'ending' : ui.menu.isOpen() ? 'menu' : ui.journal.isOpen() ? 'journal'
+      : ui.dialogue.isOpen() ? 'dialogue' : runner.isRunning() ? 'activity' : 'play'),
+    tapHits: (x, y) => reach !== null && !runner.isRunning() && promptAt.hit(reach, x, y),
     colliders: b.world.colliders,
     footprintCount: () => prints.count(),
     heightAt: (x, z) => sampler.heightAt(x, z),

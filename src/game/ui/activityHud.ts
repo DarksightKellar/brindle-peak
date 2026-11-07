@@ -41,12 +41,12 @@ const HINTS: Readonly<Record<ActivityKind, string>> = {
   // The viewfinder overlay already lists the keys, so this line only states the goal.
   photo: `Centre it in the frame, then press ${KEY.interact}.`,
   // Round 8's critic could not tell what "brightens": the arc grows bold and reaches the target.
-  throw: `${KEY.steer} aims, the way the line below says. Then hold ${KEY.interact}: the arc swells and shrinks. Let go as it reaches the target.`,
+  throw: `${KEY.steer} aim, the way the line below says. Then hold ${KEY.interact}: the arc swells and shrinks. Let go as it reaches the target.`,
   // The race is the one activity that leaves the controls with the player; the next gate is the bright one.
   // Shift too: a race spends no breath, and critic round 37 ran every race at a walk.
-  race: `Run for the bright gate. ${KEY.sprint} sprints, and a race spends no breath.`,
+  race: `Run for the bright gate. Hold ${KEY.sprint} to sprint, and a race spends no breath.`,
   skate: `Skate a lap. Tipping one way? Hold the other, ${KEY.left} or ${KEY.right}, till it steadies.`,
-  sled: `Steer down the hill with ${KEY.steer}.`,
+  sled: `${KEY.steer} steer down the hill.`,
 };
 
 export function hintFor(kind: ActivityKind): string {

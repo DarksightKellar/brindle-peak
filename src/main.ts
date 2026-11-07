@@ -32,6 +32,7 @@ export interface GameDebug {
 
 const canvas = document.getElementById('stage');
 const uiRoot = document.getElementById('ui');
+const app = document.getElementById('app');
 if (!(canvas instanceof HTMLCanvasElement) || !(uiRoot instanceof HTMLElement)) {
   throw new Error('First Snow: #stage canvas or #ui root missing from index.html');
 }
@@ -42,7 +43,11 @@ const input = createInput(canvas);
 let scripted: ReturnType<InputSource['sample']> | null = null;
 let frames = 0;
 
+// Phones and tablets get a stick, buttons, drag to look and tap to interact (game/touch.ts).
+const touch = TOUCH ? createTouchControls({ input, canvas, mode: session.mode, tapHits: session.tapHits }) : null;
+
 const step = (dt: number): void => {
+  touch?.update();
   const frame = scripted ?? input.sample(session.rig.yaw());
   session.update(dt, frame);
   frames++;
@@ -51,10 +56,14 @@ const step = (dt: number): void => {
 const loop: Loop = createLoop(step);
 
 // --- resize -------------------------------------------------------------------------------
+// The game draws into #app's box: the whole window in landscape, a 16:9 band in portrait (ui.css).
 const resize = (): void => {
-  session.pipeline.resize(window.innerWidth, window.innerHeight);
+  const box = app ?? document.body;
+  session.pipeline.resize(box.clientWidth || window.innerWidth, box.clientHeight || window.innerHeight);
 };
 window.addEventListener('resize', resize);
+window.addEventListener('orientationchange', resize);
+if (app && typeof ResizeObserver !== 'undefined') new ResizeObserver(resize).observe(app);
 resize();
 
 // Embedded on a host page (itch.io runs the game in a frame), keys go to the parent until the frame
@@ -81,7 +90,8 @@ window.addEventListener('keydown', (e) => {
 
 // --- debug hook ---------------------------------------------------------------------------
 import { setViewFadeEnabled } from './game/render/viewFade';
-import { BINDINGS } from './core/keys';
+import { BINDINGS, TOUCH } from './core/keys';
+import { createTouchControls } from './game/touch';
 
 const debug: GameDebug = {
   session,

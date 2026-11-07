@@ -24,7 +24,16 @@ import type { JournalContent, JournalModel } from './journalModel';
 import { formatJournal } from './journalModel';
 import { achHTML, fishHTML, notesHTML, questsHTML, settingsHTML, tryHTML } from './journalTabs';
 import { ACTIVITIES } from '../../data/activities';
-import { BINDINGS, KEY, keyName } from '../../core/keys';
+import { BINDINGS, KEY, TOUCH, keyName } from '../../core/keys';
+import { tapKey } from '../touch';
+
+/** The footer's reading guide: the keys, or on touch what a finger does. */
+/** How far from a place's name on the map, CSS pixels, a tap still picks it. */
+const TAP_REACH = 28;
+
+const FOOT = TOUCH
+  ? 'tap a tab to turn the page · swipe to scroll · ✕ closes · nothing here is missable'
+  : `←→ pages · ↑↓ scroll · ${KEY.pause} / ${keyName(BINDINGS.journal[BINDINGS.journal.length - 1] ?? '')} close · ${KEY.map} map · nothing here is missable`;
 
 // The journal's public surface: the model is re-exported here so callers (and the tests) keep one
 // import for the whole surface.
@@ -143,9 +152,11 @@ export function createJournal(root: HTMLElement, content: JournalContent = {}): 
   rootEl.innerHTML =
     '<section class="panel ui-journal__panel"><div class="panel__in">' +
     '<header class="ui-journal__head"><h2 class="ui-journal__title">Journal</h2>' +
-    `<nav class="ui-tabs">${TABS.map((t) => `<button class="ui-tab" type="button">${t}</button>`).join('')}</nav></header>` +
+    `<nav class="ui-tabs">${TABS.map((t) => `<button class="ui-tab" type="button">${t}</button>`).join('')}</nav>` +
+    (TOUCH ? '<button class="ui-journal__close" type="button" aria-label="Close the journal">✕</button>' : '') +
+    '</header>' +
     '<div class="ui-journal__body"></div>' +
-    `<footer class="ui-journal__foot">←→ pages · ↑↓ scroll · ${KEY.pause} / ${keyName(BINDINGS.journal[BINDINGS.journal.length - 1] ?? '')} close · ${KEY.map} map · nothing here is missable</footer></div></section>`;
+    `<footer class="ui-journal__foot">${FOOT}</footer></div></section>`;
   root.appendChild(rootEl);
   // Authored content by default, so the journal is complete without the host wiring anything.
   const src: JournalContent = { quests: QUESTS, achievements: ACHIEVEMENTS, fish: FISH, ...content };
@@ -191,8 +202,38 @@ export function createJournal(root: HTMLElement, content: JournalContent = {}): 
     paint(s);
   };
 
+  /** The walked place whose name lies nearest a tap, if one is within reach of it. */
+  const nearestPlace = (x: number, y: number, walked: readonly string[]): string | null => {
+    let best: string | null = null;
+    let bestD = TAP_REACH;
+    for (const el of body.querySelectorAll<SVGTextElement>('.ui-map__name[data-zone]')) {
+      const z = el.getAttribute('data-zone') ?? '';
+      if (!walked.includes(z)) continue;
+      const r = el.getBoundingClientRect();
+      const d = Math.hypot(Math.max(r.left - x, 0, x - r.right), Math.max(r.top - y, 0, y - r.bottom));
+      if (d < bestD) {
+        bestD = d;
+        best = z;
+      }
+    }
+    return best;
+  };
+
   // A pointer is hidden over the game, but a click on an errand row should still do what E does.
   body.addEventListener('click', (e) => {
+    // A walked place's name on the map: the first tap picks it, a second goes there (as ↑↓ then interact).
+    // The names are small on a phone, so a tap near one counts: the nearest walked name within a thumb's reach.
+    const zone = tab === 'Map' && travel && state ? nearestPlace(e.clientX, e.clientY, travel.places(state).map((p) => p.zone)) : null;
+    if (zone && travel && state) {
+      if (hopAt === zone && travel.blocked(state) === null) {
+        hopAt = null;
+        travel.go(zone);
+      } else {
+        hopAt = zone;
+        paint(state);
+      }
+      return;
+    }
     const row = (e.target as HTMLElement).closest?.('.ui-quest.is-pickable') as HTMLElement | null;
     const id = row?.dataset.quest;
     if (id && state) follow(state, id);
@@ -206,6 +247,7 @@ export function createJournal(root: HTMLElement, content: JournalContent = {}): 
   };
 
   for (const [i, b] of tabButtons.entries()) b.addEventListener('click', () => turnTo(TABS[i]));
+  rootEl.querySelector('.ui-journal__close')?.addEventListener('click', () => tapKey('pause'));
 
   return {
     toggle(s: GameState, on?: JournalTab): void {

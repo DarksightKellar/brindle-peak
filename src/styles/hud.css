@@ -40,7 +40,7 @@
 .ui-hud__verb { color: var(--lantern); text-transform: uppercase; font-size: 12px; }
 
 /* Fixed, not absolute: centred on the window whatever box they sit in. */
-.ui-hud__goal { position: fixed; left: 50%; transform: translateX(-50%); top: 12px; font-size: 13px; letter-spacing: 0.01em; color: var(--snow-hi); background: var(--panel); border: 1px solid var(--snow-sh); padding: 4px 12px; white-space: nowrap; pointer-events: none; }
+.ui-hud__goal { position: absolute; left: 50%; transform: translateX(-50%); top: 12px; font-size: 13px; letter-spacing: 0.01em; color: var(--snow-hi); background: var(--panel); border: 1px solid var(--snow-sh); padding: 4px 12px; white-space: nowrap; pointer-events: none; }
 /* The goal line starts with its mark on the strip, as the next-step line does: the big lantern diamond
    when the story's place is the compass goal, the hollow amber one for a villager to greet. */
 .ui-hud__goal.is-goal::before, .ui-hud__goal.is-hello::before { content: ''; display: inline-block; width: 9px; height: 9px; margin: 0 9px 1px 1px; transform: rotate(45deg); box-sizing: border-box; }
@@ -73,7 +73,7 @@
    One line under the compass, and it never repeats the goal: the tracked errand's next action and its
    distance. Its mark is the diamond hanging under the strip, which is where the bearing went. */
 .ui-hud__next {
-  position: fixed; left: 50%; transform: translateX(-50%); top: 62px;
+  position: absolute; left: 50%; transform: translateX(-50%); top: 62px;
   width: max-content; max-width: min(720px, calc(100vw - 32px)); padding: 3px 12px 4px; box-sizing: border-box;
   font-size: 13px; line-height: 1.35; letter-spacing: 0.02em; color: var(--lantern); text-align: center;
   background: rgba(51, 64, 107, 0.72); border: 1px solid rgba(226, 166, 79, 0.45);
@@ -84,7 +84,7 @@
 /* ── The compass strip ───────────────────────────────────────────────────────
    Half the horizon, N E S W sliding past as the view turns; the notch on top is where you face.
    The goal's diamond rides the strip, its distance at the end; the tracked errand hangs under it. */
-.ui-hud__compass { position: fixed; left: 50%; transform: translateX(-50%); top: 38px; width: 320px; height: 18px; pointer-events: none; }
+.ui-hud__compass { position: absolute; left: 50%; transform: translateX(-50%); top: 38px; width: 320px; height: 18px; pointer-events: none; }
 .ui-hud__compass-band { position: absolute; left: 0; right: 0; top: 0; height: 18px; box-sizing: border-box; background: var(--panel); border: 1px solid var(--snow-sh); overflow: hidden; }
 .ui-hud__compass-tick { position: absolute; bottom: 0; width: 1px; height: 4px; margin-left: -1px; background: var(--snow-deep); }
 .ui-hud__compass-pt { position: absolute; top: 1px; transform: translateX(-50%); font-size: 9px; line-height: 14px; color: var(--snow-sh); }

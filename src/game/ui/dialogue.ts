@@ -13,13 +13,14 @@
  * A stub carries no lines because the view has no dialogue registry; the caller resolves the id.
  *
  * The reveal is driven by the game frame (`update`), not a requestAnimationFrame loop of its own: one
- * clock for the whole game, and a paused or stepped frame pauses the text with it. The game is
- * keyboard-only, so the choice buttons are drawn but not clickable.
+ * clock for the whole game, and a paused or stepped frame pauses the text with it. On a touch screen a
+ * tap on a choice highlights it and takes it, through the same interact press the keyboard sends.
  */
 
 import type { DialogueNode } from '../../core/contracts';
 import { Typewriter, countSyllables } from './typewriter';
-import { KEY } from '../../core/keys';
+import { KEY, TOUCH } from '../../core/keys';
+import { tapKey } from '../touch';
 
 export { CHARS_PER_SEC, Typewriter, countSyllables } from './typewriter';
 
@@ -44,7 +45,9 @@ const stub = (node: DialogueNode, id: string): DialogueNode => ({ id, speaker: n
 export const CHOICE_ARM = 0.45;
 
 /** The corner hint while choices are up: the pause menu's "↑↓ choose", and the interact key to take one. */
-const CHOOSE_HINT = `<kbd>↑↓</kbd> choose <kbd>${KEY.interact}</kbd>`;
+const CHOOSE_HINT = TOUCH ? 'tap a choice' : `<kbd>↑↓</kbd> choose <kbd>${KEY.interact}</kbd>`;
+/** The corner hint while a line is up: the key that moves the talk on, or a tap. */
+const NEXT_HINT = TOUCH ? 'tap' : KEY.interact;
 
 export function createDialogue(root: HTMLElement): DialogueView {
   const panel = document.createElement('section');
@@ -57,7 +60,7 @@ export function createDialogue(root: HTMLElement): DialogueView {
     '<div class="ui-dlg__name"></div>' +
     '<p class="ui-dlg__text"></p>' +
     '<div class="ui-dlg__choices"></div>' +
-    `<div class="ui-dlg__hint">${KEY.interact}</div>` +
+    `<div class="ui-dlg__hint">${NEXT_HINT}</div>` +
     '</div></div>';
   root.appendChild(panel);
 
@@ -100,7 +103,7 @@ export function createDialogue(root: HTMLElement): DialogueView {
     // With choices up, the corner names the keys that choose, in the pause menu's own words.
     if (hintEl.classList.contains('is-choosing') !== show) {
       hintEl.classList.toggle('is-choosing', show);
-      hintEl.innerHTML = show ? CHOOSE_HINT : KEY.interact;
+      hintEl.innerHTML = show ? CHOOSE_HINT : NEXT_HINT;
     }
     if (!show) {
       choiceEl.replaceChildren();
@@ -116,6 +119,17 @@ export function createDialogue(root: HTMLElement): DialogueView {
       choiceEl.appendChild(b);
     }
   };
+
+  // A tap on a choice: highlight it, then take it with the same press the keyboard's interact sends.
+  choiceEl.addEventListener('click', (e) => {
+    const b = (e.target as HTMLElement).closest('.ui-dlg__choice');
+    if (!b) return;
+    const idx = Array.from(choiceEl.children).indexOf(b);
+    if (idx < 0) return;
+    selected = idx;
+    choiceEl.querySelectorAll('.ui-dlg__choice').forEach((c, i) => c.classList.toggle('is-sel', i === selected));
+    tapKey('interact');
+  });
 
   const close = (): void => {
     node = null;

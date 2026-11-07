@@ -30,7 +30,7 @@ import { esc } from './html';
 import { KIND_GLYPH, SIDE_PIN, activityMarks, sidePin } from './mapMarks';
 import type { Relief } from './mapRelief';
 import '../../styles/map.css';
-import { KEY } from '../../core/keys';
+import { KEY, TOUCH } from '../../core/keys';
 
 export const VIEW_W = 480;
 export const VIEW_H = 520;
@@ -71,8 +71,15 @@ function hopLine(hop: MapHop | undefined): string {
   if (!hop || hop.places.length === 0) return '';
   const picked = hop.places.find((p) => p.zone === hop.at);
   if (hop.blocked !== null) return `<p class="ui-map__hop is-blocked">${esc(hop.blocked)}</p>`;
-  if (!picked) return '<p class="ui-map__hop"><kbd>↑↓</kbd> pick a place you have walked to go back to it</p>';
-  return `<p class="ui-map__hop is-picked">Go to <b>${esc(picked.name)}</b> <kbd>${KEY.interact}</kbd> · <kbd>↑↓</kbd> another place</p>`;
+  // On touch a place is picked by tapping its name, and gone to with a second tap (journal.ts).
+  if (!picked) {
+    return TOUCH
+      ? '<p class="ui-map__hop">Tap a place you have walked to go back to it</p>'
+      : '<p class="ui-map__hop"><kbd>↑↓</kbd> pick a place you have walked to go back to it</p>';
+  }
+  return TOUCH
+    ? `<p class="ui-map__hop is-picked">Tap <b>${esc(picked.name)}</b> again to go there</p>`
+    : `<p class="ui-map__hop is-picked">Go to <b>${esc(picked.name)}</b> <kbd>${KEY.interact}</kbd> · <kbd>↑↓</kbd> another place</p>`;
 }
 
 /** Monotonic build count. Diagnostic only: it makes "not per frame" measurable from outside. */
@@ -159,7 +166,7 @@ function placeNames(s: GameState, content: GuideContent, decor: MapDecor | undef
       const hop = z.id === hopAt;
       return `<circle class="ui-map__zone ${seen ? 'is-visited' : 'is-ghost'}${hop ? ' is-hop' : ''}" data-zone="${esc(z.id)}" data-r="${one(r)}" ` +
         `cx="${px(z.centre.x)}" cy="${py(z.centre.z)}" r="${r}"/>` +
-        `<text class="ui-map__name${seen ? '' : ' is-unwalked'}${hop ? ' is-hop' : ''}" x="${one(x)}" y="${one(y)}">${esc(name)}</text>`;
+        `<text class="ui-map__name${seen ? '' : ' is-unwalked'}${hop ? ' is-hop' : ''}" data-zone="${esc(z.id)}" x="${one(x)}" y="${one(y)}">${esc(name)}</text>`;
     })
     .join('');
 }

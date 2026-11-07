@@ -17,8 +17,19 @@ export interface InputSource {
   sample(camYaw: number): InputFrame;
   /** Manual look axis right now: -1 (turn left) .. +1 (turn right); keys in core/keys.ts. */
   readonly lookX: number;
+  /** The touch stick: x right, y forward, each -1..1; 0, 0 when let go. */
+  setStick(x: number, y: number): void;
+  /** A drag across the view, in CSS pixels since the last call (positive turns the view right). */
+  addLookDrag(dx: number): void;
   destroy(): void;
 }
+
+/** A drag of this many CSS pixels turns the view one radian. */
+const DRAG_PX_PER_RADIAN = 260;
+/** The heading rig turns look x 1.65 rad/s (camera/heading.ts LOOK_RATE); a drag asks for its own speed. */
+const LOOK_RATE = 1.65;
+/** The most a drag may ask for, in look units: a flick, not a spin. */
+const DRAG_LOOK_MAX = 5;
 
 // Every binding comes from core/keys.ts, the same table the on-screen hints name keys from.
 const axis = (keys: readonly string[], v: [number, number]): [string, [number, number]][] => keys.map((k) => [k, v]);
@@ -55,6 +66,11 @@ export function createInput(canvas: HTMLCanvasElement): InputSource {
   let jumpPressed = false;
   let interactPressed = false;
   let cancelPressed = false;
+  let stickX = 0;
+  let stickY = 0;
+  let dragDx = 0;
+  let dragLook = 0;
+  let lastSample = performance.now();
 
   const onKeyDown = (e: KeyboardEvent): void => {
     const k = e.key.toLowerCase();
@@ -95,7 +111,7 @@ export function createInput(canvas: HTMLCanvasElement): InputSource {
 
   const isDown = (...keys: string[]): boolean => keys.some((k) => down.has(k));
   const lookAxis = (): number => {
-    let x = 0;
+    let x = dragLook;
     for (const k of down) x += LOOK_KEYS[k] ?? 0;
     return x;
   };
@@ -109,9 +125,24 @@ export function createInput(canvas: HTMLCanvasElement): InputSource {
     get lookX(): number {
       return lookAxis();
     },
+    setStick(x: number, y: number): void {
+      stickX = x;
+      stickY = y;
+    },
+    addLookDrag(dx: number): void {
+      dragDx += dx;
+    },
     sample(camYaw: number): InputFrame {
-      let mx = 0;
-      let mz = 0;
+      // The drag since the last frame becomes a turning speed for this one, so the view keeps up with
+      // the finger and stops when it stops.
+      const now = performance.now();
+      const elapsed = Math.max(1 / 240, (now - lastSample) / 1000);
+      lastSample = now;
+      const want = dragDx / DRAG_PX_PER_RADIAN / elapsed / LOOK_RATE;
+      dragLook = Math.max(-DRAG_LOOK_MAX, Math.min(DRAG_LOOK_MAX, want));
+      dragDx = 0;
+      let mx = stickX;
+      let mz = stickY;
       for (const k of down) {
         const v = MOVE_KEYS[k];
         if (v) {
