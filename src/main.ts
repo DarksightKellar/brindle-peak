@@ -57,6 +57,11 @@ const resize = (): void => {
 window.addEventListener('resize', resize);
 resize();
 
+// Embedded on a host page (itch.io runs the game in a frame), keys go to the parent until the frame
+// has focus: take it on load, and again whenever the player clicks the view.
+window.focus();
+window.addEventListener('pointerdown', () => window.focus());
+
 // --- overlay keys -------------------------------------------------------------------------
 window.addEventListener('keydown', (e) => {
   const k = e.key.toLowerCase();
