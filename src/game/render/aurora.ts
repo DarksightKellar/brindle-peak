@@ -24,7 +24,16 @@ export interface Aurora {
   mesh: THREE.Mesh;
   /** amount 0..1 (0 hides it entirely); time in seconds drives the ripple. */
   set(amount: number, time: number): void;
+  /** 0 = the chase view, 1 = looking through the viewfinder (the camera's own view blend). */
+  setLens(blend: number): void;
 }
+
+/**
+ * How much brighter the curtains are through the viewfinder. Pale is right from the chase camera, where
+ * the band is a glimpse over the horizon, but framed for the photograph the same mint on the lavender
+ * sky read as murky to critic round 68: through the lens the green has to carry the frame.
+ */
+const LENS_BOOST = 0.6;
 
 const NORTH = Math.PI;
 const COLUMNS = 56;
@@ -51,7 +60,7 @@ void main() {
 `;
 
 const FRAG = /* glsl */ `
-uniform float uTime, uAmount;
+uniform float uTime, uAmount, uLens;
 uniform vec3 uLow, uMid, uTop;
 varying vec3 vSky;
 varying vec2 vShape;
@@ -81,7 +90,7 @@ void main() {
   float q = (floor(x) + step(bayer4(gl_FragCoord.xy), smoothstep(0.1, 0.9, fract(x)))) / 5.0;
   vec3 col = mix(uLow, uMid, smoothstep(0.15, 0.45, v));
   col = mix(col, uTop, smoothstep(0.4, 0.75, v));
-  gl_FragColor = vec4(col * q, 1.0);
+  gl_FragColor = vec4(col * q * (1.0 + uLens), 1.0);
 }
 `;
 
@@ -126,6 +135,7 @@ export function createAurora(): Aurora {
     uniforms: {
       uTime: { value: 0 },
       uAmount: { value: 0 },
+      uLens: { value: 0 },
       uLow: { value: linear(AURORA.low) },
       uMid: { value: linear(AURORA.mid) },
       uTop: { value: linear(AURORA.top) },
@@ -152,6 +162,9 @@ export function createAurora(): Aurora {
       mesh.visible = amount > 0.002;
       (material.uniforms.uAmount.value as number) = amount;
       (material.uniforms.uTime.value as number) = time;
+    },
+    setLens(blend): void {
+      (material.uniforms.uLens.value as number) = LENS_BOOST * Math.min(1, Math.max(0, blend));
     },
   };
 }

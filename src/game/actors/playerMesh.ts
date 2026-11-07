@@ -28,6 +28,18 @@ const FLAT = { flatShading: true } as const;
 const lambert = (hex: string): THREE.MeshLambertMaterial =>
   new THREE.MeshLambertMaterial({ color: new THREE.Color(hex), ...FLAT });
 
+/**
+ * Pip's own colours keep a floor of themselves in shade. Under the blue sky fill alone the cream bird
+ * went grey-blue, and critic round 68 read it as a silhouette rather than the cream bird on the cover:
+ * a little of each colour glows back, so a shaded Pip is darker cream, not grey.
+ */
+const SHADE_FLOOR = 0.24;
+const feather = (hex: string, floor = SHADE_FLOOR): THREE.MeshLambertMaterial => {
+  const m = lambert(hex);
+  m.emissive = new THREE.Color(hex).multiplyScalar(floor);
+  return m;
+};
+
 const shade = (geo: THREE.BufferGeometry, mat: THREE.Material, x = 0, y = 0, z = 0): THREE.Mesh => {
   const m = new THREE.Mesh(geo, mat);
   m.position.set(x, y, z);
@@ -39,12 +51,12 @@ const shade = (geo: THREE.BufferGeometry, mat: THREE.Material, x = 0, y = 0, z =
  * Parented to the bird alone, it jumped with the bird (the director, round 47).
  */
 export function createPlayerMesh(groundAt?: (x: number, z: number) => number): PlayerMesh {
-  const cream = lambert(PALETTE.PIP_BODY);
-  const brown = lambert(PALETTE.PIP_WING);
+  const cream = feather(PALETTE.PIP_BODY);
+  const brown = feather(PALETTE.PIP_WING);
   const dark = lambert(PALETTE.PIP_BEAK);
   // A snow bunting's winter bill is straw-yellow: the one warm point on the face, so it reads as a bird.
   const bill = lambert(PALETTE.AMBER);
-  const red = lambert(PALETTE.PIP_SCARF);
+  const red = feather(PALETTE.PIP_SCARF);
   const glass = lambert(PALETTE.PIP_GLASS);
 
   const root = new THREE.Object3D();

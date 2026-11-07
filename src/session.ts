@@ -307,6 +307,7 @@ export function createSession(opts: SessionOptions): Session {
     pip.root.visible = rig.viewBlend() < 0.8; // the camera is inside the bird by then
     finder.update(rig.viewBlend(), view?.centred === true);
     setSteamLens(rig.viewBlend());
+    kit.aurora.setLens(rig.viewBlend());
     // After the rig has placed the camera: fade whatever now stands between it and the bird.
     updateViewFade(kit.camera, player.pos);
     gems.update(dt, state, player.pos, kit.camera, !overlayOpen && !runner.isRunning());
