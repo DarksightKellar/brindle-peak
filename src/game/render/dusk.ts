@@ -73,7 +73,7 @@ const HIGH_ZENITH = C(SKY_HIGH.zenith);
 
 export interface FogSink {
   setFogColor(haze: THREE.Color, far: THREE.Color): void;
-  setLook?(look: { saturation?: number }): void;
+  setLook?(look: { saturation?: number; sun?: number }): void;
 }
 
 /**
@@ -119,7 +119,8 @@ export function createDuskStage(kit: SceneKit, pipeline: FogSink): DuskStage {
     const far = kit.scene.getObjectByName('far-peak')?.userData.setDusk as ((k: number) => void) | undefined;
     far?.(t);
     pipeline.setFogColor(fog.copy(FOG_TINT[0]).lerp(FOG_TINT[1], t), distant.copy(FAR_TINT[0]).lerp(FAR_TINT[1], t));
-    pipeline.setLook?.({ saturation: mix(GRADE.saturation, DUSK_SATURATION, t) });
+    // No sun at blue hour for the falling flakes to catch; the lanterns still give them a little.
+    pipeline.setLook?.({ saturation: mix(GRADE.saturation, DUSK_SATURATION, t), sun: mix(1, 0.25, t) });
   };
 
   return {

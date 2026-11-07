@@ -21,6 +21,8 @@ export interface LookOverride {
   fogDensity?: number;
   /** [luma where the highlight taper starts, where it ends, saturation there] (SAT_TAPER). */
   satTaper?: [number, number, number];
+  /** How much the falling flakes glint: 1 in daylight, low at dusk. */
+  sun?: number;
 }
 
 export interface PixelPipeline {
@@ -48,6 +50,9 @@ function makeTarget(w: number, h: number, withDepth: boolean): THREE.WebGLRender
 }
 
 import { FRAG, VERT } from './compositeShader';
+
+/** Every snow lattice tiles on 64 cells of 7, 13 or 31 texels; this is a length all three repeat on. */
+const LOOK_WRAP = 64 * 7 * 13 * 31;
 
 export function createPixelPipeline(canvas: HTMLCanvasElement, kit: SceneKit): PixelPipeline {
   const renderer = new THREE.WebGLRenderer({
@@ -102,10 +107,13 @@ export function createPixelPipeline(canvas: HTMLCanvasElement, kit: SceneKit): P
       uHueShift: { value: GRADE.hueShift }, uSnow: { value: new THREE.Vector3(0, 0, 0) },
       uSatTaper: { value: new THREE.Vector3(SAT_TAPER.from, SAT_TAPER.to, SAT_TAPER.saturation) },
       uViewToWorld: { value: new THREE.Matrix4() }, uInvProj: { value: new THREE.Matrix4() }, uTexelAngle: { value: 0.004 },
+      uLook: { value: new THREE.Vector2() }, uSun: { value: 1 },
     },
   });
 
   const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), material);
+  const forward = new THREE.Vector3();
+  let lastHeading: number | null = null, turned = 0;
   quad.frustumCulled = false;
   const quadScene = new THREE.Scene().add(quad);
   const quadCamera = new THREE.Camera();
@@ -148,8 +156,20 @@ export function createPixelPipeline(canvas: HTMLCanvasElement, kit: SceneKit): P
     (material.uniforms.uFar.value as number) = camera.far;
     (material.uniforms.uViewToWorld.value as THREE.Matrix4).copy(camera.matrixWorld);
     (material.uniforms.uInvProj.value as THREE.Matrix4).copy(camera.projectionMatrixInverse);
-    (material.uniforms.uTexelAngle.value as number) =
-      (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2)) / (material.uniforms.uRes.value as THREE.Vector2).y;
+    const texelAngle = (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2)) / (material.uniforms.uRes.value as THREE.Vector2).y;
+    (material.uniforms.uTexelAngle.value as number) = texelAngle;
+    // The snow's lattice follows the camera's turn and tilt, so the fall hangs in the world. The turn is
+    // unwrapped (no jump at the back of the circle) and kept modulo a length every lattice tiles on.
+    camera.getWorldDirection(forward);
+    const heading = Math.atan2(forward.x, -forward.z), tilt = Math.asin(THREE.MathUtils.clamp(forward.y, -1, 1));
+    if (lastHeading !== null) {
+      let turn = heading - lastHeading;
+      if (turn > Math.PI) turn -= 2 * Math.PI;
+      if (turn < -Math.PI) turn += 2 * Math.PI;
+      turned = (turned + turn / texelAngle) % LOOK_WRAP;
+    }
+    lastHeading = heading;
+    (material.uniforms.uLook.value as THREE.Vector2).set(turned, (tilt / texelAngle) % LOOK_WRAP);
     renderer.setRenderTarget(null);
     renderer.render(quadScene, quadCamera);
   }
@@ -168,6 +188,7 @@ export function createPixelPipeline(canvas: HTMLCanvasElement, kit: SceneKit): P
     if (look.splitTonality !== undefined) g.z = look.splitTonality;
     if (look.fogDensity !== undefined) (material.uniforms.uFogDensity.value as number) = look.fogDensity;
     if (look.satTaper) (material.uniforms.uSatTaper.value as THREE.Vector3).set(...look.satTaper);
+    if (look.sun !== undefined) (material.uniforms.uSun.value as number) = look.sun;
   }
   function setPixelSize(n: number): void {
     pixelSize = Math.min(12, Math.max(1, Math.round(n)));

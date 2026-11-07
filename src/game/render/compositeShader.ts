@@ -21,6 +21,8 @@ uniform vec4 uFogShape; // haze cap, fade start, fade end, fade max
 uniform vec3 uSatTaper; // luma where the saturation taper starts, where it ends, saturation there
 uniform mat4 uViewToWorld, uInvProj; // camera.matrixWorld and projectionMatrixInverse, for the settling snow
 uniform float uTexelAngle; // 2 tan(fov / 2) / internal height: metres per texel at one metre
+uniform vec2 uLook; // the camera's turn and tilt in texels, so the snow hangs in the world
+uniform float uSun; // 1 by day, low at dusk: how much the falling flakes glint
 varying vec2 vUv;
 // Snap to a low-res texel centre so every fragment of a block reads one texel and the neighbour
 // offsets land on real neighbours (the reference assumes a 1:1 grid).
@@ -121,32 +123,42 @@ float hash21(vec2 p) {
 // Flakes: one per cell of a grid that falls down the screen, each at its own place in its cell and
 // swaying a little, size internal pixels square. Three layers at three speeds give depth: far ones
 // small, slow and faint, near ones bigger and quicker. Everything wraps on a tile, as the veil does.
-float flakeLayer(vec2 texel, vec3 s, float cell, float speed, float size, float density, float seed) {
+// uLook shifts every lattice by the camera's turn and tilt (texels), so the snow hangs in the world
+// while the view swings through it rather than turning with the camera.
+// Returns (hit, the flake's own random number) so a layer can give each flake a character.
+vec2 flakeLayer(vec2 texel, vec3 s, float cell, float speed, float size, float density, float seed) {
   float t = s.y / 14.0; // s.y falls 14 texels a second (weather.ts FALL)
   float tile = cell * 64.0;
-  vec2 q = vec2(texel.x - mod(s.x * speed / 14.0, tile), texel.y + mod(t * speed, tile));
+  vec2 q = vec2(texel.x + mod(uLook.x - s.x * speed / 14.0, tile), texel.y + mod(uLook.y + t * speed, tile));
   vec2 id = mod(floor(q / cell), 64.0);
   float h = hash21(id + seed);
-  if (h > density) return 0.0;
+  if (h > density) return vec2(0.0);
   float sway = cell * 0.16;
   vec2 off = vec2(hash21(id + seed + 7.1), hash21(id + seed + 3.7)) * (cell - size - 2.0 * sway) + vec2(sway, 0.0);
   off.x += sin(mod(t * (0.6 + h), 6.2832) + h * 40.0) * sway;
   vec2 local = mod(q, cell) - floor(off);
-  return (local.x >= 0.0 && local.x < size && local.y >= 0.0 && local.y < size) ? 1.0 : 0.0;
+  float hit = (local.x >= 0.0 && local.x < size && local.y >= 0.0 && local.y < size) ? 1.0 : 0.0;
+  return vec2(hit, hash21(id + seed + 19.3));
 }
 // s.z: how much (0 none, 1 a steady fall, 2 heavy). Heavier is more flakes and brighter ones.
-float flakes(vec2 texel, vec3 s) {
+// Returns (alpha, glint): the near flakes turn as they fall, and now and then one catches the sun and
+// flashes warm white for a beat. uSun is 1 by day and low at dusk, when there is no sun to catch.
+vec2 flakes(vec2 texel, vec3 s) {
   float heavy = clamp(s.z - 1.0, 0.0, 1.0);
-  float soft = mix(0.45, 0.6, heavy), bold = mix(0.75, 0.9, heavy);
-  float far = flakeLayer(texel, s, 7.0, 16.0, 1.0, 0.22 + 0.25 * heavy, 11.0) * soft * 0.6;
-  float mid = flakeLayer(texel, s, 13.0, 28.0, 1.0, 0.3 + 0.3 * heavy, 23.0) * soft;
-  float near = flakeLayer(texel, s, 31.0, 52.0, 2.0, 0.28 + 0.3 * heavy, 37.0) * bold;
-  return max(max(far, mid), near) * min(s.z, 1.0);
+  float soft = mix(0.45, 0.6, heavy), bold = mix(0.7, 0.82, heavy);
+  float far = flakeLayer(texel, s, 7.0, 16.0, 1.0, 0.22 + 0.25 * heavy, 11.0).x * soft * 0.6;
+  float mid = flakeLayer(texel, s, 13.0, 28.0, 1.0, 0.3 + 0.3 * heavy, 23.0).x * soft;
+  vec2 n = flakeLayer(texel, s, 31.0, 52.0, 2.0, 0.28 + 0.3 * heavy, 37.0);
+  float t = mod(s.y / 14.0, 628.3);
+  float turn = 0.5 + 0.5 * sin(t * (2.5 + 5.0 * n.y) + n.y * 60.0);
+  float glint = n.x * pow(turn, 14.0) * uSun;
+  float near = n.x * mix(bold * 0.8, 1.0, glint);
+  return vec2(max(max(far, mid), near) * min(s.z, 1.0), glint);
 }
-// Snow settling: now and then a point on the ground near the player brightens for a moment and fades,
-// as a flake lands. World-anchored, so it stays put as the camera moves; only on ground that faces up,
-// only near (fog would eat it further out), and more of it when the snow is heavier. Each world cell is
-// about one texel across at its distance, so a landing is a single pixel, never a blob.
+// Snow settling: now and then a speck of ground near the player brightens to fresh white and fades, as
+// a flake lands in the snow. World-anchored, so it stays put as the camera moves; only on ground that
+// faces up, only near (fog would eat it further out), and more of it when the snow is heavier. Each
+// world cell is about two texels across at its distance: a soft speck, not a blob, and not many at once.
 float settle(vec2 uv, float dist, vec3 viewNormal, vec3 s) {
   if (dist > 30.0) return 0.0;
   vec3 up = mat3(uViewToWorld) * viewNormal;
@@ -154,14 +166,45 @@ float settle(vec2 uv, float dist, vec3 viewNormal, vec3 s) {
   vec4 r = uInvProj * vec4(uv * 2.0 - 1.0, 1.0, 1.0);
   vec3 dir = r.xyz / r.w;
   vec3 world = (uViewToWorld * vec4(dir * (dist / -dir.z), 1.0)).xyz;
-  float cell = exp2(ceil(log2(max(dist * uTexelAngle * 1.3, 0.004))));
+  float cell = exp2(ceil(log2(max(dist * uTexelAngle * 2.2, 0.004))));
   vec2 id = floor(world.xz / cell) + vec2(log2(cell) * 131.0, 0.0);
   float h = hash21(id);
-  if (h > 0.0045 * min(s.z, 2.0)) return 0.0;
-  float period = 3.5 + 6.0 * hash21(id + 5.3);
+  if (h > 0.0022 * min(s.z, 2.0)) return 0.0;
+  float period = 4.0 + 6.0 * hash21(id + 5.3);
   float t = mod(s.y / 14.0 + period * hash21(id + 9.1), period);
-  float e = t < 0.05 ? t / 0.05 : exp(-(t - 0.05) * 4.5);
+  float e = t < 0.08 ? t / 0.08 : exp(-(t - 0.08) * 1.2);
   return e * (1.0 - smoothstep(18.0, 30.0, dist));
+}
+// Snow on the glass: now and then a flake lands on the screen itself, a soft irregular blot that holds
+// for a moment and melts to a clear drop. Screen-fixed and smooth-edged (not on the pixel grid), so it
+// reads as on the lens, not in the world. A few slots, each on its own cycle; more of them in heavy snow.
+float spatter(vec2 p, vec3 s) {
+  float t = s.y / 14.0, acc = 0.0;
+  for (int i = 0; i < 4; i++) {
+    float fi = float(i);
+    if (fi >= 1.0 + 1.5 * s.z) break; // steady: 2 slots, heavy: 4
+    float period = 9.0 + 7.0 * hash21(vec2(fi, 3.1));
+    float shifted = t + period * hash21(vec2(fi, 8.7));
+    float lt = mod(shifted, period);
+    float life = 2.6 + 1.4 * hash21(vec2(fi, 1.9));
+    if (lt > life) continue;
+    float k = mod(floor(shifted / period), 997.0);
+    vec2 h = vec2(hash21(vec2(k, fi + 0.5)), hash21(vec2(fi + 0.5, k + 4.0)));
+    vec2 c = vec2(0.08 + 0.84 * h.x, 0.1 + 0.62 * h.y) * uRes; // keep clear of the HUD across the top
+    float age = lt / life;
+    float rad = (2.2 + 2.6 * hash21(vec2(k, fi + 9.0))) * (1.0 + 0.25 * age);
+    vec2 d = p - c;
+    float ang = atan(d.y, d.x);
+    float edge = 1.0 + 0.18 * sin(ang * 3.0 + h.x * 20.0) + 0.1 * sin(ang * 5.0 + h.y * 30.0);
+    float r = length(d) / (rad * edge);
+    float body = 1.0 - smoothstep(0.55, 1.0, r);
+    // A crystal first (bright, opaque), then water: dimmer, with a faint bright rim.
+    float fresh = 1.0 - smoothstep(0.0, 0.45, age);
+    float a = body * mix(0.22 + 0.22 * smoothstep(0.6, 1.0, r), 0.75, fresh);
+    a *= min(lt / 0.06, 1.0) * (1.0 - smoothstep(0.55, 1.0, age));
+    acc = max(acc, a);
+  }
+  return acc;
 }
 // Fog, in two stages (ART_BIBLE §6). Uncapped haze mixed every distant hill and tree line to the one
 // fog colour, and the 2.6x grade then turned that colour a vivid flat blue: placeholder spikes on a
@@ -185,8 +228,12 @@ void main() {
   vec3 lit = gradeSrgb(linearToSrgb(mix(col, uFogColor, hazeAt(dist) * open)), open);
   lit = mix(lit, gradeSrgb(linearToSrgb(uFogFarColor), 0.0), fadeAt(dist) * open);
   if (uSnow.z > 0.0) {
-    lit = mix(lit, vec3(1.0), 0.75 * settle(uv, dist, normalAt(uv), uSnow) * open);
-    lit = mix(lit, vec3(0.96, 0.98, 1.0), flakes(floor(vUv * uRes), uSnow));
+    // Fresh snow white. Each landing is a speck a few texels wide: one pixel of white was lost on pale
+    // snow, and blue (tried next) read as rain.
+    lit = mix(lit, vec3(0.98, 0.99, 1.0), 0.45 * settle(uv, dist, normalAt(uv), uSnow) * open);
+    vec2 f = flakes(floor(vUv * uRes), uSnow);
+    lit = mix(lit, mix(vec3(0.96, 0.98, 1.0), vec3(1.0, 0.97, 0.86), f.y), f.x);
+    lit = mix(lit, vec3(0.93, 0.96, 1.0), spatter(vUv * uRes, uSnow) * min(uSnow.z, 1.0));
   }
   gl_FragColor = vec4(lit, 1.0);
 }
