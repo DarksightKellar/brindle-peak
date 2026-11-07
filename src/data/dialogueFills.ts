@@ -7,9 +7,24 @@
  */
 
 import type { GameState } from '../core/contracts';
-import { NANA_HEARD, NANA_POSTS, VALLEY_LINES } from './endingLines';
+import { NANA_HEARD, NANA_POSTS, NANA_TOMORROW, NANA_TOMORROW_ALL, VALLEY_LINES } from './endingLines';
+import { unmetAfterStory } from '../core/guide/goal';
+import { NPCS } from './npcs';
+import { QUESTS } from './quests';
+import { ZONE_NAMES } from './zoneNames';
 import { PICKUPS } from './pickups';
 import { FISH } from './fish';
+
+/**
+ * Nana's word for the morning: the villager the goal line will send Pip to next. Asked from her door with
+ * the goal line's own rule, which also remembers the name, so the line under the compass agrees with her.
+ */
+function tomorrow(s: GameState): string {
+  const nana = NPCS.find((n) => n.id === 'nana');
+  const from = nana ? { x: nana.pos.x, z: nana.pos.z } : { x: 0, z: 0 };
+  const met = unmetAfterStory(s, from, { quests: QUESTS, npcs: NPCS, activities: [], zones: [], places: [], zoneNames: ZONE_NAMES });
+  return (met && NANA_TOMORROW[met.id]) ?? NANA_TOMORROW_ALL;
+}
 
 /** Nana says "just one, tonight": she adds at most this many things she has heard. */
 const NANA_HEARD_MAX = 2;
@@ -120,11 +135,13 @@ export const DIALOGUE_FILLS: Readonly<Record<string, (s: GameState) => string[]>
       // Said before "take it on?" on the "why?" path, so it notices rather than promises (critic round 47).
       : ['and a snowman on the green.'],
   // In the card's order, so the threads between two people come first.
-  'nana-heard': (s) =>
-    VALLEY_LINES.map(([quest]) => quest)
+  'nana-heard': (s) => [
+    ...VALLEY_LINES.map(([quest]) => quest)
       .filter((quest) => s.quests[quest]?.status === 'complete' && NANA_HEARD[quest] !== undefined)
       .slice(0, NANA_HEARD_MAX)
       .map((quest) => NANA_HEARD[quest] as string),
+    tomorrow(s),
+  ],
   // Her line about the posts says who lit them on this run: she used to say she watched Pip light
   // them all the way down, on a run where Pip had lit four of twelve and the rest lit themselves.
   // Ivy's roll-call line says how the pools are on this run: "steaming" sat oddly beside her errand
@@ -137,8 +154,10 @@ export const DIALOGUE_FILLS: Readonly<Record<string, (s: GameState) => string[]>
   // Done before it was asked for: the errand moves on, and the words now know it (critic round 26 rang the
   // bell, then heard Gus ask for it to be rung; photographed the lamps, then heard Orla ask for the photo).
   'gus-ring': (s) => [rung(s) ? "You've rung it already? I thought I heard something. Clean, was it?" : 'Ring the shop bell. One clean strike. No rattle.'],
-  'gus-ring-wait': (s) => [rung(s) ? "You're back! You rang it, I know. Now, did it carry?" : "You're back! The shop bell's right there. One clean strike."],
-  'gus-ring-still': (s) => [rung(s) ? 'You rang it! I heard!' : 'The shop bell! One clean strike!'],
+  // Once rung, Gus has already had his surprise in the talk that heard it (critic round 69 got "You've
+  // rung it already?" then "You rang it! I heard!", two beats for one ring): after that he just waits.
+  'gus-ring-wait': (s) => [rung(s) ? "You're back! I've still got that ring in my ears." : "You're back! The shop bell's right there. One clean strike."],
+  'gus-ring-still': (s) => [rung(s) ? "Still ringing in my ears, that one." : 'The shop bell! One clean strike!'],
   'orla-lamps': (s) => [lamps(s) ? "You've the lamps on the camera already? Then that's done." : 'Photograph the market lamps.'],
   'orla-lamps-wait': (s) => [lamps(s) ? "You're back. The queue's still out the door. The lamps are done, I saw." : "You're back. The queue's still out the door. The market lamps first, on the camera."],
   'orla-lamps-still': (s) => [lamps(s) ? 'The lamps are in the window now, love.' : 'The market lamps on the camera, love.'],

@@ -45,6 +45,8 @@ export interface PendingOffer {
 
 export interface DialogueFlow {
   open(npcId: string, nodeId: string, offer?: PendingOffer): void;
+  /** One line from a villager Pip has just said "not now" to, with no offer in it. */
+  remind(npcId: string): void;
   advance(): void;
   close(): void;
   isOpen(): boolean;
@@ -78,6 +80,14 @@ const LATER = '§later';
  */
 function laterNode(speaker: string): DialogueNode {
   return { id: LATER, speaker, lines: ["No hurry. Ask me again when you're passing."] };
+}
+
+/**
+ * Talking to the same villager again before walking off. Critic round 69 said "not now" to Orla, pressed
+ * E again and had the errand put to it again on the spot: an offer just turned down is not asked twice.
+ */
+function remindNode(speaker: string): DialogueNode {
+  return { id: LATER, speaker, lines: ["It'll keep. Go and see what else is about, and come back by."] };
 }
 
 function askNode(title: string): DialogueNode {
@@ -134,6 +144,15 @@ export function createDialogueFlow(d: DialogueFlowDeps): DialogueFlow {
         return;
       }
       open(npcId, nodeId);
+    },
+    remind(npcId): void {
+      const npc = d.npcs.find((n) => n.id === npcId);
+      if (!npc) return;
+      offer = null;
+      agreed = false;
+      speechNode = LATER;
+      speakerId = npc.id;
+      d.dialogue.open(remindNode(npc.id), npc.name, (syllables) => d.audio.chirp(syllables, pitchFor(npc.species)));
     },
     advance(): void {
       if (!d.dialogue.isOpen()) return;

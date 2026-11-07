@@ -10,7 +10,10 @@ import { describe, expect, it } from 'vitest';
 import type { PlayerState, TerrainSampler } from '../src/core/contracts';
 import { createGameState } from '../src/core/contracts';
 import { createEventBus } from '../src/core/progress/events';
-import { ENDING_QUEST, FINALE_QUEST } from '../src/data/quests';
+import { ENDING_QUEST, FINALE_QUEST, QUESTS } from '../src/data/quests';
+import { NANA_TOMORROW } from '../src/data/endingLines';
+import { ZONE_NAMES } from '../src/data/zoneNames';
+import { unmetAfterStory } from '../src/core/guide/goal';
 import { applyWorldRules } from '../src/game/session/worldRules';
 import { DIALOGUE } from '../src/data/dialogue';
 import { createDialogueFlow } from '../src/game/session/dialogueFlow';
@@ -97,10 +100,10 @@ describe('a conversation that hands between speakers', () => {
     const flow = createDialogueFlow({
       dialogue: view as never, audio: { chirp: () => undefined } as unknown as AudioKit, npcs: NPCS, nodes: DIALOGUE,
     });
-    flow.open('wren', 'wren-done');
+    flow.open('pell', 'pell-errand');
     flow.advance();
-    expect(heard).toEqual(['wren-done:Wren', 'wren-pip:Pip']);
-    expect(flow.speaker()).toBe('wren'); // the camera keeps Wren in the shot while Pip speaks
+    expect(heard).toEqual(['pell-errand:Pell', 'pell-pip:Pip']);
+    expect(flow.speaker()).toBe('pell'); // the camera keeps Pell in the shot while Pip speaks
   });
 
   it('ends an errand offer on Pip choosing: only "i\'ll do it" takes it on', () => {
@@ -221,10 +224,12 @@ describe('Orla and the snowman', () => {
 describe('the homecoming hears about errands', () => {
   it('lets Nana mention up to two finished errands before her last lines, and none on a bare run', () => {
     const s = createGameState({ x: 0, y: 0, z: 0 }, 6);
-    expect(DIALOGUE_FILLS['nana-heard']?.(s)).toEqual([]);
+    // On a bare run only her word for the morning.
+    expect(DIALOGUE_FILLS['nana-heard']?.(s)).toHaveLength(1);
     for (const q of ['hollis-mitten', 'tuck-rope', 'skiff-sled']) s.quests[q] = { status: 'complete', step: 0 };
     const heard = DIALOGUE_FILLS['nana-heard']?.(s) ?? [];
-    expect(heard).toHaveLength(2);
+    expect(heard).toHaveLength(3);
+    expect(heard[2]).toMatch(/^In the morning/);
     let opened: string[] = [];
     const flow = createDialogueFlow({
       dialogue: { open: (n) => { opened = n.lines; }, advance: () => 'close', close: () => undefined, isOpen: () => false },
@@ -233,6 +238,24 @@ describe('the homecoming hears about errands', () => {
     });
     flow.open('nana', 'nana-home-close');
     expect(opened).toEqual([...heard, ...(DIALOGUE['nana-home-close']?.lines ?? [])]);
+  });
+
+  // Critic round 69 heard "The valley will be there in the morning" and then a hello line about anyone.
+  it('has Nana name, for the morning, the villager the goal line names next', () => {
+    const s = createGameState({ x: 0, y: 0, z: 0 }, 6);
+    for (const q of QUESTS.filter((d) => d.main === true)) s.quests[q.id] = { status: 'complete', step: 0 };
+    for (const id of ['nana', 'bram', 'edda', 'tuck']) s.talked[id] = true;
+    const nana = NPCS.find((n) => n.id === 'nana');
+    const from = { x: nana?.pos.x ?? 0, z: nana?.pos.z ?? 0 };
+    const guide = { quests: QUESTS, npcs: NPCS, activities: [], zones: [], places: [], zoneNames: ZONE_NAMES };
+    const lines = DIALOGUE_FILLS['nana-heard']?.(s) ?? [];
+    const next = unmetAfterStory(s, from, guide);
+    expect(next).not.toBeNull();
+    expect(lines.at(-1)).toBe(NANA_TOMORROW[next?.id ?? '']);
+    // And the goal line, asked from further off, keeps the same name until Pip has met them.
+    expect(unmetAfterStory(s, { x: from.x + 30, z: from.z }, guide)?.id).toBe(next?.id);
+    for (const n of NPCS) s.talked[n.id] = true;
+    expect((DIALOGUE_FILLS['nana-heard']?.(s) ?? []).at(-1)).toMatch(/the valley's yours/);
   });
 
   it('has Nana say who lit the posts: Pip, the valley, or both', () => {

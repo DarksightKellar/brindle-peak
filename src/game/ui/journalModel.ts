@@ -116,7 +116,7 @@ export function formatPlaytime(seconds: number): string {
   return h > 0 ? `${h}h ${String(m).padStart(2, '0')}m` : `${m}m`;
 }
 
-const QUEST_ORDER: Readonly<Record<QuestStatus, number>> = { active: 0, available: 1, complete: 2, locked: 3 };
+const QUEST_ORDER: Readonly<Record<QuestStatus, number>> = { active: 0, available: 1, locked: 2, complete: 3 };
 
 export function formatJournal(s: GameState, content: JournalContent = {}): JournalModel {
   const zones: JournalZone[] = ZONE_IDS.map((id) => ({
@@ -164,6 +164,38 @@ export function formatJournal(s: GameState, content: JournalContent = {}): Journ
             main: false,
           };
         }),
+    )
+    // After the story, every errand nobody has put to Pip yet is on the page too, with who has it and
+    // where: critic round 69 read "10 errands waiting" on the end card and found only the ones under way
+    // here. Before the story is done the page stays with what Pip has heard.
+    .concat(
+      s.quests['nana-home']?.status !== 'complete'
+        ? []
+        : (content.quests ?? [])
+            .filter((q) => q.main !== true && s.quests[q.id] === undefined && s.flags[`declined:${q.id}`] !== true)
+            .map((q) => {
+              const npc = NPCS.find((n) => n.id === q.giver);
+              const who = npc?.name ?? q.giver;
+              const after = (q.requires ?? []).find((c) => c.kind === 'quest' && !evaluate(c, s));
+              const first = after && after.kind === 'quest' ? content.quests?.find((d) => d.id === after.id)?.title : undefined;
+              // Something only the climb carried (Bram's rope went up with the batteries): no hello finds it now.
+              const gone = (q.requires ?? []).some((c) => c.kind !== 'quest' && !evaluate(c, s));
+              return {
+                id: q.id,
+                title: q.title,
+                status: 'locked' as const,
+                step: 0,
+                stepText: gone
+                  ? `${who} had this one for the climb, and the climb is done.`
+                  : first
+                  ? `${who} will have this one after ${first}.`
+                  : `With ${who}${npc ? `, in ${ZONE_NAMES[npc.zone]}` : ''}. Go and say hello.`,
+                nextText: null,
+                epilogue: q.blurb,
+                trackable: false,
+                main: false,
+              };
+            }),
     )
     .sort((a, b) => QUEST_ORDER[a.status] - QUEST_ORDER[b.status]);
 

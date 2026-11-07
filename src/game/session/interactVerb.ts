@@ -31,6 +31,13 @@ const WORDS_SHOP = {
 const BUY_REST_MS = 3000;
 const boughtAt = new WeakMap<GameState, number>();
 
+/**
+ * The villager Pip last said "not now" to, and where Pip stood. Until Pip has walked this far from there,
+ * talking to them again gets a word, not the offer (dialogueFlow.ts `remind`).
+ */
+const WALKED_OFF = 12;
+const declinedAt = new WeakMap<GameState, { npc: string; x: number; z: number }>();
+
 /** Pip's own half-width, and the gap kept between the two bodies while they talk. */
 const PIP_BULK = 0.45;
 const TALK_GAP = 0.7;
@@ -70,6 +77,13 @@ export function interact(d: InteractVerbDeps): void {
   if (!target) return;
 
   if (target.kind === 'npc') {
+    const turned = declinedAt.get(d.state);
+    if (turned && Math.hypot(d.player.pos.x - turned.x, d.player.pos.z - turned.z) >= WALKED_OFF) declinedAt.delete(d.state);
+    else if (turned && turned.npc === target.id) {
+      standClear(d.player, target.id);
+      d.flow.remind(target.id);
+      return;
+    }
     // The talk is counted first and the node chosen from what it changed (core/progress/conversation),
     // so a report-back conversation speaks the payoff instead of replaying the request.
     const talk = d.mech.talk(target.id);
@@ -82,7 +96,10 @@ export function interact(d: InteractVerbDeps): void {
     d.flow.open(target.id, talk.node, offered && id !== null ? {
       title: offered.title,
       accept: () => d.mech.accept(id),
-      decline: () => { state.flags[`declined:${id}`] = true; },
+      decline: () => {
+        state.flags[`declined:${id}`] = true;
+        declinedAt.set(state, { npc: target.id, x: d.player.pos.x, z: d.player.pos.z });
+      },
     } : undefined);
     return;
   }

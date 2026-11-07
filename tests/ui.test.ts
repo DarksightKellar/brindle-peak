@@ -192,6 +192,20 @@ describe('journal model', () => {
     expect(formatJournal(s, { quests: QUESTS }).quests.filter((q) => q.id === 'tuck-rope').map((q) => q.status)).toEqual(['active']);
   });
 
+  // Critic round 69 read "10 errands waiting" on the end card and found only those under way on the page.
+  it('lists, after the story, every errand nobody has asked yet, so the page adds up to the card', () => {
+    const s = filled();
+    const errands = QUESTS.filter((q) => q.main !== true);
+    expect(formatJournal(s, { quests: QUESTS }).quests.some((q) => q.status === 'locked')).toBe(false);
+    for (const q of QUESTS.filter((d) => d.main === true)) s.quests[q.id] = { status: 'complete', step: 0 };
+    const rows = formatJournal(s, { quests: QUESTS }).quests.filter((q) => errands.some((e) => e.id === q.id));
+    expect(rows).toHaveLength(errands.length);
+    const waiting = rows.filter((q) => q.status === 'locked');
+    expect(waiting.length).toBeGreaterThan(0);
+    expect(waiting.find((q) => q.id === 'gus-ledger')?.stepText).toBe('With Gus, in Hollowpine Hamlet. Go and say hello.');
+    expect(waiting.find((q) => q.id === 'orla-night-bake')?.stepText).toBe('Orla will have this one after Four Loaves.');
+  });
+
   it('counts every post lit once the radio call has the valley light the rest, and keeps Pip\'s share', () => {
     const s = filled();
     expect(formatJournal(s, { lanternsTotal: 12 })).toMatchObject({ lanterns: { text: '2 / 12' }, lanternsLitByPip: null });

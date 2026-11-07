@@ -163,6 +163,7 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
     helloAt = unmet ? { x: unmet.pos.x, z: unmet.pos.z } : null;
     const errandFirst = unmet !== null;
     const story = guide && lastState && !errandFirst ? goalTarget(lastState, lastFrom, guide) : null;
+    storyMarked = story !== null;
     // An errand standing as the goal walks the trail too (route.ts): Tuck's bridge sits over a gorge.
     const point = story ?? (nextAllowed ? errandTarget : null);
     pointed = point;
@@ -179,6 +180,8 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
    */
   /** What the goal points at before any route bends it: the errand's own place when it is the goal. */
   let pointed: Vec2 | null = null;
+  /** The goal line's own place is the compass's big diamond. */
+  let storyMarked = false;
   let offSide = 0;
   const offStrip = (at: Vec2 | null): string => {
     if (!at) return '';
@@ -222,9 +225,14 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
         // the hello is the compass's own goal. Then it gives the compass's number (the walk, route.ts).
         const straight = unmet ? Math.hypot(unmet.pos.x - p.pos.x, unmet.pos.z - p.pos.z) : 0;
         const away = helloAt ? straight : goalDistance ?? straight;
+        // The story's line carries the compass's own number, as the errand's line carries its own: critic
+        // round 69 read 1164 u on the strip and 773 u under it and could not tell which line each was.
+        const storyAway = storyMarked && pointed ? goalDistance ?? Math.hypot(pointed.x - p.pos.x, pointed.z - p.pos.z) : null;
         const goal = unmet
           ? `${line.replace(/\.$/, '')}: ${formatDistance(away)}, ${viewWay(unmet.pos.x - p.pos.x, unmet.pos.z - p.pos.z, viewYaw)}.`
-          : line;
+          : storyAway !== null && line !== ''
+            ? `${line.replace(/\.$/, '')} — ${formatDistance(storyAway)}`
+            : line;
         if (goal !== lastGoal) {
           lastGoal = goal;
           goalEl.textContent = goal;
@@ -278,6 +286,10 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
         else writeNext(errandText, step);
       }
       const side = nextAllowed && errandTarget && errandTarget !== pointed ? errandTarget : null;
+      // Each line wears the mark it has on the strip. Critic round 69 read "Take the batteries to Edda"
+      // over "Next: Take Bram's good rope… 773 u", saw one diamond and 1164 u, and could not tell whose.
+      goalEl.classList.toggle('is-goal', !held && storyMarked);
+      goalEl.classList.toggle('is-hello', !held && !storyMarked && helloAt !== null);
       // With no story point the errand is the goal, and its line wears the goal's mark, not its own.
       nextEl.classList.toggle('is-goal', errandTarget !== null && errandTarget === pointed);
       const todo = nextAllowed && !held ? nearbyTodo(ACTIVITIES, s, lastFrom) : [];

@@ -65,6 +65,32 @@ export const NANA_POSTS: Readonly<Record<'all' | 'some' | 'none', string>> = {
   none: "After the call I stood here and watched the posts come on, one after another, from the top down to my door. The whole valley, lighting you home.",
 };
 
+/**
+ * Nana's last word before the porch: one villager Pip has not met, named the way the goal line will
+ * name them next (core/guide/goal.ts `unmetAfterStory`, from her door), with a reason to go. Critic
+ * round 69 heard "The valley will be there in the morning. All of it." and then a generic hello line.
+ */
+export const NANA_TOMORROW: Readonly<Record<string, string>> = {
+  hollis: "In the morning, look in on Hollis down by the road head. He's lost a mitten and found a theory, which is worse.",
+  wren: "In the morning, go up into Pinewind and find Wren. She writes the valley down, and she's run short of things worth writing.",
+  tamsin: "In the morning, there's a marten in Pinewind, Tamsin, knitting for folk she's never met. She'll want to measure your head.",
+  fen: "In the morning, Fen will be up his pine in Pinewind, counting everything that moves. Say hello before he counts you.",
+  ilsa: "In the morning, Ilsa's in Pinewind, carrying something for somebody. Make her put it down for a minute.",
+  skiff: "In the morning, go out on the Frozen Reach and find Skiff. A boat captain with no water. He's sulked since the lake froze.",
+  margit: "In the morning, Margit's out on the Frozen Reach, measuring the ice. She'll tell you how thick before you've asked.",
+  orla: "In the morning, Orla at the bakery in Hollowpine Hamlet will have the oven hot and nothing to put in it. Go and see her.",
+  pell: "In the morning, Pell at the post in Hollowpine Hamlet has a letter he can't place. He'd be glad of a second pair of eyes.",
+  gus: "In the morning, Gus sells bells in Hollowpine Hamlet and has never once rung the big one. Go and lend him some nerve.",
+  ivy: "In the morning, go down to Kettle Springs and find Ivy. She says the pools are cooling, and she won't say she's worried.",
+  corm: "In the morning, Corm's at Kettle Springs with the news. Half of it's true. Go and find out which half.",
+  jory: "In the morning, there's a little mouse at Kettle Springs, Jory, who has never been out of the warm. Go and say hello.",
+  tuck: "In the morning, Tuck keeps the bridge on Windscar Ridge. Hasn't spoken to Bram in years. Say hello to him anyway.",
+  sable: "In the morning, Sable's up on Windscar Ridge measuring the wind. Ask her what it's doing. She'll tell you, at length.",
+};
+
+/** Everyone met already: the morning is Pip's own. */
+export const NANA_TOMORROW_ALL = "In the morning, the valley's yours. Half of it owes you a cup of something. Go and collect.";
+
 /** Nana at the homecoming, one line per finished errand (chosen by src/data/dialogueFills.ts). */
 export const NANA_HEARD: Readonly<Record<string, string>> = {
   'hollis-mitten': "Hollis came past with both mittens on, waving them at me. He says he owes an owl an apology.",

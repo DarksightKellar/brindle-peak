@@ -41,6 +41,11 @@
 
 /* Fixed, not absolute: centred on the window whatever box they sit in. */
 .ui-hud__goal { position: fixed; left: 50%; transform: translateX(-50%); top: 12px; font-size: 13px; letter-spacing: 0.01em; color: var(--snow-hi); background: var(--panel); border: 1px solid var(--snow-sh); padding: 4px 12px; white-space: nowrap; pointer-events: none; }
+/* The goal line starts with its mark on the strip, as the next-step line does: the big lantern diamond
+   when the story's place is the compass goal, the hollow amber one for a villager to greet. */
+.ui-hud__goal.is-goal::before, .ui-hud__goal.is-hello::before { content: ''; display: inline-block; width: 9px; height: 9px; margin: 0 9px 1px 1px; transform: rotate(45deg); box-sizing: border-box; }
+.ui-hud__goal.is-goal::before { background: var(--lantern); border: 1px solid #7E5334; }
+.ui-hud__goal.is-hello::before { background: var(--panel); border: 2px solid var(--amber); }
 
 /* The stamina bar's acknowledgement for a lesson that costs breath. */
 .ui-hud__stamina.is-pulse { animation: breath-pulse 520ms ease-out; }

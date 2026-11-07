@@ -59,14 +59,32 @@
     "lines": [
       "You've been to both. Go on, then. What did you hear?"
     ],
-    "next": "wren-pip"
+    "choices": [
+      {
+        "text": "the frost ticked. like a stove cooling.",
+        "next": "wren-frost"
+      },
+      {
+        "text": "the springs. like a kettle arguing with itself.",
+        "next": "wren-kettle"
+      }
+    ]
   },
   {
-    "id": "wren-pip",
-    "speaker": "pip",
+    "id": "wren-frost",
+    "speaker": "wren",
     "lines": [
-      "the frost in the glade ticks. like a stove cooling.",
-      "the springs sound like a kettle arguing with itself."
+      "A stove cooling. Oh, that's it exactly. I'd stopped hearing it.",
+      "And the springs? No, keep that one. I'll go down and hear it for myself."
+    ],
+    "next": "wren-write"
+  },
+  {
+    "id": "wren-kettle",
+    "speaker": "wren",
+    "lines": [
+      "A kettle arguing with itself. Oh, that's it exactly. I'd stopped hearing it.",
+      "And the frost? No, keep that one. I'll go up to the glade and listen for myself."
     ],
     "next": "wren-write"
   },
@@ -74,8 +92,7 @@
     "id": "wren-write",
     "speaker": "wren",
     "lines": [
-      "A stove cooling. A kettle arguing with itself. Oh, that's it exactly.",
-      "I'd stopped hearing both. That's the last page. The book's full.",
+      "That's the last page. The book's full.",
       "Take it. I'll start a new one tomorrow, with my ears washed out."
     ]
   },
@@ -257,7 +274,7 @@
     "lines": [
       "You asked me straight out. Hardly anyone does. Most hint and hope.",
       "I saw it. Hollis, the hare, hung it on a low branch to dry.",
-      "Wind took it into the creek pool below the split pine. Fish there and you'll hook it.",
+      "Wind took it into the creek pool below the split pine. The pine with two tops, standing over the rest, a short walk downhill from my branch. Fish there and you'll hook it.",
       "I didn't take it. Tell him that. He's been thinking it for two days."
     ]
   },
