@@ -92,13 +92,37 @@ export interface MusicPlayer {
 
 const URLS: Record<Track, string> = { valley: valleyUrl, heights: heightsUrl, dusk: duskUrl };
 
-interface Deck {
+/**
+ * One copy of a track playing. A deck has two, so it can hand over to a fresh copy before the
+ * recording's own fade-out: the Lyria tracks fade over their last fifteen seconds and sit near silence
+ * for the last five, so a plain loop dipped under the wind every two and a half minutes, and the
+ * director heard the music just stop.
+ */
+interface Voice {
   el: HTMLAudioElement;
+  /** This copy's share of the deck, 0..1, for the handover crossfade. */
+  gain: GainNode;
+  /** When play() was last asked of the element, ms (performance.now), so a stalled copy is retried calmly. */
+  tried: number;
+}
+
+interface Deck {
+  voices: [Voice, Voice];
+  /** The copy carrying the track now. */
+  live: 0 | 1;
   gain: GainNode;
   on: boolean;
   /** Pause timer once a fade-out has finished. */
   stop: ReturnType<typeof setTimeout> | null;
 }
+
+/** A track that should be playing but has stopped (a refused start, a stall) is started again this often, ms. */
+const RETRY_MS = 2000;
+/** Seconds before a recording's end that the next copy takes over, ahead of its fade-out. */
+const SEAM_S = 14;
+/** Handover time constants, seconds: the new copy comes up in about four seconds, the old one eases away. */
+const SEAM_IN = 1.2;
+const SEAM_OUT = 2.5;
 
 export function createMusic(rt: AudioRuntime): MusicPlayer | null {
   if (typeof Audio === 'undefined') return null;
@@ -106,20 +130,66 @@ export function createMusic(rt: AudioRuntime): MusicPlayer | null {
   const decks = new Map<Track, Deck>();
   let duck = -1;
 
+  const start = (v: Voice): void => {
+    v.tried = performance.now();
+    void v.el.play().catch(() => undefined);
+  };
+
   const deck = (t: Track): Deck => {
-    let d = decks.get(t);
-    if (d) return d;
-    const el = new Audio(URLS[t]);
-    el.loop = true;
-    el.preload = 'auto';
-    el.crossOrigin = 'anonymous';
+    const had = decks.get(t);
+    if (had) return had;
     const gain = ctx.createGain();
     gain.gain.setValueAtTime(0.0001, ctx.currentTime);
-    ctx.createMediaElementSource(el).connect(gain);
     gain.connect(rt.music);
-    d = { el, gain, on: false, stop: null };
+    const voice = (share: number): Voice => {
+      const el = new Audio(URLS[t]);
+      el.preload = 'auto';
+      el.crossOrigin = 'anonymous';
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(share, ctx.currentTime);
+      ctx.createMediaElementSource(el).connect(g);
+      g.connect(gain);
+      return { el, gain: g, tried: 0 };
+    };
+    const d: Deck = { voices: [voice(1), voice(0.0001)], live: 0, gain, on: false, stop: null };
+    // If a copy reaches its end anyway (the page was in the background through the handover), the
+    // track goes on from the top rather than stopping.
+    d.voices.forEach((v, i) =>
+      v.el.addEventListener('ended', () => {
+        if (!d.on || d.live !== i) return;
+        v.el.currentTime = 0;
+        v.gain.gain.setTargetAtTime(1, ctx.currentTime, 0.05);
+        start(v);
+      }),
+    );
     decks.set(t, d);
     return d;
+  };
+
+  /** Keeps the wanted deck sounding: restarts a stopped copy, and hands over before the fade-out. */
+  const tend = (d: Deck): void => {
+    const v = d.voices[d.live];
+    if (v.el.paused) {
+      if (performance.now() - v.tried > RETRY_MS) start(v);
+      return;
+    }
+    const left = v.el.duration - v.el.currentTime;
+    if (!Number.isFinite(left) || left > SEAM_S) return;
+    const next = d.live === 0 ? 1 : 0;
+    const n = d.voices[next];
+    const now = ctx.currentTime;
+    n.el.currentTime = 0;
+    n.gain.gain.cancelScheduledValues(now);
+    n.gain.gain.setValueAtTime(0.0001, now);
+    n.gain.gain.setTargetAtTime(1, now, SEAM_IN);
+    start(n);
+    v.gain.gain.cancelScheduledValues(now);
+    v.gain.gain.setTargetAtTime(0.0001, now, SEAM_OUT);
+    d.live = next;
+  };
+
+  const pauseAll = (d: Deck): void => {
+    for (const v of d.voices) v.el.pause();
   };
 
   return {
@@ -132,14 +202,16 @@ export function createMusic(rt: AudioRuntime): MusicPlayer | null {
         if (want && (!d.on || level !== duck)) {
           if (d.stop) clearTimeout(d.stop);
           d.stop = null;
-          if (d.el.paused) void d.el.play().catch(() => undefined);
+          const v = d.voices[d.live];
+          if (v.el.paused) start(v);
           d.gain.gain.setTargetAtTime(level, ctx.currentTime, d.on ? 0.4 : FADE_TAU);
           d.on = true;
-        } else if (!want && d.on) {
+        } else if (want) {
+          tend(d);
+        } else if (d.on) {
           d.on = false;
           d.gain.gain.setTargetAtTime(0.0001, ctx.currentTime, FADE_TAU);
-          const el = d.el;
-          d.stop = setTimeout(() => el.pause(), FADE_TAU * 6000);
+          d.stop = setTimeout(() => pauseAll(d), FADE_TAU * 6000);
         }
       }
       duck = level;
@@ -147,8 +219,10 @@ export function createMusic(rt: AudioRuntime): MusicPlayer | null {
     dispose(): void {
       for (const d of decks.values()) {
         if (d.stop) clearTimeout(d.stop);
-        d.el.pause();
-        d.el.removeAttribute('src');
+        for (const v of d.voices) {
+          v.el.pause();
+          v.el.removeAttribute('src');
+        }
         try {
           d.gain.disconnect();
         } catch {
