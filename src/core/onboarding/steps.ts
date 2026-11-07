@@ -124,8 +124,8 @@ export const BEATS: readonly TutorialBeat[] = [
   },
   {
     id: 'talk',
-    prompt: 'E — talk to Nana at the cabin door',
-    keys: ['E'],
+    prompt: 'F — talk to Nana at the cabin door',
+    keys: ['F'],
     payout: { toast: "Quest accepted — it's in your journal", icon: 'quest', tier: 'discovery', breath: false },
     context: 'openerInReach',
   },

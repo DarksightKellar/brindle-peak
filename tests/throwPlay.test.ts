@@ -37,7 +37,7 @@ describe('throw flight', () => {
 });
 
 /**
- * Hold E and let go the moment the arc turns bold, as a player watching it would, steering as it swings;
+ * Hold F and let go the moment the arc turns bold, as a player watching it would, steering as it swings;
  * or `late` frames after it, as a player reacting to the cue does.
  */
 function throwOnArc(game: TargetActivity, h: ReturnType<typeof host>, steer: () => number = () => 0, late = 0): boolean {
@@ -49,7 +49,7 @@ function throwOnArc(game: TargetActivity, h: ReturnType<typeof host>, steer: () 
   return bold;
 }
 
-/** Hold E for `frames` and let go, whatever the arc says. */
+/** Hold F for `frames` and let go, whatever the arc says. */
 function throwHeld(game: TargetActivity, h: ReturnType<typeof host>, frames: number): void {
   step(game, h, { interactPressed: true, interactHeld: true });
   for (let f = 1; f < frames; f++) step(game, h, { interactHeld: true });
@@ -235,7 +235,7 @@ describe('throw', () => {
     expect(Math.abs(err())).toBeGreaterThan(0.1);
     expect(game.progress()?.label).toBe(`${gust}${err() > 0 ? 'Aim left' : 'Aim right'} · Hits 0 / 1 · 8 left`);
     for (let i = 0; i < 400 && Math.abs(err()) > 0.01; i++) step(game, h, { moveX: -Math.sign(err()) * Math.min(1, Math.abs(err()) * 20) });
-    expect(game.progress()).toMatchObject({ label: `${gust}Lined up: hold E · Hits 0 / 1 · 8 left`, urgent: true });
+    expect(game.progress()).toMatchObject({ label: `${gust}Lined up: hold F · Hits 0 / 1 · 8 left`, urgent: true });
     step(game, h, { interactPressed: true, interactHeld: true });
     expect(game.progress()?.label).toBe(`${gust}Let go as the arc reaches it · Hits 0 / 1 · 8 left`);
     for (let i = 0; i < 240 && !game.letGoHits; i++) step(game, h, { interactHeld: true });

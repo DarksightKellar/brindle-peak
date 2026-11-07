@@ -1,7 +1,7 @@
 /**
  * Where each build happens and what it turns into, one press at a time.
  *
- * A build used to be "press E three times standing still" with nothing appearing in the world, and
+ * A build used to be "press F three times standing still" with nothing appearing in the world, and
  * one of them (Bram's woodpile) sits on the main story path. Each site below is a real spot near its
  * activity post, and each press adds one visible step: a log onto the pile, a ball onto the snowman,
  * a stone into the dam. Steps are lists so the last press can finish a thing off (the snowman's face,

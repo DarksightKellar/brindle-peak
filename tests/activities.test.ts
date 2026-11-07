@@ -183,7 +183,7 @@ describe('fishing', () => {
     expect(fish.progress()?.cue).toBeUndefined();
     let guard = 0;
     while (fish.elapsed < fish.strikeAt + 0.05 && guard++ < 300) step(fish, host);
-    expect(fish.progress()?.cue).toBe('Now! Press E');
+    expect(fish.progress()?.cue).toBe('Now! Press F');
     step(fish, host, { interactPressed: true });
     expect(fish.progress()?.cue).toBeUndefined();
   });

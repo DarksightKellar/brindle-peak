@@ -4,7 +4,7 @@
  * It used to be a metronome: the float swung on a fixed tempo and the "bite" came round every two
  * seconds, which played as a timing loop rather than as waiting for a fish. Now each cast is a wait of
  * its own length with a nibble or two in it (the float twitches and settles: not yet), then the bite —
- * the float is pulled under with a splash, and that is the moment to press E. Strike at a nibble and
+ * the float is pulled under with a splash, and that is the moment to press F. Strike at a nibble and
  * the fish is spooked; miss the bite and it slips off. Either way the line goes back out.
  *
  * A catch is shown, not told: the fish comes up on the line and hangs in front of Pip, in its journal
@@ -242,7 +242,7 @@ export class FishingActivity implements ActivityInstance {
   }
 
   progress(): ActivityReadout | null {
-    if (this.stage === 'bite') return { label: 'NOW — press E', fraction: null, urgent: true, cue: WORDS.cueBite };
+    if (this.stage === 'bite') return { label: 'NOW — press F', fraction: null, urgent: true, cue: WORDS.cueBite };
     if (this.stage === 'reel' && this.caught) return { label: this.caught.name, fraction: 1, urgent: true };
     const state = this.stage === 'spooked' ? 'Let it settle' : 'Waiting for a bite';
     return { label: `${state} · cast ${this.casts}`, fraction: null };

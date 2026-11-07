@@ -1,9 +1,9 @@
 /**
- * Throwing: turn the aim with A / D, hold E to draw, let go to throw, watch it fly.
+ * Throwing: turn the aim with A / D, hold F to draw, let go to throw, watch it fly.
  *
  * Holding E draws the throw: its strength swells and ebbs (THROW.draw), and the arc of dots grows and
  * shrinks with it. Let go as the arc reaches the target. Critic round 19 found every throw decided by
- * the panel's "Lined up: press E"; the words still say which way to turn and when the aim is on, but
+ * the panel's "Lined up: press F"; the words still say which way to turn and when the aim is on, but
  * how hard to throw is the player's own timing, and a throw let go early falls short.
  *
  * The old round resolved each press instantly against the camera's yaw, which does not move during

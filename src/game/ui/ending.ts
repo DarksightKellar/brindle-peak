@@ -46,7 +46,7 @@ export interface Ending {
 }
 
 /**
- * How long the card ignores E and Escape after it appears; its "Press E" line shows when this ends.
+ * How long the card ignores E and Escape after it appears; its "Press F" line shows when this ends.
  * 1.6 s was short enough that critic round 30, tapping through Nana's lines, closed it unread.
  */
 export const ENDING_GRACE_MS = 2500;
@@ -74,7 +74,7 @@ export function createEnding(root: HTMLElement): Ending {
     <p class="ui-ending__body">The trail posts are lit all the way down the mountain, and Nana is at the blue door. Up on Brindle Peak, Edda's set is humming, and the valley has not stopped talking since: Bram with his count, and voices from every corner of it, some you have met and some you haven't yet, and the road crew bringing the plough up in the morning. Overhead, the green burns on.</p>
     <p class="ui-ending__body ui-ending__valley"></p>
     <dl class="ui-ending__stats"></dl>
-    <p class="ui-ending__foot">Press <b>E</b> to keep wandering</p>
+    <p class="ui-ending__foot">Press <b>F</b> to keep wandering</p>
     </div>`;
   root.appendChild(panel);
   const statsEl = panel.querySelector('.ui-ending__stats') as HTMLElement;

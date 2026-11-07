@@ -14,7 +14,7 @@ import { emptyInput } from '../core/contracts';
 export interface InputSource {
   /** Read and clear the accumulated frame. Call exactly once per frame. */
   sample(camYaw: number): InputFrame;
-  /** Manual look axis right now: -1 (Q, turn left) .. +1 (R, turn right). */
+  /** Manual look axis right now: -1 (Q, turn left) .. +1 (E, turn right). */
   readonly lookX: number;
   destroy(): void;
 }
@@ -31,14 +31,14 @@ const MOVE_KEYS: Record<string, [number, number]> = {
 };
 
 /*
- * Manual look. Q and R sit either side of W and E, so the left hand never leaves the movement keys,
- * and both are otherwise unused. E would be the usual partner of Q, but E is interact. The arrows stay
- * movement keys: the pause menu, the journal and dialogue choices all read them as the move axes.
+ * Manual look on Q and E, either side of W, so the left hand never leaves the movement keys (the
+ * director's binding; interact moved from E to F for it). The arrows stay movement keys: the pause
+ * menu, the journal and dialogue choices all read them as the move axes.
  */
-const LOOK_KEYS: Record<string, number> = { q: -1, r: 1 };
+const LOOK_KEYS: Record<string, number> = { q: -1, e: 1 };
 
 const JUMP_KEYS = new Set([' ', 'spacebar', 'space']);
-const INTERACT_KEYS = new Set(['e', 'enter']);
+const INTERACT_KEYS = new Set(['f', 'enter']);
 const SPRINT_KEYS = new Set(['shift']);
 const CANCEL_KEYS = new Set(['escape']);
 

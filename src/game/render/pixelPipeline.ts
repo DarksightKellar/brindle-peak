@@ -50,9 +50,13 @@ function makeTarget(w: number, h: number, withDepth: boolean): THREE.WebGLRender
 }
 
 import { FRAG, VERT } from './compositeShader';
+import { WRAP } from './weather';
 
-/** Every snow lattice tiles on 64 cells of 7, 13 or 31 texels; this is a length all three repeat on. */
-const LOOK_WRAP = 64 * 7 * 13 * 31;
+/**
+ * The snow follows a camera turn with a little lag, seconds (time constant). Locked to the view it felt
+ * welded to the camera and jarring (director); a beat behind, it swings with some weight to it.
+ */
+const LOOK_LAG = 0.28;
 
 export function createPixelPipeline(canvas: HTMLCanvasElement, kit: SceneKit): PixelPipeline {
   const renderer = new THREE.WebGLRenderer({
@@ -108,12 +112,14 @@ export function createPixelPipeline(canvas: HTMLCanvasElement, kit: SceneKit): P
       uSatTaper: { value: new THREE.Vector3(SAT_TAPER.from, SAT_TAPER.to, SAT_TAPER.saturation) },
       uViewToWorld: { value: new THREE.Matrix4() }, uInvProj: { value: new THREE.Matrix4() }, uTexelAngle: { value: 0.004 },
       uLook: { value: new THREE.Vector2() }, uSun: { value: 1 },
+      uGustFar: { value: new THREE.Vector2() }, uGustMid: { value: new THREE.Vector2() }, uGustNear: { value: new THREE.Vector2() },
     },
   });
 
   const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), material);
   const forward = new THREE.Vector3();
-  let lastHeading: number | null = null, turned = 0;
+  let lastHeading: number | null = null, turned = 0, lastTime = 0;
+  const shown = new THREE.Vector2();
   quad.frustumCulled = false;
   const quadScene = new THREE.Scene().add(quad);
   const quadCamera = new THREE.Camera();
@@ -158,24 +164,41 @@ export function createPixelPipeline(canvas: HTMLCanvasElement, kit: SceneKit): P
     (material.uniforms.uInvProj.value as THREE.Matrix4).copy(camera.projectionMatrixInverse);
     const texelAngle = (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2)) / (material.uniforms.uRes.value as THREE.Vector2).y;
     (material.uniforms.uTexelAngle.value as number) = texelAngle;
-    // The snow's lattice follows the camera's turn and tilt, so the fall hangs in the world. The turn is
-    // unwrapped (no jump at the back of the circle) and kept modulo a length every lattice tiles on.
+    // The snow's lattice follows the camera's turn and tilt, so the fall hangs in the world, a beat
+    // behind (LOOK_LAG). The turn is unwrapped (no jump at the back of the circle) and both are kept
+    // modulo a length every lattice tiles on.
     camera.getWorldDirection(forward);
     const heading = Math.atan2(forward.x, -forward.z), tilt = Math.asin(THREE.MathUtils.clamp(forward.y, -1, 1));
+    const now = performance.now() / 1000;
     if (lastHeading !== null) {
       let turn = heading - lastHeading;
       if (turn > Math.PI) turn -= 2 * Math.PI;
       if (turn < -Math.PI) turn += 2 * Math.PI;
-      turned = (turned + turn / texelAngle) % LOOK_WRAP;
+      turned += turn / texelAngle;
+      const follow = 1 - Math.exp(-Math.min(0.1, now - lastTime) / LOOK_LAG);
+      shown.x += (turned - shown.x) * follow;
+      shown.y += (tilt / texelAngle - shown.y) * follow;
+    } else {
+      shown.set(0, tilt / texelAngle);
+    }
+    // Keep the numbers small without a visible jump: shift both by whole wraps together.
+    if (Math.abs(turned) > WRAP) {
+      const by = Math.trunc(turned / WRAP) * WRAP;
+      turned -= by;
+      shown.x -= by;
     }
     lastHeading = heading;
-    (material.uniforms.uLook.value as THREE.Vector2).set(turned, (tilt / texelAngle) % LOOK_WRAP);
+    lastTime = now;
+    (material.uniforms.uLook.value as THREE.Vector2).set(shown.x % WRAP, shown.y % WRAP);
     renderer.setRenderTarget(null);
     renderer.render(quadScene, quadCamera);
   }
 
   function setSnow(veil: SnowVeil): void {
     (material.uniforms.uSnow.value as THREE.Vector3).set(veil.drift, veil.fall, veil.amount);
+    (material.uniforms.uGustFar.value as THREE.Vector2).set(...veil.layers[0]);
+    (material.uniforms.uGustMid.value as THREE.Vector2).set(...veil.layers[1]);
+    (material.uniforms.uGustNear.value as THREE.Vector2).set(...veil.layers[2]);
   }
   function setFogColor(haze: THREE.Color, distant: THREE.Color): void {
     (material.uniforms.uFogColor.value as THREE.Vector3).set(haze.r, haze.g, haze.b);

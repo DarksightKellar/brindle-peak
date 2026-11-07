@@ -146,6 +146,12 @@ const HAMLET: readonly Building[] = [
   { dx: -1, dz: -14, w: 7, d: 5.2, h: 3.2, wall: 'WOOD_DK', windows: 2 },
 ];
 
+/** Where each hamlet house stands in the world (for the stoves you can hear, audio/ambience.ts). */
+export function hamletHouseSpots(): { x: number; z: number }[] {
+  const at = LANDMARKS.find((l) => l.id === 'hamlet');
+  return at ? HAMLET.map((h) => ({ x: at.x + h.dx, z: at.z + h.dz })) : [];
+}
+
 function hamlet(sampler: TerrainSampler, x: number, z: number): THREE.Group {
   const group = new THREE.Group();
   group.name = 'landmark:hamlet';

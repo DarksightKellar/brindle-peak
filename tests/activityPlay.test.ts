@@ -222,7 +222,7 @@ describe('build', () => {
       // Steer the way it names while far off; near the gap, ease against the current.
       const moveX = way ? (way === 'right' ? 1 : -1) : Math.max(-1, Math.min(1, (-watched.stoneOff * 4) / k.d));
       const now = watched.squareNow && f - last > 30;
-      if (watched.squareNow) expect(said).toMatch(/^Over the gap — press E · /);
+      if (watched.squareNow) expect(said).toMatch(/^Over the gap — press F · /);
       // Every stone says which way while off the gap (critic round 28 stalled at stone 2 without it).
       if (!watched.squareNow && Math.abs(watched.stoneOff) > 0.3 && !/^Not over|^Easy/.test(said)) {
         expect(said).toMatch(/^The current has it\. Bring it back over the gap, (to your (left|right)|away from you|toward you) · /);

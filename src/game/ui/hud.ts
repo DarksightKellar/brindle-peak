@@ -109,7 +109,7 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
     '<div class="ui-hud__next"></div>' +
     '<div class="ui-hud__prompt" hidden>' +
     '<span class="ui-hud__rim"><span class="ui-hud__pill">' +
-    '<span class="ui-hud__key">E</span>' +
+    '<span class="ui-hud__key">F</span>' +
     '<span class="ui-hud__verb">Talk</span>' +
     '</span></span><i class="ui-hud__tick"></i></div>';
   root.appendChild(layer);
@@ -328,7 +328,7 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
       }
       if (verb.textContent !== text) {
         verb.textContent = text;
-        prompt.setAttribute('aria-label', `Press E to ${text.toLowerCase()}`);
+        prompt.setAttribute('aria-label', `Press F to ${text.toLowerCase()}`);
       }
       // Over whoever E will reach (promptAnchor.ts); under Pip only when that point is off camera.
       const place = at ? `${at.x}px,${at.y}px` : '';

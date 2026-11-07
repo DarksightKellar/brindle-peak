@@ -22,6 +22,7 @@ uniform vec3 uSatTaper; // luma where the saturation taper starts, where it ends
 uniform mat4 uViewToWorld, uInvProj; // camera.matrixWorld and projectionMatrixInverse, for the settling snow
 uniform float uTexelAngle; // 2 tan(fov / 2) / internal height: metres per texel at one metre
 uniform vec2 uLook; // the camera's turn and tilt in texels, so the snow hangs in the world
+uniform vec2 uGustFar, uGustMid, uGustNear; // where a passing gust has carried each layer, texels, +y up
 uniform float uSun; // 1 by day, low at dusk: how much the falling flakes glint
 varying vec2 vUv;
 // Snap to a low-res texel centre so every fragment of a block reads one texel and the neighbour
@@ -126,10 +127,10 @@ float hash21(vec2 p) {
 // uLook shifts every lattice by the camera's turn and tilt (texels), so the snow hangs in the world
 // while the view swings through it rather than turning with the camera.
 // Returns (hit, the flake's own random number) so a layer can give each flake a character.
-vec2 flakeLayer(vec2 texel, vec3 s, float cell, float speed, float size, float density, float seed) {
+vec2 flakeLayer(vec2 texel, vec3 s, vec2 gust, float cell, float speed, float size, float density, float seed) {
   float t = s.y / 14.0; // s.y falls 14 texels a second (weather.ts FALL)
   float tile = cell * 64.0;
-  vec2 q = vec2(texel.x + mod(uLook.x - s.x * speed / 14.0, tile), texel.y + mod(uLook.y + t * speed, tile));
+  vec2 q = vec2(texel.x + mod(uLook.x - s.x * speed / 14.0 - gust.x, tile), texel.y + mod(uLook.y + t * speed - gust.y, tile));
   vec2 id = mod(floor(q / cell), 64.0);
   float h = hash21(id + seed);
   if (h > density) return vec2(0.0);
@@ -146,9 +147,9 @@ vec2 flakeLayer(vec2 texel, vec3 s, float cell, float speed, float size, float d
 vec2 flakes(vec2 texel, vec3 s) {
   float heavy = clamp(s.z - 1.0, 0.0, 1.0);
   float soft = mix(0.45, 0.6, heavy), bold = mix(0.7, 0.82, heavy);
-  float far = flakeLayer(texel, s, 7.0, 16.0, 1.0, 0.22 + 0.25 * heavy, 11.0).x * soft * 0.6;
-  float mid = flakeLayer(texel, s, 13.0, 28.0, 1.0, 0.3 + 0.3 * heavy, 23.0).x * soft;
-  vec2 n = flakeLayer(texel, s, 31.0, 52.0, 2.0, 0.28 + 0.3 * heavy, 37.0);
+  float far = flakeLayer(texel, s, uGustFar, 7.0, 16.0, 1.0, 0.22 + 0.25 * heavy, 11.0).x * soft * 0.6;
+  float mid = flakeLayer(texel, s, uGustMid, 13.0, 28.0, 1.0, 0.3 + 0.3 * heavy, 23.0).x * soft;
+  vec2 n = flakeLayer(texel, s, uGustNear, 31.0, 52.0, 2.0, 0.28 + 0.3 * heavy, 37.0);
   float t = mod(s.y / 14.0, 628.3);
   float turn = 0.5 + 0.5 * sin(t * (2.5 + 5.0 * n.y) + n.y * 60.0);
   float glint = n.x * pow(turn, 14.0) * uSun;

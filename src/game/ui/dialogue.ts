@@ -43,7 +43,7 @@ const stub = (node: DialogueNode, id: string): DialogueNode => ({ id, speaker: n
 export const CHOICE_ARM = 0.45;
 
 /** The corner hint while choices are up: the pause menu's "↑↓ choose", and E to take one. */
-const CHOOSE_HINT = '<kbd>↑↓</kbd> choose <kbd>E</kbd>';
+const CHOOSE_HINT = '<kbd>↑↓</kbd> choose <kbd>F</kbd>';
 
 export function createDialogue(root: HTMLElement): DialogueView {
   const panel = document.createElement('section');
@@ -56,7 +56,7 @@ export function createDialogue(root: HTMLElement): DialogueView {
     '<div class="ui-dlg__name"></div>' +
     '<p class="ui-dlg__text"></p>' +
     '<div class="ui-dlg__choices"></div>' +
-    '<div class="ui-dlg__hint">E</div>' +
+    '<div class="ui-dlg__hint">F</div>' +
     '</div></div>';
   root.appendChild(panel);
 
@@ -99,7 +99,7 @@ export function createDialogue(root: HTMLElement): DialogueView {
     // With choices up, the corner names the keys that choose, in the pause menu's own words.
     if (hintEl.classList.contains('is-choosing') !== show) {
       hintEl.classList.toggle('is-choosing', show);
-      hintEl.innerHTML = show ? CHOOSE_HINT : 'E';
+      hintEl.innerHTML = show ? CHOOSE_HINT : 'F';
     }
     if (!show) {
       choiceEl.replaceChildren();

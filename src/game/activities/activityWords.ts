@@ -84,20 +84,20 @@ export const WORDS = {
   woodEarly: 'Too soon. Let it swing square first',
   woodLate: 'Too late. Wait for it to swing back square',
   // While the log hangs square: the moment in words, not only the panel turning amber (critic round 8).
-  woodNow: 'Square — press E',
-  stoneNow: 'Over the gap — press E',
+  woodNow: 'Square — press F',
+  stoneNow: 'Over the gap — press F',
   /** The dam (damHand.ts): the current pushes the stone off its gap and Pip holds it there. */
   stoneSteer: (key: 'A' | 'D' | 'W' | 'S'): string =>
     `The current has it. Bring it back over the gap, ${{ A: 'to your left', D: 'to your right', W: 'away from you', S: 'toward you' }[key]}`,
   stoneHold: 'The current has it. Steer it back over the gap',
-  stoneOff: 'Not over the gap. Hold it there first, then press E',
+  stoneOff: 'Not over the gap. Hold it there first, then press F',
   stoneMash: 'Easy: one press, once it sits over the gap',
   /** Pressed again straight after a press: the woodpile and the dam both take one press per swing. */
   buildMash: 'Easy: one press per swing. Watch for the lights',
   // Snowman, rolled: the ball is growing; it is big enough to push onto the spot; the face goes on with E.
   snowRoll: 'Keep rolling it bigger. It goes on the lit ring',
   snowPush: 'Big enough. Push it onto the lit ring',
-  snowFace: 'Press E to give it a face',
+  snowFace: 'Press F to give it a face',
   // Build results
   buildResult: { woodpile: 'Stacked straight. Countable at last.', snowman: 'One snowman, standing.', dam: 'The dam is whole again.' } as Record<string, string>,
   // Fishing result; the fish name is the journal's own
@@ -107,7 +107,7 @@ export const WORDS = {
   // Photo result; `what` comes from photoSubjects.ts
   photoResult: (what: string): string => `The ${what}, caught on camera.`,
   // The photo panel's instruction, naming the subject (`what` from photoSubjects.ts).
-  photoHint: (what: string): string => `Centre the ${what} in the frame, then press E.`,
+  photoHint: (what: string): string => `Centre the ${what} in the frame, then press F.`,
   // The aurora's long exposure: holding the frame still; the frame has drifted off.
   exposeHold: 'Shutter open. Hold it still on the star',
   // It says which way: critic round 31 missed, saw the star drift off the frame, and found it by eye.
@@ -118,13 +118,13 @@ export const WORDS = {
   // 35 was left with a bare "1 of 3 hits".
   throwResult: (hits: number, need: number): string => hits >= need
     ? `All ${need} down. Not a snowman left standing.`
-    : `${hits} of ${need} down${hits > 0 ? ', close' : ''}. Press E at the flag for another go.`,
+    : `${hits} of ${need} down${hits > 0 ? ', close' : ''}. Press F at the flag for another go.`,
   /** Critic round 17 rang it and read "1 of 1 hits", if anything: the bell is the point, not the count. */
   /** The bell's crosswind, said from the thrower's side: where it comes from and how hard. */
   bellWind: (from: 'left' | 'right', strength: number): string =>
     `Wind from the ${from}, ${strength >= 0.8 ? 'strong' : strength >= 0.45 ? 'steady' : 'light'}`,
   bellRang: 'The bell rang out across the square. Heads turned at the bakery.',
-  bellSilent: 'The bell never rang. Press E at the snowballs for another go.',
+  bellSilent: 'The bell never rang. Press F at the snowballs for another go.',
   // Called for a moment as each throw lands.
   throwHit: 'Hit!',
   // Says which way the arc was going as well: critic round 25 read "Fell short: let go sooner" as
@@ -135,15 +135,15 @@ export const WORDS = {
       : side ? `Missed, wide ${side}` : 'Missed, by a whisker',
   // The aim line's cue, until the throw is lined up; A turns the aim left, D right.
   throwTurn: (way: 'left' | 'right'): string => `Aim ${way}`,
-  throwOn: 'Lined up: hold E',
+  throwOn: 'Lined up: hold F',
   /** While E is held: the strength is the player's to judge, by the arc. */
   throwDrawing: 'Let go as the arc reaches it',
   /** While E is held and the arc is bold: letting go now hits. */
   throwNow: 'Let go!',
   // The big cues in the middle of the view (ActivityReadout.cue): the moment, and the key.
-  cueBite: 'Now! Press E',
-  cueSquare: 'Square! Press E',
-  cueGap: 'Over the gap! Press E',
+  cueBite: 'Now! Press F',
+  cueSquare: 'Square! Press F',
+  cueGap: 'Over the gap! Press F',
   /** A hoop well above or below the glide: flap to climb, or let the glide go a moment to sink. */
   hoopHeight: (dy: number): string => (dy > 0 ? `${Math.round(dy)} u above you: flap (Space)` : `${Math.round(-dy)} u below you: ease off Space to sink`),
   // Skate result
@@ -176,8 +176,8 @@ export const HINT_FOR_ID: Readonly<Record<string, string>> = {
   'ridge-kite': 'A / D keep the kite in the rising snow. In it, the kite climbs. Hold it above the crest lights until they are all lit.',
   'kettles-otter-slide': 'A / D steer. Keep off the edges, and ride through the rings for speed.',
   'reach-sled-hill': 'A / D steer. Keep off the edges, and ride through the rings for speed.',
-  'hearth-kindling': 'Each log swings over the pile. Press E when it hangs square.',
-  'hamlet-bell-throw': 'Wind blows across the square and shifts after every throw: the arrow over the bell shows it. Aim into the wind, then hold E and let go on the arc.',
-  'kettles-dam-build': 'The current pushes each stone off its gap. Hold it there with the move keys, then press E to set it.',
+  'hearth-kindling': 'Each log swings over the pile. Press F when it hangs square.',
+  'hamlet-bell-throw': 'Wind blows across the square and shifts after every throw: the arrow over the bell shows it. Aim into the wind, then hold F and let go on the arc.',
+  'kettles-dam-build': 'The current pushes each stone off its gap. Hold it there with the move keys, then press F to set it.',
   'hamlet-snowman': 'Walk to roll a ball bigger, then push it onto the lit ring. Three balls, then E for the face.',
 };

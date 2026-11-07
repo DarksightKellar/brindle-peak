@@ -15,6 +15,7 @@
 import type { GameState, InputFrame, PlayerState } from '../../core/contracts';
 import { stepPlayer } from '../../core/player/step';
 import { TUNING } from '../../core/player/tuning';
+import { footstepRate } from '../../core/player/stride';
 import type { Collider } from '../../core/player/collide';
 import { clampToWorld, applySolidWorld } from './worldRules';
 import { stepSfx } from './router';
@@ -55,8 +56,13 @@ export function advancePlayer(d: AdvanceDeps): void {
   // velocity up while Pip goes nowhere, and a walk that goes nowhere makes no sound.
   const speed = Math.hypot(player.pos.x - from.x, player.pos.z - from.z) / dt;
   if (speed <= 1.2) return;
-  // Fire on the half-beat boundary only, so a held walk produces a rhythm instead of a buzz per frame.
-  const beat = Math.floor(d.elapsed * 2.4);
-  const previous = Math.floor((d.elapsed - dt) * 2.4);
-  if (beat !== previous) d.sfx(stepSfx(sampler.sampleAt(player.pos.x, player.pos.z).surface));
+  // A footfall each time the stride clock passes a whole step. The clock runs at the legs' own pace
+  // (core/player/stride.ts), so a sprint quickens the footsteps as much as it quickens the legs.
+  const before = strides.get(player) ?? 0;
+  const after = before + dt * footstepRate(speed, true, TUNING);
+  strides.set(player, after % 1000);
+  if (Math.floor(after) !== Math.floor(before)) d.sfx(stepSfx(sampler.sampleAt(player.pos.x, player.pos.z).surface));
 }
+
+/** Footsteps taken, as a running count, per body. */
+const strides = new WeakMap<PlayerState, number>();

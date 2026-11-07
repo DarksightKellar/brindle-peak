@@ -9,6 +9,7 @@
  * materials set `allowOverride = false` so the normal pass does not swallow them (ART_BIBLE A3).
  */
 
+import type { SoundSpot, SoundWorld } from '../audio/ambience';
 import * as THREE from 'three';
 import type { NpcDef, TerrainSampler } from '../../core/contracts';
 import type { Collider } from '../../core/player/collide';
@@ -16,7 +17,7 @@ import { WORLD_SEED } from '../../data/zones';
 import { buildScatterGroup, scatterProps } from './scatter';
 import type { PropKind } from './props';
 import type { Occluder } from '../camera/occlusion';
-import { buildLandmarks } from './landmarks';
+import { LANDMARKS, SPRING_POOLS, buildLandmarks, hamletHouseSpots } from './landmarks';
 import { buildWater, updateWater } from './water';
 import { buildSteam, updateSteam } from './steam';
 import { buildFarPeak } from './farPeak';
@@ -53,6 +54,8 @@ export interface WorldBuild {
   occluders: Occluder[];
   /** What the player walks into. Static: nothing in this world moves. */
   colliders: Collider[];
+  /** Where the world's sounds come from: pools, stoves, pines, the lake ice, the owl. */
+  sounds: SoundWorld;
   setCollected(id: string): void;
   /** `flare`: lit just now, in view of the player, rather than restored from the save. */
   setLanternLit(id: string, flare?: boolean): void;
@@ -144,11 +147,24 @@ export function buildWorld(
     });
   }
 
+  // The places that make a noise, read off the same layout the player walks through.
+  const spot = (x: number, z: number): SoundSpot => ({ x, y: sampler.heightAt(x, z), z });
+  const station = LANDMARKS.find((l) => l.id === 'station');
+  const pines = placements.filter((p) => p.kind === 'pine');
+  const sounds: SoundWorld = {
+    pools: SPRING_POOLS.map((p) => spot(p.x, p.z)),
+    stoves: [...(station ? [spot(station.x, station.z)] : []), ...hamletHouseSpots().map((h) => spot(h.x, h.z))],
+    pines: Float32Array.from(pines.flatMap((p) => [p.x, p.z])),
+    owls: npcs.filter((n) => n.species === 'owl').map((n) => spot(n.pos.x, n.pos.z)),
+    isIce: (x, z) => sampler.sampleAt(x, z).surface === 'ice',
+  };
+
   return {
     group,
     npcs: npcMap,
     pickups: pickupMap,
     occluders,
+    sounds,
     colliders: [
       ...buildColliders(landmarks, placements),
       ...places.colliders,

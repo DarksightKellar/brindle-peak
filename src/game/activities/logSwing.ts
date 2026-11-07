@@ -3,7 +3,7 @@
  *
  * The woodpile used to be four presses on the spot, two logs a press. Bram's whole complaint is that
  * the rows lean, so each log now comes up off the heap and hangs over its place on the crib, swinging
- * a little either side of square. Press E as it comes square and it drops into the notch; press while
+ * a little either side of square. Press F as it comes square and it drops into the notch; press while
  * it is crooked and it lands askew, rolls off, and comes back up to try again. Nothing is lost but a
  * second.
  *

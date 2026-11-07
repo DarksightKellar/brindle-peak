@@ -169,7 +169,7 @@ export interface InputFrame {
   /** E (or Enter) is down this frame: a throw is drawn while it is held and flies on release. */
   interactHeld: boolean;
   cancelPressed: boolean;
-  /** Manual look axis, -1..1 (Q/R held; +1 turns the view right). The rig turns at its own rate. */
+  /** Manual look axis, -1..1 (Q/E held; +1 turns the view right). The rig turns at its own rate. */
   lookX: number;
   /** Camera yaw in radians: rotates camera-space input into world space. */
   camYaw: number;
@@ -599,7 +599,7 @@ export interface ActivityReadout {
   /** True when the player must act this instant; the HUD lights up. */
   urgent?: boolean;
   /**
-   * A word or two for the instant itself ("Now! Press E"), drawn large in the middle of the view as well.
+   * A word or two for the instant itself ("Now! Press F"), drawn large in the middle of the view as well.
    * Critic round 32 missed timing cues that only lit the small panel in the corner, eyes on the world.
    */
   cue?: string;

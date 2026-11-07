@@ -218,9 +218,9 @@ export class PhotoActivity implements ActivityInstance {
       return { label: steady ? WORDS.exposeHold : WORDS.exposeDrift(this.backToStar()), fraction: this.exposure.fraction, urgent: !steady };
     }
     const label = this.hint === 'aim'
-      ? 'Centred — press E'
-      : this.hint === 'tooClose' ? 'Too close. Step back, then press E'
-        : this.hint === 'tooFar' ? 'Too far. Step closer, then press E'
+      ? 'Centred — press F'
+      : this.hint === 'tooClose' ? 'Too close. Step back, then press F'
+        : this.hint === 'tooFar' ? 'Too far. Step closer, then press F'
           : TURN_WORDS[this.turn ?? 'any'];
     return { label, fraction: null, urgent: this.hint === 'aim' };
   }

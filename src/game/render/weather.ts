@@ -13,6 +13,10 @@
  * that eases between places. The composite owns the look. Nothing is added to the scene, so there is
  * nothing for the normal-override pass to catch (ART_BIBLE A3 stays satisfied by construction).
  */
+import { makeRng } from '../../core/contracts';
+
+/** Every snow lattice tiles on 64 cells of 7, 13 or 31 texels; this is a length all three repeat on. */
+export const WRAP = 64 * 7 * 13 * 31;
 
 export interface SnowVeil {
   /** Horizontal offset of the flakes, in texels (scaled by the layer's own speed in the shader). */
@@ -21,7 +25,15 @@ export interface SnowVeil {
   fall: number;
   /** How much is falling: 0 none, 1 a steady fall, 2 heavy. */
   amount: number;
+  /**
+   * Where a passing gust has carried each layer (far, mid, near), in texels, +y up. Each layer now and
+   * then catches a gust of its own for a few seconds and is blown off in another direction from the
+   * rest, so the fall never moves as one sheet.
+   */
+  layers: readonly [Gust, Gust, Gust];
 }
+
+export type Gust = readonly [number, number];
 
 export interface Snowfall {
   /**
@@ -45,13 +57,58 @@ const DRIFT = 6;
 const EASE = 0.5;
 /** The place's snow when none is given. */
 const STEADY = 1;
+/** Each layer's own fall speed, texels a second (the shader's far, mid and near lattices). */
+const LAYER_SPEED = [16, 28, 52] as const;
+/** Chance a second that a calm layer catches a gust; twice that when the wind is up. */
+const GUST_CHANCE = 1 / 9;
+/** A gust's push, as a share of its layer's fall speed. */
+const GUST_PUSH = 0.7;
+
+interface LayerGust {
+  /** Carried so far, texels. */
+  x: number;
+  y: number;
+  /** The current gust: direction (unit), how long, how far in. 0 duration = calm. */
+  dx: number;
+  dy: number;
+  dur: number;
+  age: number;
+}
 
 export function createSnowfall(): Snowfall {
   let time = 0;
   let drift = 0;
   let amount = -1; // -1 until the first frame says where the player stands: no fade-in on load
   let enabled = true;
-  const out = (): SnowVeil => ({ drift, fall: time * FALL, amount: enabled ? Math.max(0, amount) : 0 });
+  const rng = makeRng(0x5a0f1a);
+  const gusts: LayerGust[] = LAYER_SPEED.map(() => ({ x: 0, y: 0, dx: 0, dy: 0, dur: 0, age: 0 }));
+  const out = (): SnowVeil => ({
+    drift,
+    fall: time * FALL,
+    amount: enabled ? Math.max(0, amount) : 0,
+    layers: [[gusts[0].x, gusts[0].y], [gusts[1].x, gusts[1].y], [gusts[2].x, gusts[2].y]],
+  });
+
+  /** Blow each layer along: start a gust now and then, carry it, let it die away. */
+  const blow = (step: number, wind: number): void => {
+    gusts.forEach((g, i) => {
+      if (g.dur === 0) {
+        if (rng.range(0, 1) > step * GUST_CHANCE * (wind > 1.5 ? 2 : 1)) return;
+        // Any way but straight down: sideways either way, often lifting, sometimes back against the wind.
+        const a = rng.range(-0.35, Math.PI + 0.35);
+        g.dx = Math.cos(a);
+        g.dy = Math.sin(a) * 0.6;
+        g.dur = rng.range(2, 5);
+        g.age = 0;
+      }
+      g.age += step;
+      // Rises and falls away smoothly, so a layer drifts off course and back rather than jerking.
+      const push = Math.sin(Math.PI * Math.min(1, g.age / g.dur)) * LAYER_SPEED[i] * GUST_PUSH * step;
+      g.x = (g.x + g.dx * push) % WRAP;
+      g.y = (g.y + g.dy * push) % WRAP;
+      if (g.age >= g.dur) g.dur = 0;
+    });
+  };
 
   return {
     update(dt: number, wind: number, want = STEADY): SnowVeil {
@@ -59,6 +116,7 @@ export function createSnowfall(): Snowfall {
       const step = Math.min(Math.max(dt, 0), 1 / 20);
       time += step;
       drift += step * Math.max(0, wind) * DRIFT;
+      blow(step, wind);
       if (amount < 0) amount = want;
       const by = EASE * step;
       amount = want > amount ? Math.min(want, amount + by) : Math.max(want, amount - by);
@@ -68,6 +126,7 @@ export function createSnowfall(): Snowfall {
       time = Math.max(0, seconds);
       drift = time * Math.max(0, wind) * DRIFT;
       amount = want;
+      for (const g of gusts) Object.assign(g, { x: 0, y: 0, dur: 0, age: 0 });
       return out();
     },
     setEnabled(on: boolean): void {

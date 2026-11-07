@@ -11,7 +11,7 @@
  */
 import { clamp } from '../../core/contracts';
 import { closeRuntime, createAudioRuntime, isAudioSupported, resumeRuntime, type AudioRuntime } from './context';
-import { ambienceFor, createAmbience, type Ambience } from './ambience';
+import { createAmbience, type Ambience, type Listener, type SoundWorld } from './ambience';
 import { createMusic, createTrackChooser, trackFor, type MusicPlayer } from './music';
 import { createSfx, type SfxPlayer } from './sfx';
 
@@ -36,6 +36,10 @@ export interface AudioKit {
   setMode(m: 'ground' | 'air' | 'glide' | 'climb' | 'sled'): void;
   /** Where the player is (zone id) and how far into blue hour (0..1): picks the track and the ambience. */
   setPlace(zone: string, dusk: number): void;
+  /** Where the ears are (Pip) and which way the camera faces, so place sounds pan and fade by distance. */
+  setListener(x: number, y: number, z: number, facingX: number, facingZ: number): void;
+  /** Where the world's sound sources are (pools, stoves, pines, the lake, the owl). Once, at boot. */
+  setSoundWorld(world: SoundWorld): void;
   sfx(name: SfxName): void;
   chirp(syllables: number, pitch: number): void;
   setVolume(master: number, music: number): void;
@@ -67,6 +71,8 @@ export function createAudio(): AudioKit {
   let weather: 'calm' | 'snow' | 'gust' = 'calm';
   let zone = 'hearth';
   let dusk = 0;
+  const listener: Listener = { x: 0, y: 0, z: 0, fx: 0, fz: -1 };
+  let sounds: SoundWorld | null = null;
   let masterVol = 0.9;
   let musicVol = 0.7;
 
@@ -87,6 +93,7 @@ export function createAudio(): AudioKit {
         if (!rt) return;
         music = createMusic(rt);
         ambience = createAmbience(rt.ctx, rt.master);
+        if (sounds) ambience.setWorld(sounds);
         player = createSfx(rt);
         applyVolume();
       }
@@ -104,6 +111,21 @@ export function createAudio(): AudioKit {
 
     setMode(): void {
       // The recorded score doesn't bend to the player's verb; kept so callers needn't know.
+    },
+
+    setListener(x: number, y: number, z: number, facingX: number, facingZ: number): void {
+      const len = Math.hypot(facingX, facingZ);
+      if (![x, y, z, len].every(Number.isFinite) || len < 1e-6) return;
+      listener.x = x;
+      listener.y = y;
+      listener.z = z;
+      listener.fx = facingX / len;
+      listener.fz = facingZ / len;
+    },
+
+    setSoundWorld(w: SoundWorld): void {
+      sounds = w;
+      ambience?.setWorld(w);
     },
 
     setPlace(z: string, d: number): void {
@@ -131,7 +153,7 @@ export function createAudio(): AudioKit {
       const track = chooser.update(dt, trackFor({ zone, altitude, dusk }));
       if (rt && rt.ctx.state === 'running') {
         music?.play(track, gust);
-        ambience?.update(ambienceFor(zone, gust, dusk));
+        ambience?.update(listener, { altitude, gust, dusk });
       }
     },
 

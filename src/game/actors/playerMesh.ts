@@ -14,6 +14,7 @@
 import * as THREE from 'three';
 import { PALETTE } from '../../core/palette';
 import { TUNING } from '../../core/player/tuning';
+import { sprintAmount, strideRate, walkAmount } from '../../core/player/stride';
 import type { PlayerState } from '../../core/contracts';
 import { buildLantern } from './pipLantern';
 
@@ -87,12 +88,24 @@ export function createPlayerMesh(groundAt?: (x: number, z: number) => number): P
   tail.rotation.x = -0.18;
   body.add(tail);
 
+  // Each wing hangs from a shoulder pivot, so it folds down against the side at rest and opens out
+  // flat to glide. Rotated about its own middle (before), the resting wing stuck straight out and Pip
+  // looked mid-glide all the time, and the glide tipped the wings up into a V.
   const wingGeo = new THREE.IcosahedronGeometry(0.2, 0);
-  const wingL = shade(wingGeo, brown, -0.34, 0.16, -0.02);
-  const wingR = shade(wingGeo, brown, 0.34, 0.16, -0.02);
+  const shoulderL = new THREE.Group();
+  const shoulderR = new THREE.Group();
+  shoulderL.position.set(-0.2, 0.16, -0.02);
+  shoulderR.position.set(0.2, 0.16, -0.02);
+  const wingL = shade(wingGeo, brown, -0.14, 0, 0);
+  const wingR = shade(wingGeo, brown, 0.14, 0, 0);
   wingL.scale.set(1.5, 0.22, 1.0);
   wingR.scale.set(1.5, 0.22, 1.0);
-  body.add(wingL, wingR);
+  shoulderL.add(wingL);
+  shoulderR.add(wingR);
+  body.add(shoulderL, shoulderR);
+  /** Shoulder angle at rest (tips down along the side) and in a glide (out flat, a hair of lift). */
+  const WING_REST = 0.62;
+  const WING_OPEN = -0.05;
 
   const legGeo = new THREE.CylinderGeometry(0.025, 0.025, 0.16, 4, 1, true);
   const legL = shade(legGeo, dark, -0.1, -0.38, 0.04);
@@ -162,6 +175,7 @@ export function createPlayerMesh(groundAt?: (x: number, z: number) => number): P
   const lerp = (a: number, b: number, t: number): number => a + (b - a) * Math.max(0, Math.min(1, t));
 
   let clock = 0;
+  let stridePhase = 0;
   let squash = 0;
   let stretch = 0;
   let flap = 0;
@@ -178,10 +192,11 @@ export function createPlayerMesh(groundAt?: (x: number, z: number) => number): P
     root.rotation.y = s.facing; // model faces +Z, so yaw needs no correction
 
     const speed = Math.hypot(s.vel.x, s.vel.z);
-    const fast = Math.min(1, speed / TUNING.walkSpeed);
+    const fast = walkAmount(speed, TUNING);
     // 0 at a brisk walk, 1 at full sprint: the run tucks the wings and leans into it.
-    const sprintFrom = TUNING.walkSpeed * 1.15;
-    const sprint = s.grounded && speed > sprintFrom ? Math.min(1, (speed - sprintFrom) / (TUNING.sprintSpeed - sprintFrom)) : 0;
+    const sprint = sprintAmount(speed, s.grounded, TUNING);
+    // The legs' phase is integrated, so a change of pace changes the rate without the legs jumping.
+    stridePhase = (stridePhase + dt * strideRate(speed, s.grounded, TUNING)) % (Math.PI * 2);
     const tookOff = prevGrounded && !s.grounded;
 
     if (s.grounded && !prevGrounded && prevVy < -2) squash = 1;
@@ -200,7 +215,7 @@ export function createPlayerMesh(groundAt?: (x: number, z: number) => number): P
     body.scale.set(1 + k * 0.22 - st * 0.12, 1 - k * 0.3 + st * 0.3, 1 + k * 0.22 - st * 0.12);
 
     const stride = 0.035 * (fast + sprint * 0.9);
-    const bob = s.grounded ? Math.sin(clock * 11 * (0.7 + fast + sprint * 0.55)) * stride : 0;
+    const bob = s.grounded ? Math.sin(stridePhase) * stride : 0;
     const air = s.grounded ? 0 : 1;
     // In the air the feet tuck up and back.
     legL.position.y = -0.38 + bob + air * 0.12;
@@ -218,10 +233,13 @@ export function createPlayerMesh(groundAt?: (x: number, z: number) => number): P
 
     const wantFlare = s.mode === 'glide' ? 1 : s.mode === 'climb' ? 0.55 : s.grounded ? 0 : 0.85;
     flare += (wantFlare - flare) * Math.min(1, dt * 8);
-    wingL.rotation.z = -flare * 0.9 + sprint * 0.34 - beat;
-    wingR.rotation.z = flare * 0.9 - sprint * 0.34 + beat;
-    wingL.rotation.y = -flare * 0.3 + sprint * 0.5;
-    wingR.rotation.y = flare * 0.3 - sprint * 0.5;
+    // Positive is tip down on the left. Rest folds down, a glide opens out flat; a sprint tucks a
+    // little further and the wingbeat swings through both.
+    const wing = lerp(WING_REST, WING_OPEN, flare) + sprint * 0.2 - beat;
+    shoulderL.rotation.z = wing;
+    shoulderR.rotation.z = -wing;
+    shoulderL.rotation.y = -flare * 0.3 + sprint * 0.5;
+    shoulderR.rotation.y = flare * 0.3 - sprint * 0.5;
 
     const wantLean = s.grounded
       ? s.mode === 'climb' ? -0.4 : s.mode === 'glide' ? 0.18 : s.mode === 'sled' ? -0.14 : sprint * 0.3

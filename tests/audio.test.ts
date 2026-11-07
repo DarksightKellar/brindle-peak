@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ambienceFor } from '../src/game/audio/ambience';
+import { panToward, proximity, whistleLevel, windLevel } from '../src/game/audio/ambience';
 import { createTrackChooser, HOLD_SECONDS, trackFor } from '../src/game/audio/music';
 import { voiceCapAllows } from '../src/game/audio/sfx';
 import { createAudio } from '../src/game/audio/audio';
@@ -34,28 +34,38 @@ describe('which track plays', () => {
   });
 });
 
-describe('ambience levels', () => {
-  const ZONES = ['hearth', 'pinewind', 'reach', 'kettles', 'hamlet', 'ridge', 'peak', 'nowhere'];
-  it('keeps every layer inside [0, 1] everywhere, day and dusk, gust or not', () => {
-    for (const z of ZONES) for (const gust of [false, true]) for (const d of [0, 0.5, 1, Number.NaN, 7]) {
-      for (const [k, v] of Object.entries(ambienceFor(z, gust, d))) {
-        expect(v, `${z} ${gust} ${d} ${k}`).toBeGreaterThanOrEqual(0);
-        expect(v, `${z} ${gust} ${d} ${k}`).toBeLessThanOrEqual(1);
+describe('place sounds', () => {
+  it('are full when near, gone when far, and never NaN', () => {
+    expect(proximity(2, 3, 26)).toBe(1);
+    expect(proximity(30, 3, 26)).toBe(0);
+    const mid = proximity(14, 3, 26);
+    expect(mid).toBeGreaterThan(0);
+    expect(mid).toBeLessThan(1);
+    expect(proximity(Number.NaN, 3, 26)).toBe(0);
+  });
+
+  it('pan to the side the source is on, from the way the camera faces', () => {
+    const facingNorth = { x: 0, y: 0, z: 0, fx: 0, fz: -1 };
+    expect(panToward(facingNorth, 10, 0)).toBeGreaterThan(0.5); // east is on the right
+    expect(panToward(facingNorth, -10, 0)).toBeLessThan(-0.5);
+    expect(Math.abs(panToward(facingNorth, 0, -10))).toBeLessThan(1e-9); // dead ahead
+    const facingEast = { x: 0, y: 0, z: 0, fx: 1, fz: 0 };
+    expect(panToward(facingEast, 0, 10)).toBeGreaterThan(0.5); // south is on the right
+  });
+
+  it('blow harder up high and in a gust, and drop among trees', () => {
+    const valley = windLevel(5, 0, false);
+    expect(valley).toBeGreaterThan(0);
+    expect(windLevel(90, 0, false)).toBeGreaterThan(valley);
+    expect(windLevel(60, 0, true)).toBeGreaterThan(windLevel(60, 0, false));
+    expect(windLevel(20, 1, false)).toBeLessThan(windLevel(20, 0, false));
+    expect(whistleLevel(5, 0, false)).toBe(0);
+    for (const a of [-10, 0, 50, 200, Number.NaN]) for (const sh of [0, 1, 5, Number.NaN]) for (const g of [false, true]) {
+      for (const v of [windLevel(a, sh, g), whistleLevel(a, sh, g)]) {
+        expect(v).toBeGreaterThanOrEqual(0);
+        expect(v).toBeLessThanOrEqual(1);
       }
     }
-  });
-
-  it('has wind everywhere, louder up high and in a gust', () => {
-    expect(ambienceFor('hearth', false, 0).wind).toBeGreaterThan(0);
-    expect(ambienceFor('ridge', false, 0).wind).toBeGreaterThan(ambienceFor('hearth', false, 0).wind);
-    expect(ambienceFor('ridge', true, 0).wind).toBeGreaterThan(ambienceFor('ridge', false, 0).wind);
-  });
-
-  it('trades the birds for the owl at dusk', () => {
-    expect(ambienceFor('pinewind', false, 0).birds).toBe(1);
-    expect(ambienceFor('pinewind', false, 0).owls).toBe(0);
-    expect(ambienceFor('pinewind', false, 1).birds).toBe(0);
-    expect(ambienceFor('pinewind', false, 1).owls).toBe(1);
   });
 });
 

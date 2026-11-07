@@ -243,7 +243,7 @@ export class SnowmanActivity implements ActivityInstance {
     const total = this.steps.length;
     const count = `${nounFor(this.site)} ${Math.min(this.stage, total)} / ${total}`;
     const b = this.ball;
-    // Dressed, it says so: critic round 20 still read "Press E to give it a face" under the hat.
+    // Dressed, it says so: critic round 20 still read "Press F to give it a face" under the hat.
     if (!b && this.stage >= total) return { label: count, fraction: 1 };
     if (!b) return { label: `${WORDS.snowFace} · ${count}`, fraction: this.stage / total, urgent: this.stage === this.balls };
     const target = this.size(this.stage);

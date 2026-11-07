@@ -71,7 +71,7 @@ function hopLine(hop: MapHop | undefined): string {
   const picked = hop.places.find((p) => p.zone === hop.at);
   if (hop.blocked !== null) return `<p class="ui-map__hop is-blocked">${esc(hop.blocked)}</p>`;
   if (!picked) return '<p class="ui-map__hop"><kbd>↑↓</kbd> pick a place you have walked to go back to it</p>';
-  return `<p class="ui-map__hop is-picked">Go to <b>${esc(picked.name)}</b> <kbd>E</kbd> · <kbd>↑↓</kbd> another place</p>`;
+  return `<p class="ui-map__hop is-picked">Go to <b>${esc(picked.name)}</b> <kbd>F</kbd> · <kbd>↑↓</kbd> another place</p>`;
 }
 
 /** Monotonic build count. Diagnostic only: it makes "not per frame" measurable from outside. */

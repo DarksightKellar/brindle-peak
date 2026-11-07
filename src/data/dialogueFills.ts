@@ -86,7 +86,7 @@ export const DIALOGUE_FILLS: Readonly<Record<string, (s: GameState) => string[]>
   'gus-hello': (s) =>
     s.flags['picked:feather-shop-one'] === true || s.flags['picked:feather-shop-two'] === true
       ? ["Bells! Bells for sale! ...Oh, you've had a feather off me already. A customer! Hello."]
-      : ["Bells! Bells for sale! ...Oh, it's you. Got bells? The two feathers at my feet are forty each. Stand by one and press E."],
+      : ["Bells! Bells for sale! ...Oh, it's you. Got bells? The two feathers at my feet are forty each. Stand by one and press F."],
   // Margit's record names the fish: critic round 30 caught a Burbot at her hole and heard "one fish".
   // The best of what the hole has given, by the activity's own tally of catches by kind.
   'margit-catch': (s) => {

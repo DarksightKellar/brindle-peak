@@ -32,7 +32,7 @@ export const LANTERN_PASS = 8;
 export const talkReach = (n: Pick<NpcDef, 'radius'>): number => Math.max(n.radius ?? 0, NPC_RADIUS);
 
 /**
- * Everything the player can press E on. Pickups are collected by proximity, not by pressing, except one
+ * Everything the player can press F on. Pickups are collected by proximity, not by pressing, except one
  * with a price: Gus's feathers are bought with E. Critic round 26 walked onto one, lost 40 bells without
  * a prompt, and only noticed afterwards.
  */

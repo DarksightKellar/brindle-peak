@@ -1,5 +1,5 @@
 /**
- * The aurora photo as a long exposure: press E with the curtains in the middle of the frame and the
+ * The aurora photo as a long exposure: press F with the curtains in the middle of the frame and the
  * shutter stays open for a couple of seconds, while Pip, cold on the summit at night, shivers and the
  * frame drifts. Keep the curtain in the middle until the exposure fills.
  *

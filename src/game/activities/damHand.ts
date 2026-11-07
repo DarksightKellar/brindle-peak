@@ -31,7 +31,7 @@ export const DAM = {
   notch: 0.35,
   /**
    * Seconds a press still sets a stone that has just slid off its gap: a player reacting to "Over the gap"
-   * as it goes out. Critic round 38 saw "Over the gap — press E" turn to "Not over the gap" a frame later.
+   * as it goes out. Critic round 38 saw "Over the gap — press F" turn to "Not over the gap" a frame later.
    */
   react: 0.25,
   /** Furthest the stone goes off its gap: over a neighbour, in either direction. */

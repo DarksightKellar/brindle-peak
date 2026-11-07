@@ -21,6 +21,7 @@
  * function, and each module can now be read without the other systems in scope.
  */
 
+import { Vector3 } from 'three';
 import type { ActivityInstance, GameState, InputFrame, PlayerState, ZoneId } from './core/contracts';
 import { emptyInput, MAX_STEP_DT } from './core/contracts';
 import { PEAK, WORLD_SIZE } from './data/zones';
@@ -113,6 +114,10 @@ export function createSession(opts: SessionOptions): Session {
     state, player, store, sampler, kit, pipeline, snowfall, world, markers, pip, prints,
     footprintTracker, rig, audio, ui, mech, onboarding, wayHome, interactions, bus,
   } = b;
+
+  // Place sounds come from where things are in the world, and are heard from Pip, facing the camera's way.
+  audio.setSoundWorld(world.sounds);
+  const facing = new Vector3();
 
   let elapsed = 0;
   let ropeTied = false;
@@ -328,6 +333,8 @@ export function createSession(opts: SessionOptions): Session {
     pushFrame({ state, player, ui, mech, audio, store, persist, blocked, weather }, dt);
     const look = dusk.update(dt, state, elapsed);
     audio.setPlace(sample.zone, look.dusk);
+    kit.camera.getWorldDirection(facing);
+    audio.setListener(player.pos.x, player.pos.y, player.pos.z, facing.x, facing.z);
     glow.update(player.pos, look.dusk, state.abilities.lantern);
     pipeline.render();
   };
