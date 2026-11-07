@@ -157,7 +157,7 @@ vec2 flakes(vec2 texel, vec3 s) {
 }
 // Snow settling: now and then a speck of ground near the player brightens to fresh white and fades, as
 // a flake lands in the snow. World-anchored, so it stays put as the camera moves; only on ground that
-// faces up, only near (fog would eat it further out), and more of it when the snow is heavier. Each
+// faces up, only near (fog would eat it further out), and only in heavy snow. Each
 // world cell is about two texels across at its distance: a soft speck, not a blob, and not many at once.
 float settle(vec2 uv, float dist, vec3 viewNormal, vec3 s) {
   if (dist > 30.0) return 0.0;
@@ -169,7 +169,7 @@ float settle(vec2 uv, float dist, vec3 viewNormal, vec3 s) {
   float cell = exp2(ceil(log2(max(dist * uTexelAngle * 2.2, 0.004))));
   vec2 id = floor(world.xz / cell) + vec2(log2(cell) * 131.0, 0.0);
   float h = hash21(id);
-  if (h > 0.0022 * min(s.z, 2.0)) return 0.0;
+  if (h > 0.0044 * clamp(s.z - 1.0, 0.0, 1.0)) return 0.0; // heavy snow only (s.z 2), easing in from steady
   float period = 4.0 + 6.0 * hash21(id + 5.3);
   float t = mod(s.y / 14.0 + period * hash21(id + 9.1), period);
   float e = t < 0.08 ? t / 0.08 : exp(-(t - 0.08) * 1.2);
@@ -177,12 +177,12 @@ float settle(vec2 uv, float dist, vec3 viewNormal, vec3 s) {
 }
 // Snow on the glass: now and then a flake lands on the screen itself, a soft irregular blot that holds
 // for a moment and melts to a clear drop. Screen-fixed and smooth-edged (not on the pixel grid), so it
-// reads as on the lens, not in the world. A few slots, each on its own cycle; more of them in heavy snow.
+// reads as on the lens, not in the world. A few slots, each on its own cycle; heavy snow only.
 float spatter(vec2 p, vec3 s) {
   float t = s.y / 14.0, acc = 0.0;
   for (int i = 0; i < 4; i++) {
     float fi = float(i);
-    if (fi >= 1.0 + 1.5 * s.z) break; // steady: 2 slots, heavy: 4
+    if (fi >= 1.0 + 1.5 * s.z) break; // heavy: 4 slots
     float period = 9.0 + 7.0 * hash21(vec2(fi, 3.1));
     float shifted = t + period * hash21(vec2(fi, 8.7));
     float lt = mod(shifted, period);
@@ -233,7 +233,8 @@ void main() {
     lit = mix(lit, vec3(0.98, 0.99, 1.0), 0.45 * settle(uv, dist, normalAt(uv), uSnow) * open);
     vec2 f = flakes(floor(vUv * uRes), uSnow);
     lit = mix(lit, mix(vec3(0.96, 0.98, 1.0), vec3(1.0, 0.97, 0.86), f.y), f.x);
-    lit = mix(lit, vec3(0.93, 0.96, 1.0), spatter(vUv * uRes, uSnow) * min(uSnow.z, 1.0));
+    // Heavy snow only: in a steady fall nothing lands on the ground or the glass that you would notice.
+    lit = mix(lit, vec3(0.93, 0.96, 1.0), spatter(vUv * uRes, uSnow) * clamp(uSnow.z - 1.0, 0.0, 1.0));
   }
   gl_FragColor = vec4(lit, 1.0);
 }
