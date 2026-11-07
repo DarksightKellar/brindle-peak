@@ -12,7 +12,7 @@
  */
 import * as THREE from 'three';
 import type { GameState } from '../../core/contracts';
-import { DAY_LIGHT, DUSK, FOG, SKY, SKY_HIGH } from './pixelConfig';
+import { DAY_LIGHT, DUSK, FOG, GRADE, SKY, SKY_HIGH } from './pixelConfig';
 import type { SceneKit } from './scene';
 import { sunDirection } from './sky';
 import { createSnowSurface } from './snowSurface';
@@ -73,7 +73,15 @@ const HIGH_ZENITH = C(SKY_HIGH.zenith);
 
 export interface FogSink {
   setFogColor(haze: THREE.Color, far: THREE.Color): void;
+  setLook?(look: { saturation?: number }): void;
 }
+
+/**
+ * The grade's saturation at blue hour. Dusk light is low in chroma, so at the day's 2.6 the snow in the
+ * shade of a street went lavender-grey and critic round 70 read the hamlet as pale mist. A little more
+ * at dusk keeps the snow blue and the wood warm. (A lower shadow lift was tried first: no visible change.)
+ */
+const DUSK_SATURATION = 3.1;
 
 export interface DuskStage {
   /** Advance the clock from game state and write the result into the stage. Once per frame, after the camera. */
@@ -111,6 +119,7 @@ export function createDuskStage(kit: SceneKit, pipeline: FogSink): DuskStage {
     const far = kit.scene.getObjectByName('far-peak')?.userData.setDusk as ((k: number) => void) | undefined;
     far?.(t);
     pipeline.setFogColor(fog.copy(FOG_TINT[0]).lerp(FOG_TINT[1], t), distant.copy(FAR_TINT[0]).lerp(FAR_TINT[1], t));
+    pipeline.setLook?.({ saturation: mix(GRADE.saturation, DUSK_SATURATION, t) });
   };
 
   return {

@@ -95,8 +95,10 @@ export const SAT_TAPER = { from: 0.55, to: 0.95, saturation: 1.4 } as const;
  * far-plane edge; a pale haze before the grade went milky; fog by height added little for the cost.
  */
 export const FOG = {
-  density: 0.003, restDensity: 0.0022, hazeCap: 0.1,
-  fadeStart: 40, fadeEnd: 400, fadeMax: 0.62,
+  // Critic round 70: the hamlet read as pale mist, near houses and all. The haze is capped lower and the
+  // fade starts further out, so a street's own colour and contrast hold to the far end of it.
+  density: 0.003, restDensity: 0.0022, hazeCap: 0.065,
+  fadeStart: 65, fadeEnd: 400, fadeMax: 0.56,
   /** SKY_LOW, the haze colour at a low sun: cool enough to stay out of the warm band. */
   color: '#8FA8CE',
 } as const;

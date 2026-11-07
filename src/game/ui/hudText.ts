@@ -32,9 +32,11 @@ export function goalLine(s: GameState, main: GuideStep | null, unmet: { name: st
   // round 40 took on Hollis's mitten and read "Go and say hello to Tamsin" over it, two orders at once.
   if (unmet) {
     const errand = Object.values(s.quests).some((q) => q.status === 'active');
+    // Short: the end card has said the valley is talking, and this line sits over two more (critic round
+    // 70 read three lines crowding the compass, the top one two clauses long).
     return errand
-      ? `The valley's talking again. See your errands through, then say hello to ${unmet.name}, in ${unmet.zone}.`
-      : `The valley's talking again. Go and say hello to ${unmet.name}, in ${unmet.zone}.`;
+      ? `After your errands, say hello to ${unmet.name}, in ${unmet.zone}.`
+      : `Go and say hello to ${unmet.name}, in ${unmet.zone}.`;
   }
   return s.talked.nana
     // It names the errands, so the line under it (an errand still open) reads as the same advice. Critic

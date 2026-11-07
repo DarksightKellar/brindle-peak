@@ -7,7 +7,10 @@
  *   foot of the boathouse hill past Skiff's boat and the ice hole to the skating lap. A row of them
  *   going off across the plane says how far things are and which way the line runs.
  * - Wind-packed snow. Pale drifts lying on the ice, all drawn out the same way, so the blue is broken
- *   up and the wind reads as a direction.
+ *   up and the wind reads as a direction. Critic round 70 still crossed a flat blue plane: there are
+ *   more of them now, and between them long thin streaks of blown snow along the same wind.
+ * - Fish under the ice. A few dark shapes in twos and threes, the pike Margit's errand is about, seen
+ *   through the clear patches.
  *
  * Laid on the drawn ground (groundHeightAt) like the creek and the frozen ponds; the poles are one
  * merged mesh with a thin collider each.
@@ -34,7 +37,9 @@ const POLE_SIDE = 1.6;
 
 /** Wind from the west-north-west: every drift is drawn out along it. */
 const WIND = 0.35;
-const DRIFTS = 60;
+const DRIFTS = 150;
+const STREAKS = 110;
+const SHOALS = 9;
 const REACH = { x: 120, z: 330, r: 120 };
 
 interface Spot { x: number; z: number; r: number }
@@ -144,11 +149,92 @@ function drifts(sampler: TerrainSampler, spots: readonly Spot[], seed: number): 
   return mesh;
 }
 
+/** A long, thin streak of blown snow along the wind, tapering at both ends. */
+function streak(sampler: TerrainSampler, pos: number[], col: number[], cx: number, cz: number, len: number, wid: number): void {
+  const k = new THREE.Color(PALETTE.SNOW_LT);
+  const ux = Math.cos(WIND), uz = Math.sin(WIND);
+  const at = (t: number, side: number): [number, number] => {
+    const w = wid * Math.sin(Math.PI * t) * side;
+    const a = (t - 0.5) * 2 * len;
+    return [cx + ux * a - uz * w, cz + uz * a + ux * w];
+  };
+  const put = ([x, z]: [number, number]): void => {
+    pos.push(x, groundHeightAt(sampler, x, z) + 0.035, z);
+    col.push(k.r, k.g, k.b);
+  };
+  const n = 6;
+  for (let i = 0; i < n; i++) {
+    const t0 = i / n, t1 = (i + 1) / n;
+    put(at(t0, 1)); put(at(t1, -1)); put(at(t0, -1));
+    put(at(t0, 1)); put(at(t1, 1)); put(at(t1, -1));
+  }
+}
+
+/** One fish under the ice: a dark spindle and a forked tail, heading `yaw`. */
+function fish(sampler: TerrainSampler, pos: number[], col: number[], cx: number, cz: number, yaw: number, size: number): void {
+  const k = new THREE.Color(PALETTE.SNOW_NIGHT).multiplyScalar(0.62);
+  const fx = Math.cos(yaw), fz = Math.sin(yaw);
+  const p = (along: number, across: number): [number, number] => [cx + fx * along - fz * across, cz + fz * along + fx * across];
+  const put = ([x, z]: [number, number]): void => {
+    pos.push(x, groundHeightAt(sampler, x, z) + 0.03, z);
+    col.push(k.r, k.g, k.b);
+  };
+  const L = size, W = size * 0.32;
+  // Body: nose, two flanks, tail root.
+  put(p(L, 0)); put(p(0, -W)); put(p(0, W));
+  put(p(0, W)); put(p(0, -W)); put(p(-L * 0.7, 0));
+  // Tail fork.
+  put(p(-L * 0.6, 0)); put(p(-L, -W * 1.1)); put(p(-L, W * 1.1));
+}
+
+function iceMarks(sampler: TerrainSampler, spots: readonly Spot[], seed: number): THREE.Mesh {
+  const rng = makeRng(seed ^ 0x51ab0f3d);
+  const pos: number[] = [];
+  const col: number[] = [];
+  const flat = (x: number, z: number): boolean => {
+    const s = sampler.sampleAt(x, z);
+    return s.surface === 'ice' && s.slope < 0.08;
+  };
+  let placed = 0;
+  for (let guard = 0; placed < STREAKS && guard < STREAKS * 40; guard++) {
+    const a = rng.range(0, Math.PI * 2), r = REACH.r * Math.sqrt(rng.next());
+    const x = REACH.x + Math.cos(a) * r, z = REACH.z + Math.sin(a) * r;
+    const len = rng.range(5, 12);
+    const ends = [[x, z], [x + Math.cos(WIND) * len, z + Math.sin(WIND) * len], [x - Math.cos(WIND) * len, z - Math.sin(WIND) * len]];
+    if (ends.some(([px, pz]) => !flat(px, pz)) || !clear(spots, x, z, len * 0.5)) continue;
+    streak(sampler, pos, col, x, z, len, rng.range(0.16, 0.32));
+    placed++;
+  }
+  let shoals = 0;
+  for (let guard = 0; shoals < SHOALS && guard < SHOALS * 60; guard++) {
+    const a = rng.range(0, Math.PI * 2), r = REACH.r * 0.8 * Math.sqrt(rng.next());
+    const x = REACH.x + Math.cos(a) * r, z = REACH.z + Math.sin(a) * r;
+    if (!flat(x, z) || !flat(x + 4, z) || !flat(x - 4, z) || !clear(spots, x, z, 2)) continue;
+    const heading = rng.range(0, Math.PI * 2);
+    const count = rng.int(2, 3);
+    for (let i = 0; i < count; i++) {
+      fish(sampler, pos, col, x + rng.range(-3, 3), z + rng.range(-3, 3), heading + rng.range(-0.35, 0.35), rng.range(1.3, 1.9));
+    }
+    shoals++;
+  }
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  geometry.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+  geometry.computeVertexNormals();
+  const material = new THREE.MeshLambertMaterial({
+    vertexColors: true, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2,
+  });
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.name = 'reach-ice-marks';
+  mesh.receiveShadow = true;
+  return mesh;
+}
+
 export function buildReachDressing(sampler: TerrainSampler, seed: number): { group: THREE.Group; colliders: Collider[] } {
   const spots = keepOut();
   const group = new THREE.Group();
   group.name = 'reach-dressing';
   const marked = poles(sampler, spots);
-  group.add(marked.mesh, drifts(sampler, spots, seed));
+  group.add(marked.mesh, drifts(sampler, spots, seed), iceMarks(sampler, spots, seed));
   return { group, colliders: marked.colliders };
 }

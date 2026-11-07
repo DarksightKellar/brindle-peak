@@ -12,6 +12,7 @@
  */
 
 import * as THREE from 'three';
+import { PALETTE } from '../../core/palette';
 
 /** Overall size per species, relative to a standard villager. A mouse is small; nobody is tiny. */
 export const SPECIES_SIZE: Readonly<Record<string, number>> = {
@@ -39,6 +40,9 @@ export interface Kit {
   /** Add a primitive at body-unit position/scale, optional rotation (x, z). */
   part(geo: 'sphere' | 'cone' | 'cyl', mat: THREE.Material, p: [number, number, number], s: [number, number, number], rx?: number, rz?: number): THREE.Mesh;
 }
+
+/** An owl's eyes: yellow rings round a dark pupil, the one owl feature nothing else in the valley has. */
+const OWL_EYE = new THREE.MeshLambertMaterial({ color: new THREE.Color(PALETTE.AMBER), emissive: new THREE.Color(PALETTE.AMBER).multiplyScalar(0.35), flatShading: true });
 
 /** The ptarmigan's red comb: Pip's scarf red, the one red that already belongs to the family. */
 const COMB = new THREE.MeshLambertMaterial({ color: new THREE.Color('#C4574C'), flatShading: true });
@@ -108,10 +112,20 @@ export const SPECIES_MARKS: Readonly<Record<string, (k: Kit) => void>> = {
     tail(k, k.accent, 0.8, 0.04, 1.45, 0.2);
   },
   owl: (k) => {
-    // Face disc, big eyes on it, and ear tufts. The disc is the accent colour, so the face reads
-    // before the body; the shared eyes sit behind the disc, so an owl draws its own, larger ones.
-    k.part('sphere', k.accent, [0, HEAD_Y, 0.2], [0.27, 0.25, 0.1]);
-    for (const side of [-1, 1]) k.part('sphere', k.dark, [side * 0.11, HEAD_Y + 0.04, 0.29], [0.065, 0.065, 0.03]);
+    // Critic round 70 still took Fen for a raccoon: a pale face with two dark eyes is a raccoon's mask.
+    // An owl's head is broad and flat-topped, sunk into the shoulders, with a facial ruff wider than the
+    // skull (so a pale rim shows round it even from behind), yellow-ringed eyes and a short hooked beak.
+    k.part('sphere', k.body, [0, HEAD_Y - 0.03, -0.02], [0.33, 0.27, 0.3]);
+    k.part('sphere', k.accent, [0, HEAD_Y - 0.02, 0.17], [0.37, 0.29, 0.1]);
+    for (const side of [-1, 1]) {
+      k.part('sphere', OWL_EYE, [side * 0.13, HEAD_Y + 0.03, 0.26], [0.09, 0.09, 0.03]);
+      k.part('sphere', k.dark, [side * 0.13, HEAD_Y + 0.03, 0.285], [0.05, 0.05, 0.02]);
+    }
+    k.part('cone', k.dark, [0, HEAD_Y - 0.09, 0.28], [0.05, 0.12, 0.05], Math.PI);
+    // A barred breast: three pale chevrons down the front.
+    for (const [i, y] of [0.82, 0.66, 0.5].entries()) {
+      for (const side of [-1, 1]) k.part('sphere', k.accent, [side * 0.09, y, 0.36 - i * 0.015], [0.1, 0.03, 0.04], 0, side * 0.45);
+    }
     // Tufts, not ears: thin, at the head's edges and swept outward. As upright cones they made a cat's
     // ears, and critic round 58 saw Fen from behind as a grey cat with a scarf.
     for (const side of [-1, 1]) k.part('cone', k.body, [side * 0.2, HEAD_Y + 0.27, -0.02], [0.05, 0.2, 0.04], 0, side * -0.7);
@@ -123,6 +137,10 @@ export const SPECIES_MARKS: Readonly<Record<string, (k: Kit) => void>> = {
     for (const side of [-1, 1]) {
       k.part('sphere', wing, [side * 0.27, 0.72, -0.08], [0.11, 0.36, 0.27], 0.12, side * 0.12);
       k.part('cone', wing, [side * 0.06, 0.3, -0.3], [0.08, 0.3, 0.06], -0.35, side * -0.5);
+      // Pale spots down the folded wing, the speckled back an owl shows when it looks away.
+      for (const [y, z] of [[0.86, -0.22], [0.68, -0.3], [0.5, -0.3]]) {
+        k.part('sphere', k.accent, [side * 0.25, y, z], [0.045, 0.045, 0.03]);
+      }
     }
   },
   ptarmigan: (k) => {

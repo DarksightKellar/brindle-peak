@@ -196,10 +196,21 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
     return ` · behind you, to your ${offSide > 0 ? 'right' : 'left'}`;
   };
 
-  const writeNext = (text: string, step: ReturnType<typeof nextStepFor>): void => {
-    if (text !== lastNext) {
-      lastNext = text;
+  /**
+   * `aside`: a thing nearby, under the errand in smaller, quieter type. Critic round 70 read the goal, the
+   * errand and a nearby line as three equal lines crowding the compass; the third is a side note.
+   */
+  const writeNext = (text: string, step: ReturnType<typeof nextStepFor>, aside = ''): void => {
+    const key = `${text}|${aside}`;
+    if (key !== lastNext) {
+      lastNext = key;
       nextEl.textContent = text;
+      if (aside !== '') {
+        const small = document.createElement('span');
+        small.className = 'ui-hud__aside';
+        small.textContent = aside;
+        nextEl.appendChild(small);
+      }
       nextEl.dataset.quest = step?.questId ?? '';
       nextEl.dataset.step = step?.stepIndex === null || step?.stepIndex === undefined ? '' : String(step.stepIndex);
       nextEl.dataset.zone = step?.zone ?? '';
@@ -281,7 +292,7 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
         // Two lines at most under the compass: critic round 57 read four, "Now on the line", the errand,
         // its wrap and a nearby line. The nearby line waits while the switch is being said.
         else if (nearby !== '' && errandText !== '' && now !== '') writeNext(errandText, step);
-        else if (nearby !== '' && errandText !== '') writeNext(`${errandText}\n${nearby}`, step);
+        else if (nearby !== '' && errandText !== '') writeNext(errandText, step, nearby);
         else if (nearby !== '') writeNext(nearby, null);
         else writeNext(errandText, step);
       }

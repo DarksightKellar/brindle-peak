@@ -108,7 +108,8 @@ export function buildNpc(def: NpcDef): THREE.Object3D {
     // Wings in the accent colour: a darker mass on each side, like Pip's own brown back.
     for (const side of [-1, 1]) k.part('sphere', k.accent, [side * 0.36, 0.66, -0.06], [0.1, 0.3, 0.3], 0, side * 0.15);
     k.part('sphere', k.body, [0, HEAD_Y, 0.02], [0.28, 0.28, 0.28]);
-    k.part('cone', lam(PALETTE.PIP_BEAK), [0, HEAD_Y - 0.04, 0.33], [0.07, 0.18, 0.07], Math.PI / 2);
+    // An owl's beak is its own, short and hooked down (npcSpecies.ts): a long straight one read as a snout.
+    if (def.species !== 'owl') k.part('cone', lam(PALETTE.PIP_BEAK), [0, HEAD_Y - 0.04, 0.33], [0.07, 0.18, 0.07], Math.PI / 2);
   } else {
     k.part('sphere', k.body, [0, 0.62, 0], [0.36, 0.5, 0.32]);
     // A pale belly: the front-on read of almost every mammal here, and contrast for dark coats.
