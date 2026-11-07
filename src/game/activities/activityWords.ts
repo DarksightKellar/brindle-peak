@@ -15,6 +15,9 @@ export function clock(seconds: number): string {
 }
 
 /** Where the arc was when a throw fell short or sailed over, by which way the release missed. */
+/** "a Grayling", "an Arctic Char". */
+const article = (name: string): string => (/^[aeiou]/i.test(name) ? `an ${name}` : `a ${name}`);
+
 const ARC_WAS = {
   short: { early: 'the arc was still growing', late: 'the arc had shrunk back' },
   long: { early: "the arc hadn't shrunk enough", late: 'the arc grew past it' },
@@ -80,7 +83,7 @@ export const WORDS = {
   gateWay: (metres: number, way: 'ahead' | 'left' | 'right' | 'behind', round: 'left' | 'right' = 'left'): string =>
     `${Math.round(metres)} u ${way === 'ahead' ? 'ahead' : way === 'behind' ? `behind you, to your ${round}` : `on your ${way}`}`,
   /** A race walked away from: it ends, and says so. */
-  raceLeft: 'Left the course, so the run is off. The start is where it was.',
+  raceLeft: "You left the course, so the run's off. The start is right where it was.",
   // Woodpile: a crooked press, before the log came square or after it swung past.
   woodEarly: 'Too soon. Let it swing square first',
   woodLate: 'Too late. Wait for it to swing back square',
@@ -100,13 +103,13 @@ export const WORDS = {
   snowPush: 'Big enough. Push it onto the lit ring',
   snowFace: `Press ${KEY.interact} to give it a face`,
   // Build results
-  buildResult: { woodpile: 'Stacked straight. Countable at last.', snowman: 'One snowman, standing.', dam: 'The dam is whole again.' } as Record<string, string>,
+  buildResult: { woodpile: "The pile's stacked straight. Bram can count it at last.", snowman: "Your snowman's up, and it's standing.", dam: 'The dam is whole again.' } as Record<string, string>,
   // Fishing result; the fish name is the journal's own
-  fishResult: (name: string): string => `${name}, landed.`,
+  fishResult: (name: string): string => `You landed ${article(name)}.`,
   // Hollis's errand: the line snags under the split pine's roots and comes up with the mitten.
-  mittenResult: "Snagged on the roots: Hollis's mitten, soaked through.",
+  mittenResult: "The line snagged on the roots and came up with Hollis's mitten, soaked through.",
   // Photo result; `what` comes from photoSubjects.ts
-  photoResult: (what: string): string => `The ${what}, caught on camera.`,
+  photoResult: (what: string): string => `You caught the ${what} on camera.`,
   // The photo panel's instruction, naming the subject (`what` from photoSubjects.ts).
   photoHint: (what: string): string => `Centre the ${what} in the frame, then press ${KEY.interact}.`,
   // The aurora's long exposure: holding the frame still; the frame has drifted off.
@@ -118,7 +121,7 @@ export const WORDS = {
   // A full round says so; a short one says how close and how to go again, as the bell does. Critic round
   // 35 was left with a bare "1 of 3 hits".
   throwResult: (hits: number, need: number): string => hits >= need
-    ? `All ${need} down. Not a snowman left standing.`
+    ? `All ${need} down. There's not a snowman left standing.`
     : `${hits} of ${need} down${hits > 0 ? ', close' : ''}. Press ${KEY.interact} at the flag for another go.`,
   /** Critic round 17 rang it and read "1 of 1 hits", if anything: the bell is the point, not the count. */
   /** The bell's crosswind, said from the thrower's side: where it comes from and how hard. */
@@ -148,8 +151,8 @@ export const WORDS = {
   /** A hoop well above or below the glide: flap to climb, or let the glide go a moment to sink. */
   hoopHeight: (dy: number): string => (dy > 0 ? `${Math.round(dy)} u above you: flap (${KEY.jump})` : `${Math.round(-dy)} u below you: ease off ${KEY.jump} to sink`),
   // Skate result
-  skateResult: (seconds: number): string => `Down on the ice after ${seconds.toFixed(1)}s. Up again whenever.`,
-  skateLap: 'Round the Reach and upright the whole way.',
+  skateResult: (seconds: number): string => `You went down on the ice after ${seconds.toFixed(1)}s. Get up and go again whenever you like.`,
+  skateLap: 'You got all the way round the Reach without falling once.',
   // The way Pip is tipping; righting it is the player's to do (no key named, the director's call, round 47).
   skateTip: (side: 'left' | 'right'): string => `Tipping ${side}`,
   /** Off the edge on the ice, large in the middle of the view. */
@@ -166,7 +169,7 @@ export const WORDS = {
   // Counts the hold down: critic round 29 read "Hold it there" with no idea for how long.
   // In words, not "5s": the panel's own clock follows it, and "5s more · 7s" read as two timers.
   kiteHigh: (left: number): string => `Over the crest lights. Hold it there, ${left === 1 ? 'one more second' : `${left} more seconds`}`,
-  kiteResult: 'Held above the crest, steady as a weathervane.',
+  kiteResult: 'You held it above the crest, steady as a weathervane.',
 } as const;
 
 /** Hints for activities whose kind's hint would be wrong for them, by activity id. */
@@ -180,5 +183,5 @@ export const HINT_FOR_ID: Readonly<Record<string, string>> = {
   'hearth-kindling': `Each log swings over the pile. Press ${KEY.interact} when it hangs square.`,
   'hamlet-bell-throw': `Wind blows across the square and shifts after every throw: the arrow over the bell shows it. Aim into the wind, then hold ${KEY.interact} and let go on the arc.`,
   'kettles-dam-build': `The current pushes each stone off its gap. Hold it there with the move keys, then press ${KEY.interact} to set it.`,
-  'hamlet-snowman': 'Walk to roll a ball bigger, then push it onto the lit ring. Three balls, then E for the face.',
+  'hamlet-snowman': `Walk to roll a ball bigger, then push it onto the lit ring. Three balls, then ${KEY.interact} for the face.`,
 };

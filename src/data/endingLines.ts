@@ -19,14 +19,14 @@ export const VALLEY_LINES_SHOWN = 4;
 export const VALLEY_LINES: readonly (readonly [quest: string, line: string])[] = [
   ['ilsa-kindling', 'Ilsa is going down to the springs tomorrow, carrying nothing, to let her sister feed her.'],
   ['hollis-mitten', 'Hollis has his mitten back on its hook, and is working up to saying sorry to an owl.'],
-  ['jory-first-step', 'Jory thinks he can go as far as the pines. Not today. Tomorrow.'],
+  ['jory-first-step', 'Jory thinks he can make it as far as the pines. Not today, but tomorrow.'],
   ['tamsin-headband', 'Hollis has tried on a headband knitted just for him. The next one will have more room for his ears.'],
   ['fen-ledger', 'Fen has asked the marten next door something, for the first time in twenty winters.'],
-  ['corm-news', 'Corm has checked something, and it was true.'],
-  ['wren-sounds', "Wren's old notebook is full. The last page is in your words."],
+  ['corm-news', 'Corm has checked something for once, and it turned out to be true.'],
+  ['wren-sounds', "Wren's old notebook is full, and the last page is in your words."],
   // What the two of them said, not more: critic round 68 never heard either tell the valley anything.
   ['tuck-rope', "Bram's rope is on Tuck's bridge, his old woodshed key is back in his pocket, and come spring he's walking up with a tape."],
-  ['chimney-line', 'Tuck is thinking about climbing Nettle Chimney. Just thinking.'],
+  ['chimney-line', 'Tuck is thinking about climbing Nettle Chimney. Only thinking, for now.'],
   ['ivy-springs', "The pools are warm again behind Ivy's dam."],
   ['pell-letter', "Pell's last letter found the right door."],
   ['pell-address', 'Pell writes names on his letters now, not colours.'],
@@ -35,7 +35,7 @@ export const VALLEY_LINES: readonly (readonly [quest: string, line: string])[] =
   ['gus-ledger', 'Gus knows his shop bell carries the whole hamlet. The big one is next.'],
   ['skiff-sled', "Skiff's sled is out of the rafters at last."],
   ['margit-ice', "Margit's record says where the pike sit."],
-  ['sable-kite', 'Sable has filed a reading worth filing: forty, gusting.'],
+  ['sable-kite', 'Sable has filed a reading worth filing at last: forty, gusting.'],
 ];
 
 /**
@@ -49,7 +49,7 @@ export const CHAPTER_DONE: Readonly<Record<string, string>> = {
   'the-line': "Bram's batteries are in your bag, for the mast on Brindle Peak.",
   'the-climb': 'Edda has the batteries, and the set at the mast is warm.',
   'the-mast': 'The aurora cleared the sky, and the valley heard the radio.',
-  'nana-home': 'You followed the lit posts home. Nana already knew.',
+  'nana-home': 'You followed the lit posts home, and Nana had already heard all about it.',
 };
 
 /**
