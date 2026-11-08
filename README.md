@@ -1,4 +1,4 @@
-# First Snow
+# Brindle Peak
 
 A small, cozy winter exploration game for the browser, built on three.js. You play Pip, a snow
 bunting who has come to spend the winter at Nana Quill's cabin. The valley radio has gone quiet, and

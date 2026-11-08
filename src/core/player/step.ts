@@ -1,5 +1,5 @@
 /**
- * FIRST SNOW — the player step. Pure: no three, no DOM, no clock, no randomness.
+ * BRINDLE PEAK — the player step. Pure: no three, no DOM, no clock, no randomness.
  *
  * INPUT-YAW CONVENTION (asserted in tests/movement.test.ts): camYaw = 0 looks toward
  * +Z, and `PlayerState.facing` shares that convention.

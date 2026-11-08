@@ -10,6 +10,7 @@
  * enough to keep in localStorage beside the save.
  */
 
+// Named before the game was renamed Brindle Peak; kept, so photos taken under the old name still show.
 const KEY = 'first-snow.photo.';
 const WIDTH = 384;
 /**

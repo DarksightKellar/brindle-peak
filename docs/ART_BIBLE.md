@@ -1,4 +1,4 @@
-# FIRST SNOW — Art Bible v1.0
+# BRINDLE PEAK — Art Bible v1.0
 
 Derived from measured A Short Hike data (`docs/RESEARCH.md` §3). Every constraint here is either a
 measurement of the benchmark or a deliberate, stated translation of it to winter.

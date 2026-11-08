@@ -1,4 +1,4 @@
-/* First Snow — pause menu. Split out of ui.css, which was past the file-size ceiling; the palette
+/* Brindle Peak — pause menu. Split out of ui.css, which was past the file-size ceiling; the palette
    tokens it uses are defined there. */
 
 .ui-menu { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 24px; background: rgba(30, 42, 68, 0.7); pointer-events: auto; }

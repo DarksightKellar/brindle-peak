@@ -72,7 +72,7 @@ export function createMenu(root: HTMLElement, onReset?: () => void): Menu {
   layer.hidden = true;
   layer.innerHTML =
     '<section class="panel ui-menu__panel" role="dialog" aria-label="Paused"><div class="panel__in">' +
-    '<h2 class="ui-menu__title">First Snow</h2>' +
+    '<h2 class="ui-menu__title">Brindle Peak</h2>' +
     '<p class="ui-menu__sub">Paused</p>' +
     '<button class="ui-btn ui-menu__resume" type="button">Resume</button>' +
     '<div class="ui-menu__group ui-menu__nav"><span class="ui-menu__label">Pixel size</span>' +

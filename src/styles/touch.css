@@ -1,4 +1,4 @@
-/* First Snow — phones and tablets (game/touch.ts). Only applies while html[data-touch] is set.
+/* Brindle Peak — phones and tablets (game/touch.ts). Only applies while html[data-touch] is set.
    The controls are pale, see-through and blocky like the rest of the UI, so the picture shows through. */
 
 html[data-touch], html[data-touch] body {

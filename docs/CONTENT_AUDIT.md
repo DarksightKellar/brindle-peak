@@ -1,4 +1,4 @@
-# First Snow — content & progression audit
+# Brindle Peak — content & progression audit
 
 - **Build under test:** the production bundle at `http://127.0.0.1:4180/` — `dist/assets/index-C_1SJjSy.js`, `dist/index.html` written 08:52:01. HEAD is `67d746f` ("Give the activities their objects back"); `src/game/world/props.ts`, `terrainMesh.ts` and `water.ts` are modified in the working tree and are **not** in this bundle, so every number below describes the served build, not the newest source.
 - **Harness:** headless Chromium (SwiftShader, no GPU), 960×540, driven through `window.__game` (`step(n, dt)` at a fixed 1/60, `drive()`, `teleport()`, `session.interact()`), plus real keyboard/mouse for the input claims. Software rendering runs at 12–14 fps, so all timing was taken from fixed-`dt` stepping; frame rate does not affect any number here. Rendering cost was cut with the game's own `setPixelSize(8)` setting where a run needed thousands of frames (a display setting, not a gameplay one).

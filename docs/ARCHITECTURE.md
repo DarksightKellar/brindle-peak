@@ -1,4 +1,4 @@
-# First Snow — Architecture
+# Brindle Peak — Architecture
 
 ## House rules
 

@@ -34,7 +34,7 @@ const canvas = document.getElementById('stage');
 const uiRoot = document.getElementById('ui');
 const app = document.getElementById('app');
 if (!(canvas instanceof HTMLCanvasElement) || !(uiRoot instanceof HTMLElement)) {
-  throw new Error('First Snow: #stage canvas or #ui root missing from index.html');
+  throw new Error('Brindle Peak: #stage canvas or #ui root missing from index.html');
 }
 
 const session = createSession({ canvas, uiRoot, resume: true });

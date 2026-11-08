@@ -1,4 +1,4 @@
-# First Snow — playability QA report
+# Brindle Peak — playability QA report
 
 - **Build under test:** the production bundle served at `http://127.0.0.1:4180/` — `dist/assets/index-Dchvwoiw.js`, built 2026-10-20 08:15:30.
 - **Source read for causes:** working tree at `d321d36` (clean). Note: HEAD moved to `e61ab0f` (camera occlusion, 08:27) *after* that build and `dist/` was **not** rebuilt, so the served build predates the camera-occlusion commit by two commits. Everything below was measured against the served bundle; `file:line` references are to the current tree.

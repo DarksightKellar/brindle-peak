@@ -1,4 +1,4 @@
-# FIRST SNOW — Game Design Document v1.0
+# BRINDLE PEAK — Game Design Document v1.0
 
 *A small winter ascent. Browser, three.js, no install.*
 

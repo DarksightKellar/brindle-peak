@@ -1,4 +1,4 @@
-# First Snow — state
+# Brindle Peak — state
 
 What the game is today, how it is checked, and what is known to be missing. Ongoing work and its
 handoff notes live on the task board, `docs/board.html` (update it with `tools/board.py`).

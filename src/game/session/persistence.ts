@@ -10,6 +10,7 @@ import type { GameState } from '../../core/contracts';
 import { SAVE_VERSION } from '../../core/contracts';
 import { load, save } from '../../core/progress/save';
 
+// Named before the game was renamed Brindle Peak; kept, so saves made under the old name still load.
 export const SAVE_KEY = `first-snow.save.v${SAVE_VERSION}`;
 /** Seconds between autosaves. Zone changes also save. */
 export const SAVE_EVERY = 30;

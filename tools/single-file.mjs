@@ -1,5 +1,5 @@
 /**
- * A one-file build of the game for sharing by hand: release/First Snow.html, which plays when
+ * A one-file build of the game for sharing by hand: release/Brindle Peak.html, which plays when
  * double-clicked, with no server and no unzipping.
  *
  * The normal build cannot be opened from disk: Chrome and Edge refuse to load a module script from a
@@ -47,7 +47,7 @@ for (const c of css) {
 if (/src="\.\/assets|href="\.\/assets/.test(html)) throw new Error('a file reference was left in the page');
 
 mkdirSync(join(ROOT, 'release'), { recursive: true });
-const out = join(ROOT, 'release', 'First Snow.html');
+const out = join(ROOT, 'release', 'Brindle Peak.html');
 writeFileSync(out, html);
 rmSync(OUT, { recursive: true });
-console.log(`release/First Snow.html: ${(Buffer.byteLength(html) / 1e6).toFixed(1)} MB`);
+console.log(`release/Brindle Peak.html: ${(Buffer.byteLength(html) / 1e6).toFixed(1)} MB`);
