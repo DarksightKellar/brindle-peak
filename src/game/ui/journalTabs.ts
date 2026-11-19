@@ -14,6 +14,7 @@ import type { JournalModel, JournalSettingsView } from './journalModel';
 import { esc } from './html';
 import { icon } from './icons';
 import { KEY } from '../../core/keys';
+import { CREDITS, LICENCES } from '../../data/credits';
 
 /** `value` and `note` replace the plain count when a stat has two numbers to tell apart (the bells). */
 const statHTML = (label: string, r: JournalModel['feathers'], value = esc(r.text), note = ''): string =>
@@ -210,6 +211,17 @@ export function settingsHTML(settings: (() => JournalSettingsView) | undefined):
   return (
     `<ul class="ui-settings">${rows
       .map(([k, val]) => `<li class="ui-setting"><span class="ui-setting__key">${k}</span><span class="ui-setting__val">${val}</span></li>`)
-      .join('')}</ul><p class="ui-empty">${KEY.pause} closes the journal.</p>`
+      .join('')}</ul><p class="ui-empty">${KEY.pause} closes the journal.</p>` + creditsHTML()
+  );
+}
+
+/** The credits, and the licence text each library asks to travel with it (data/credits.ts). */
+function creditsHTML(): string {
+  return (
+    '<section class="ui-credits" aria-label="Credits">' +
+    '<h3 class="ui-credits__title">Brindle Peak</h3>' +
+    `<dl class="ui-credits__list">${CREDITS.map((c) => `<dt>${esc(c.role)}</dt><dd>${esc(c.who)}</dd>`).join('')}</dl>` +
+    LICENCES.map((l) => `<h4 class="ui-credits__lic">${esc(l.name)}</h4><pre class="ui-credits__text">${esc(l.text)}</pre>`).join('') +
+    '</section>'
   );
 }

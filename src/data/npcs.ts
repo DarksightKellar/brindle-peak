@@ -30,11 +30,11 @@ export const NPCS: readonly NpcDef[] = [
   // ---- Hollowpine Hamlet (3) ----------------------------------------------
   { id: 'orla', name: 'Orla', species: 'deer mouse', zone: 'hamlet', pos: { x: 238, z: 136.4 }, yaw: 3.1, idle: 'orla-idle', body: '#a08a72', accent: '#e6d8c2', radius: 4 },
   { id: 'pell', name: 'Pell', species: 'fox', zone: 'hamlet', pos: { x: 262, z: 110 }, yaw: -0.4, idle: 'pell-idle', body: '#b86a3a', accent: '#f2e6d6', radius: 4 },
-  { id: 'gus', name: 'Gus', species: 'red squirrel', zone: 'hamlet', pos: { x: 272, z: 134 }, yaw: 2.8, idle: 'gus-idle', body: '#9c4f2a', accent: '#edd2ae', radius: 4 },
+  { id: 'gus', name: 'Gus', species: 'red squirrel', zone: 'hamlet', pos: { x: 272, z: 134 }, yaw: 2.8, idle: 'gus-idle', body: '#9c4f2a', accent: '#edd2ae', radius: 4, wear: ['apron', 'neck-bell'] },
 
   // ---- Kettle Springs (3) --------------------------------------------------
   { id: 'ivy', name: 'Ivy', species: 'otter', zone: 'kettles', pos: { x: -52, z: 50 }, yaw: 0.8, idle: 'ivy-idle', body: '#57463a', accent: '#d6c0a6', radius: 4 },
-  { id: 'corm', name: 'Corm', species: 'raven', zone: 'kettles', pos: { x: -14, z: 70 }, yaw: -1.8, idle: 'corm-idle', body: '#31313a', accent: '#7b8794', radius: 4 },
+  { id: 'corm', name: 'Corm', species: 'raven', zone: 'kettles', pos: { x: -14, z: 70 }, yaw: -1.8, idle: 'corm-idle', body: '#31313a', accent: '#7b8794', radius: 4, wear: ['flat-cap'] },
   { id: 'jory', name: 'Jory', species: 'deer mouse', zone: 'kettles', pos: { x: -60, z: 86 }, yaw: 1.1, idle: 'jory-idle', body: '#9c8770', accent: '#e2d4be', radius: 4 },
 
   // ---- Windscar Ridge (2) --------------------------------------------------

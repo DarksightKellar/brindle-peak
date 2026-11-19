@@ -4,6 +4,7 @@
 @import url('./menu.css');
 @import url('./hud.css');
 @import url('./touch.css');
+@import url('./credits.css');
 
 :root {
   --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;

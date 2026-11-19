@@ -10,6 +10,7 @@
 
 import { PIXEL_SIZE_OPTIONS } from '../render/pixelConfig';
 import { KEY, TOUCH } from '../../core/keys';
+import { MAKER } from '../../data/credits';
 
 /** Menu-facing alias of the single render-layer list; there must not be a second copy. */
 export const PIXEL_SIZES: readonly number[] = PIXEL_SIZE_OPTIONS;
@@ -86,6 +87,7 @@ export function createMenu(root: HTMLElement, onReset?: () => void): Menu {
     (TOUCH ? TOUCH_LIST : KEY_LIST) +
     // Far from Resume, and quiet: critic round 4 found it one row under the button a pause is for.
     `<button class="ui-btn ui-menu__reset" type="button">${RESET_LABEL}</button>` +
+    `<p class="ui-menu__hint">Made by ${MAKER}. The credits are at the end of the journal's Settings page.</p>` +
     '</div></section>';
   root.appendChild(layer);
 

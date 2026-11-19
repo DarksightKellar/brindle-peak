@@ -1,0 +1,13 @@
+/* Brindle Peak — the credits at the foot of the journal's Settings page (data/credits.ts).
+   Quiet, like the rest of the page: the names in lantern, the licence small and dim. */
+
+.ui-credits { margin: 22px 0 4px; padding-top: 14px; border-top: 1px solid var(--snow-sh); }
+.ui-credits__title { margin: 0 0 8px; font-size: 12px; letter-spacing: 5px; text-transform: uppercase; color: var(--snow-hi); }
+.ui-credits__list { display: grid; grid-template-columns: max-content 1fr; column-gap: 16px; row-gap: 6px; margin: 0; font-size: 12px; }
+.ui-credits__list dt { color: var(--snow-mid); }
+.ui-credits__list dd { margin: 0; color: var(--lantern); }
+.ui-credits__lic { margin: 16px 0 4px; font-size: 11px; letter-spacing: 2px; color: var(--snow-mid); font-weight: 400; }
+.ui-credits__text {
+  margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; font-family: var(--mono);
+  font-size: 10px; line-height: 1.5; letter-spacing: 0.5px; color: var(--snow-mid);
+}

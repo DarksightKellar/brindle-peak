@@ -445,7 +445,11 @@ export interface NpcDef {
   body: string;
   accent: string;
   radius?: number;
+  /** Clothes beyond the scarf (game/world/npcWear.ts): for villagers who share a species with someone. */
+  wear?: readonly NpcWear[];
 }
+
+export type NpcWear = 'apron' | 'neck-bell' | 'flat-cap';
 
 export interface AchievementDef {
   id: string;

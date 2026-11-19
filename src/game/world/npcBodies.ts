@@ -12,6 +12,7 @@ import { PALETTE } from '../../core/palette';
 import type { PickupDef } from '../../data/pickups';
 import { HEAD_Y, isBird, type Kit, SPECIES_MARKS, SPECIES_SIZE } from './npcSpecies';
 import { haloSprite } from './halo';
+import { WEAR } from './npcWear';
 
 const FLAT = { flatShading: true } as const;
 
@@ -134,6 +135,7 @@ export function buildNpc(def: NpcDef): THREE.Object3D {
   }
 
   SPECIES_MARKS[def.species]?.(k);
+  for (const w of def.wear ?? []) WEAR[w](k);
 
   figure.scale.setScalar((VILLAGER_HEIGHT / 1.48) * (SPECIES_SIZE[def.species] ?? 0.95));
   root.rotation.y = def.yaw;
