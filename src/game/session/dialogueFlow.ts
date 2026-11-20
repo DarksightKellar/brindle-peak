@@ -47,6 +47,8 @@ export interface DialogueFlow {
   open(npcId: string, nodeId: string, offer?: PendingOffer): void;
   /** One line from a villager Pip has just said "not now" to, with no offer in it. */
   remind(npcId: string): void;
+  /** Pip thinking out loud, with nobody else in the talk (sitting on a bench, data/seats.ts). */
+  think(lines: readonly string[]): void;
   advance(): void;
   close(): void;
   isOpen(): boolean;
@@ -67,6 +69,8 @@ export function pitchFor(species: string): number {
  * her question for good.
  */
 const PIP = { id: 'pip', name: 'Pip', species: 'snow bunting' };
+/** The node id for a thought of Pip's own (`think`). */
+const THINK = '§think';
 
 /** Route ids for Pip's answer to an offer; never real node ids. */
 const TAKE = '§take';
@@ -153,6 +157,13 @@ export function createDialogueFlow(d: DialogueFlowDeps): DialogueFlow {
       speechNode = LATER;
       speakerId = npc.id;
       d.dialogue.open(remindNode(npc.id), npc.name, (syllables) => d.audio.chirp(syllables, pitchFor(npc.species)));
+    },
+    think(lines): void {
+      offer = null;
+      agreed = false;
+      speechNode = THINK;
+      speakerId = null;
+      d.dialogue.open({ id: THINK, speaker: PIP.id, lines: [...lines] }, PIP.name, (syllables) => d.audio.chirp(syllables, pitchFor(PIP.species)));
     },
     advance(): void {
       if (!d.dialogue.isOpen()) return;

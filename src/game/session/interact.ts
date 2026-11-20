@@ -6,6 +6,7 @@
 import type { ActivityDef, Interactable, NpcDef, TerrainSampler, Vec3 } from '../../core/contracts';
 import type { PickupDef } from '../../data/pickups';
 import { startPropAt } from '../activities/startProps';
+import { SEATS } from '../../data/seats';
 
 /**
  * How far E reaches a villager, at the least. Critic round 3 stood beside Hollis with no prompt until
@@ -87,12 +88,23 @@ export function buildInteractables(
       prompt: 'Light',
     });
   }
+  // Benches on the way up (data/seats.ts): reached from beside the bench, from either side.
+  for (const s of SEATS) {
+    out.push({ kind: 'seat', id: s.id, pos: { x: s.pos.x, y: sampler.heightAt(s.pos.x, s.pos.z), z: s.pos.z }, radius: SEAT_RADIUS, prompt: 'Sit' });
+  }
   return out;
 }
+
+/** How far E reaches a bench. */
+export const SEAT_RADIUS = 3;
 
 /** Proximity collection radius for feathers and bells. Generous, deliberately. */
 export const PICKUP_RADIUS = 1.9;
 
-export function inPickupRange(player: Vec3, p: PickupDef): boolean {
+/** How far below a ledge Pip's feet may be and still take what is on it: a hop, not a walk past. */
+export const LEDGE_REACH = 0.7;
+
+export function inPickupRange(player: Vec3, p: PickupDef, groundY?: number): boolean {
+  if (p.lift !== undefined && groundY !== undefined && player.y - groundY < p.lift - LEDGE_REACH) return false;
   return Math.hypot(player.x - p.pos.x, player.z - p.pos.z) < PICKUP_RADIUS;
 }

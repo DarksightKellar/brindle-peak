@@ -103,7 +103,12 @@ export const WORDS = {
   snowPush: 'Big enough. Push it onto the lit ring',
   snowFace: `Press ${KEY.interact} to give it a face`,
   // Build results
-  buildResult: { woodpile: "The pile's stacked straight. Bram can count it at last.", snowman: "Your snowman's up, and it's standing.", dam: 'The dam is whole again.' } as Record<string, string>,
+  buildResult: {
+    woodpile: "The pile's stacked straight. Bram can count it at last.",
+    snowman: "Your snowman's up, and it's standing.",
+    dam: 'The dam is whole again.',
+    cairn: "Your stones are on the cairn now, on top of everyone else's.",
+  } as Record<string, string>,
   // Fishing result; the fish name is the journal's own
   fishResult: (name: string): string => `You landed ${article(name)}.`,
   // Hollis's errand: the line snags under the split pine's roots and comes up with the mitten.
@@ -183,5 +188,6 @@ export const HINT_FOR_ID: Readonly<Record<string, string>> = {
   'hearth-kindling': `Each log swings over the pile. Press ${KEY.interact} when it hangs square.`,
   'hamlet-bell-throw': `Wind blows across the square and shifts after every throw: the arrow over the bell shows it. Aim into the wind, then hold ${KEY.interact} and let go on the arc.`,
   'kettles-dam-build': `The current pushes each stone off its gap. Hold it there with the move keys, then press ${KEY.interact} to set it.`,
+  'ridge-cairn': `Everyone who climbs to the mast leaves a stone here. Press ${KEY.interact} to set each of yours on top, the biggest first and the smallest last.`,
   'hamlet-snowman': `Walk to roll a ball bigger, then push it onto the lit ring. Three balls, then ${KEY.interact} for the face.`,
 };

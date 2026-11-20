@@ -53,6 +53,7 @@ import { createDialogueFlow } from './game/session/dialogueFlow';
 import { DIALOGUE_FILLS, DIALOGUE_SKIPS } from './data/dialogueFills';
 import { createOverlayRouter } from './game/session/overlays';
 import { interact as interactVerb, noteWalkOff } from './game/session/interactVerb';
+import { SEATS, type SeatDef } from './data/seats';
 import { inPickupRange, LANTERN_PASS } from './game/session/interact';
 import { applyWorldRules } from './game/session/worldRules';
 import type { CameraRig } from './game/camera/rig';
@@ -204,7 +205,25 @@ export function createSession(opts: SessionOptions): Session {
     if (savesAllowed()) store.persist();
   };
 
-  const interact = (): void => interactVerb({ state, player, bus, mech, world, interactions, flow, runner });
+  /**
+   * The bench Pip is sitting on, if any (data/seats.ts). Pip sits on the bench's own spot, facing its
+   * view, with breath full, and stays perched until a move or a jump.
+   */
+  let seated: SeatDef | null = null;
+  const sit = (id: string): void => {
+    const seat = SEATS.find((x) => x.id === id);
+    if (!seat) return;
+    seated = seat;
+    player.pos.x = seat.pos.x;
+    player.pos.z = seat.pos.z;
+    player.pos.y = sampler.heightAt(seat.pos.x, seat.pos.z);
+    player.vel.x = player.vel.y = player.vel.z = 0;
+    player.facing = seat.yaw;
+    player.stamina = player.maxStamina;
+    rig.settle(seat.yaw);
+    flow.think(seat.thought(state));
+  };
+  const interact = (): void => interactVerb({ state, player, bus, mech, world, interactions, flow, runner, sit });
   const routeInput = createFrameInput({ ui, flow, runner, interact, state });
   mountGoalMarker({ scene: kit.scene, sampler, camera: kit.camera, hud: ui.hud, busy: () => runner.isRunning() });
   // Things to do nearby, not yet done: a small green gem over each (world/activityGems.ts).
@@ -222,6 +241,8 @@ export function createSession(opts: SessionOptions): Session {
     // part that breaks when it is edited in the middle of a 115-line function.
     const blocked = routeInput(input, dt);
 
+    // Any move or jump gets Pip up off the bench; until then Pip stays put on it.
+    if (seated && !blocked && (Math.hypot(input.moveX, input.moveZ) > 0.2 || input.jumpPressed)) seated = null;
     const gusting = state.zone === 'ridge' && elapsed % 9 < 3;
     const before = { x: player.pos.x, z: player.pos.z };
     // Movement is emptied behind an overlay, but look is not: see the camera note further down.
@@ -290,7 +311,7 @@ export function createSession(opts: SessionOptions): Session {
         }
         if (state.flags[`picked:${p.id}`]) continue;
         // Something with a price is bought with E (interactVerb.ts), never by walking onto it.
-        if (p.price === undefined && inPickupRange(player.pos, p)) mech.collect(p.id, p.kind);
+        if (p.price === undefined && inPickupRange(player.pos, p, sampler.heightAt(p.pos.x, p.pos.z))) mech.collect(p.id, p.kind);
       }
     }
 
@@ -299,7 +320,15 @@ export function createSession(opts: SessionOptions): Session {
     reach = nearest;
     focusShadow(kit, player.pos.x, player.pos.z);
     footprintTracker.follow(player, dt);
-    pip.sync(player, dt, state.abilities.lantern);
+    // A hop by the map (or anything else that carries Pip off) leaves the bench behind.
+    if (seated && Math.hypot(player.pos.x - seated.pos.x, player.pos.z - seated.pos.z) > 1) seated = null;
+    if (seated) {
+      // Held on the seat: the wind on the ridge foot or a slope's creep must not slide Pip off it.
+      player.pos.x = seated.pos.x;
+      player.pos.z = seated.pos.z;
+      player.facing = seated.yaw;
+    }
+    pip.sync(player, dt, state.abilities.lantern, seated ? seated.height : 0);
     // Look (Q/R) works during an activity, not under menus or dialogue. A conversation (or an activity's
     // subject) is framed with Pip; a photo's viewfinder takes the camera to Pip's eye. Reduce-motion snaps eases.
     const overlayOpen = ui.dialogue.isOpen() || ui.journal.isOpen() || ui.menu.isOpen();

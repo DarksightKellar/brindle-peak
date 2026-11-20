@@ -1,5 +1,5 @@
 /**
- * Everything lying on the ground: 14 feathers, 60 bells, 12 lantern posts.
+ * Everything lying on the ground: 15 feathers, 60 bells, 12 lantern posts.
  *
  * `cluster` is `<zone>:<name>`. The zone prefix is authoritative — the content test asserts it
  * matches what the terrain sampler reports at `pos`, so a pickup cannot drift out of its zone
@@ -13,7 +13,8 @@
  * first minute, where the HUD can say what feathers are for; none in the Frozen Reach. Five more lie
  * beside the way up (trail.ts), each at something worth stopping for, so they are found on the
  * main road rather than by accident: the woodcutters' sledge in the ride, the erratic, the top of the
- * spur, the gully under Tuck's bridge, and the scramble.
+ * spur, the gully under Tuck's bridge, and the scramble. One more sits up on the ledge of the big rime rock
+ * on the summit slope (`lift`), a hop off the trail: critic round 72 found that slope empty.
  *
  * Bells are low and grouped: 18 clusters of 2-5, all under 25 units of elevation. They are
  * pickup tier — chirp and a counter, no toast. Lanterns are the wayfinding chain and light in
@@ -29,13 +30,15 @@ export interface PickupDef {
   cluster?: string;
   /** Bells it costs: picked up only with this many in the purse, which pays it. */
   price?: number;
+  /** Up on a ledge this high above the snow: drawn there, and taken only by a hop up to it. */
+  lift?: number;
 }
 
 /** What one of Gus's feathers costs, in bells. */
 export const SHOP_FEATHER = 40;
 
 export const PICKUPS: readonly PickupDef[] = [
-  // ---- Feathers (14) -------------------------------------------------------
+  // ---- Feathers (15) -------------------------------------------------------
   { id: 'feather-hearth-woodstore', kind: 'feather', pos: { x: -347, z: 318 }, cluster: 'hearth:woodstore' },
   { id: 'feather-pw-glade', kind: 'feather', pos: { x: -232, z: 178 }, cluster: 'pinewind:glade' },
   { id: 'feather-pw-trail', kind: 'feather', pos: { x: -217.2, z: 202.1 }, cluster: 'pinewind:trail' },
@@ -49,6 +52,8 @@ export const PICKUPS: readonly PickupDef[] = [
   { id: 'feather-ridge-shelf', kind: 'feather', pos: { x: 71, z: -225 }, cluster: 'ridge:spur-top' },
   // On the frozen stream in the gully under Tuck's bridge, seen from the planks; the floor walks out south.
   { id: 'feather-ridge-traverse', kind: 'feather', pos: { x: 163.5, z: -241 }, cluster: 'ridge:icefall' },
+  // On the trail side of the biggest rime rock (wayScenes.ts RIME, at 287, -300), on its shoulder.
+  { id: 'feather-ridge-rime', kind: 'feather', pos: { x: 286.3, z: -300.7 }, cluster: 'ridge:rime', lift: 1.6 },
   { id: 'feather-peak-switch', kind: 'feather', pos: { x: 340, z: -390 }, cluster: 'peak:switchback' },
   { id: 'feather-peak-aurora', kind: 'feather', pos: { x: 302, z: -412 }, cluster: 'peak:aurora' },
 

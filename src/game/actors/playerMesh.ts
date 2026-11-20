@@ -21,7 +21,8 @@ import { buildLantern } from './pipLantern';
 export interface PlayerMesh {
   root: THREE.Object3D;
   /** `lantern`: Pip is carrying Nana's lantern (state.abilities.lantern), so it hangs at the side. */
-  sync(s: PlayerState, dt: number, lantern?: boolean): void;
+  /** `perch`: Pip is sitting on something this high above the snow (a bench, data/seats.ts). */
+  sync(s: PlayerState, dt: number, lantern?: boolean, perch?: number): void;
 }
 
 const FLAT = { flatShading: true } as const;
@@ -185,10 +186,11 @@ export function createPlayerMesh(groundAt?: (x: number, z: number) => number): P
   let prevVy = 0;
   let prevFlaps = 0;
 
-  const sync = (s: PlayerState, dt: number, carrying = false): void => {
+  const sync = (s: PlayerState, dt: number, carrying = false, perch = 0): void => {
     clock += dt;
     lantern.visible = carrying;
-    root.position.set(s.pos.x, s.pos.y, s.pos.z);
+    root.position.set(s.pos.x, s.pos.y + perch, s.pos.z);
+    const sat = perch > 0 ? 1 : 0;
     root.rotation.y = s.facing; // model faces +Z, so yaw needs no correction
 
     const speed = Math.hypot(s.vel.x, s.vel.z);
@@ -212,11 +214,13 @@ export function createPlayerMesh(groundAt?: (x: number, z: number) => number): P
     // Landing squashes, taking off stretches tall and thin.
     const k = squash * squash;
     const st = stretch * stretch;
-    body.scale.set(1 + k * 0.22 - st * 0.12, 1 - k * 0.3 + st * 0.3, 1 + k * 0.22 - st * 0.12);
+    // Sitting, Pip settles down and fluffs out, a little rounder and lower.
+    body.scale.set(1 + k * 0.22 - st * 0.12 + sat * 0.08, 1 - k * 0.3 + st * 0.3 - sat * 0.1, 1 + k * 0.22 - st * 0.12 + sat * 0.08);
 
     const stride = 0.035 * (fast + sprint * 0.9);
     const bob = s.grounded ? Math.sin(stridePhase) * stride : 0;
-    const air = s.grounded ? 0 : 1;
+    // In the air, and sitting, the feet tuck up under the body.
+    const air = s.grounded ? sat : 1;
     // In the air the feet tuck up and back.
     legL.position.y = -0.38 + bob + air * 0.12;
     legR.position.y = -0.38 - bob + air * 0.12;
@@ -229,7 +233,7 @@ export function createPlayerMesh(groundAt?: (x: number, z: number) => number): P
       ? phase < DOWNSTROKE ? lerp(0.75, -0.95, phase / DOWNSTROKE) : lerp(-0.95, 0.3, (phase - DOWNSTROKE) / (1 - DOWNSTROKE))
       : 0;
     const lift = flap > 0 ? Math.sin(Math.PI * Math.min(1, phase)) * 0.06 : 0;
-    body.position.y = FOOT + bob * 0.5 + lift;
+    body.position.y = FOOT + bob * 0.5 + lift - sat * 0.1;
 
     const wantFlare = s.mode === 'glide' ? 1 : s.mode === 'climb' ? 0.55 : s.grounded ? 0 : 0.85;
     flare += (wantFlare - flare) * Math.min(1, dt * 8);

@@ -78,6 +78,8 @@ export interface InteractVerbDeps {
   interactions: InteractionSystem;
   flow: DialogueFlow;
   runner: ActivityRunner;
+  /** Sit Pip on a bench (data/seats.ts); the session keeps Pip perched until a move. */
+  sit?(seatId: string): void;
 }
 
 /** Returns nothing; every effect goes through the bus or the systems it was given. */
@@ -138,6 +140,11 @@ export function interact(d: InteractVerbDeps): void {
       d.mech.collect(p.id, p.kind, p.price);
       boughtAt.set(d.state, now);
     } else d.bus.emit('toast', { text: WORDS_SHOP.short(p.price, d.state.bells), icon: 'feather', tier: 'discovery' });
+    return;
+  }
+
+  if (target.kind === 'seat') {
+    d.sit?.(target.id);
     return;
   }
 

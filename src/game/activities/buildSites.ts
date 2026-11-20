@@ -19,7 +19,7 @@ import { fishSpotMarkers } from './fishSpots';
 import { photoSubjectMarkers } from './photoSubjects';
 import { startPropMarkers } from './startProps';
 
-export type BuildKind = 'woodpile' | 'snowman' | 'dam';
+export type BuildKind = 'woodpile' | 'snowman' | 'dam' | 'cairn';
 
 export interface BuildSite {
   kind: BuildKind;
@@ -41,6 +41,9 @@ export interface Piece {
 }
 
 const toward = (from: Vec2, to: Vec2): number => Math.atan2(to.x - from.x, to.z - from.z);
+
+/** The climbers' cairn on the saddle below the summit slope (data/activities.ts ridge-cairn is its post). */
+const CAIRN_AT = { x: 229.5, z: -242.5 };
 
 /** Pool at Kettle Springs the dam closes (landmarks.ts SPRING_POOLS[3]); the wall hugs its rim. */
 const DAM_POOL = { x: -54, z: 44 };
@@ -70,9 +73,11 @@ export const BUILD_SITES: Readonly<Record<string, BuildSite>> = {
   // Pip stands at the wall's downstream end on the dry side, so the side shot (build.ts focus) looks
   // square at the wall. Critic round 55 pressed Build from the far side of the post and saw only snow.
   'kettles-dam-build': { kind: 'dam', at: DAM_AT, facing: DAM_DIR, stand: { x: 3.4, z: 1.0, lookX: 0, lookZ: 0 } },
+  // Off the trail on the saddle, a step beyond its post, its front to the post.
+  'ridge-cairn': { kind: 'cairn', at: CAIRN_AT, facing: toward(CAIRN_AT, { x: 226, z: -245.5 }) },
 };
 
-const NOUN: Readonly<Record<BuildKind, string>> = { woodpile: 'Logs', snowman: 'Snowman, part', dam: 'Dam, part' };
+const NOUN: Readonly<Record<BuildKind, string>> = { woodpile: 'Logs', snowman: 'Snowman, part', dam: 'Dam, part', cairn: 'Stones' };
 
 const R = LOG.radius;
 /**
@@ -126,8 +131,33 @@ export function woodpileFootprint(): Extract<Collider, { kind: 'box' }> | null {
   return { kind: 'box', x: site.at.x + lx * c + lz * s, z: site.at.z - lx * s + lz * c, hw: 0.9, hd: 1.8, yaw: site.facing, top: 1.9 };
 }
 
-/** What stands at a site before the build: the crooked heap for the woodpile, nothing elsewhere. */
+/**
+ * The climbers' cairn as Pip finds it: the stones everyone before has left, a low heap a stone's height
+ * high. It stays; Pip's own go on top of it, biggest first. A stone is about 1.1 x its size tall
+ * (pieceMeshes.ts), and each one sits a little down into the one below.
+ */
+const CAIRN_BASE: readonly Piece[] = [
+  { look: 'stone', x: 0, y: -0.05, z: 0, size: 0.85, yaw: 0.3 },
+  { look: 'stone', x: -0.62, y: -0.12, z: 0.12, size: 0.72, yaw: 1.4 },
+  { look: 'stone', x: 0.56, y: -0.12, z: -0.18, size: 0.68, yaw: 2.2 },
+  { look: 'stone', x: 0.08, y: -0.1, z: 0.58, size: 0.58, yaw: 0.9 },
+  { look: 'stone', x: -0.05, y: -0.1, z: -0.6, size: 0.62, yaw: 2.9 },
+  // A second course, so from the trail it already reads as a cairn and not a heap of rocks.
+  { look: 'stone', x: 0.04, y: 0.72, z: 0, size: 0.7, yaw: 1.1 },
+];
+const CAIRN: readonly Piece[][] = [
+  [{ look: 'stone', x: -0.03, y: 1.36, z: 0.02, size: 0.56, yaw: 2.4 }],
+  [{ look: 'stone', x: 0.02, y: 1.875, z: -0.02, size: 0.46, yaw: 0.2 }],
+  [{ look: 'stone', x: 0, y: 2.295, z: 0.01, size: 0.38, yaw: 1.7 }],
+  [{ look: 'stone', x: 0.01, y: 2.645, z: 0, size: 0.3, yaw: 0.6 }],
+];
+
+/**
+ * What stands at a site before the build: the crooked heap for the woodpile, the stones already on the
+ * cairn, nothing elsewhere. The cairn's own stones stay under Pip's.
+ */
 export function heapLeft(site: BuildSite, placedSteps: number): readonly Piece[] {
+  if (site.kind === 'cairn') return CAIRN_BASE;
   if (site.kind !== 'woodpile') return [];
   const taken = WOODPILE.slice(0, placedSteps).reduce((n, step) => n + step.length, 0);
   return HEAP.slice(Math.min(HEAP.length, taken));
@@ -169,7 +199,7 @@ const DAM: readonly Piece[][] = (() => {
   });
 })();
 
-const LAYOUTS: Readonly<Record<BuildKind, readonly Piece[][]>> = { woodpile: WOODPILE, snowman: SNOWMAN, dam: DAM };
+const LAYOUTS: Readonly<Record<BuildKind, readonly Piece[][]>> = { woodpile: WOODPILE, snowman: SNOWMAN, dam: DAM, cairn: CAIRN };
 
 /** A site for any build, authored or not: unknown ids get a snowman just beside the post. */
 export function siteFor(def: ActivityDef): BuildSite {
@@ -222,7 +252,8 @@ export function finishedBuildMarkers(
     const site = siteFor(def);
     const ground = terrain.heightAt(site.at.x, site.at.z);
     const done = (counters[`activity:${def.id}`] ?? 0) > 0;
-    const pieces = done ? stepsFor(site).flat() : heapLeft(site, 0);
+    const steps = stepsFor(site);
+    const pieces = done ? [...heapLeft(site, steps.length), ...steps.flat()] : heapLeft(site, 0);
     for (const p of pieces) out.push(placePiece(site, ground, p, def.id));
   }
   // And what other activities leave standing for good: the pools and the ice hole to fish, the deer,

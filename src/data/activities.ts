@@ -57,6 +57,9 @@ export const ACTIVITIES: readonly ActivityDef[] = [
   // on this one's "Light" and was put in a timed race.
   { id: 'ridge-lantern-ascent', name: 'Lantern Ascent', kind: 'race', zone: 'ridge', pos: { x: 168, z: -140 }, radius: 3.6, prompt: 'Run', what: 'run the lantern posts uphill' },
   { id: 'ridge-chimney-race', name: 'Chimney Scramble', kind: 'race', zone: 'ridge', pos: { x: 232, z: -206 }, radius: 3.4, prompt: 'Climb', what: 'race up the chimney' },
+  // On the open saddle just past its lantern post, where the last climb to the mast begins and critic
+  // round 72 found "mostly empty snow": every climber leaves a stone (activities/buildSites.ts).
+  { id: 'ridge-cairn', name: "Climbers' Cairn", kind: 'build', zone: 'ridge', pos: { x: 226, z: -245.5 }, radius: 3.2, prompt: 'Add', what: "add your stones to the climbers' cairn" },
   { id: 'ridge-tarn-fish', name: 'High Tarn', kind: 'fish', zone: 'ridge', pos: { x: 304, z: -222 }, radius: 4.6, prompt: 'Fish', what: 'fish the high tarn' },
 
   // Brindle Peak — two.

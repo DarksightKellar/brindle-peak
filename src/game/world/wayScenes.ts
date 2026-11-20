@@ -10,7 +10,8 @@
  *   s   ~315  a frozen stream across the ride, and a plank footbridge over it
  *   s   ~400  Kettle Springs (kettlesDressing.ts): stones, dead trees, a bench and a boardwalk
  *   s   ~515  a glacial erratic, a house-sized boulder alone on the snow
- *   s   ~630  a small frozen pond with reeds
+ *   s   ~630  a small frozen pond with reeds, and a bench facing back across it to the springs' steam,
+ *             where Pip can sit (data/seats.ts)
  *   s   ~700  a stone bothy at the ridge foot, where the trail turns: shelter, bench, firewood
  *   s   ~880  on the shelf, Tuck's bridge over the gully (tuckBridge.ts), a stream frozen on its floor
  *             and icicles hung off its walls
@@ -31,6 +32,7 @@ import { frozenPond, frozenStream, icicles } from './frozenWater';
 import { WAY_UP } from './trail';
 import { GULLY_X as GX } from '../../core/terrain/carving';
 import { groundOnly } from '../../core/terrain/heightfield';
+import { SEATS } from '../../data/seats';
 
 /** The point `s` u along the trail, pushed `side` u to the right of the direction of travel. */
 function along(s: number, side: number): { x: number; z: number; yaw: number } {
@@ -146,6 +148,19 @@ function fishShelter(b: GeoBuilder): void {
   b.strut([0.7, 0.95, 2.1], [0.62, 0.05, 2.02], 0.008, 'ROCK_DK');
 }
 
+/**
+ * A plank bench with a back, its seat brushed clear of snow. Local +z is the way it faces; the seat's
+ * top is 0.5 above the snow, which is where data/seats.ts perches Pip.
+ */
+function bench(b: GeoBuilder): void {
+  for (const sx of [-0.72, 0.72]) {
+    b.box(sx, 0, 0.02, 0.14, 0.42, 0.42, 'WOOD_DK');
+    b.box(sx, 0.42, -0.25, 0.1, 0.62, 0.08, 'WOOD_DK');
+  }
+  b.box(0, 0.42, 0, 1.8, 0.08, 0.48, 'WOOD_LT');
+  b.box(0, 0.7, -0.27, 1.8, 0.22, 0.06, 'WOOD_MID', 'SNOW_LT');
+}
+
 /** A cairn of flat stones with a pole in it and a red rag on the pole: the way across, marked. */
 function markerCairn(b: GeoBuilder): void {
   [1.0, 0.85, 0.7, 0.5].forEach((r, i) => {
@@ -179,6 +194,7 @@ const ICE_SLEDGE = { x: 105, z: 275.5, yaw: 0.35 };
 const MARKER = { x: 84.5, z: 223.5 };
 
 export const SCENE_CLEARINGS: readonly { x: number; z: number; r: number }[] = [
+  ...SEATS.map((st) => ({ x: st.pos.x, z: st.pos.z, r: 2.5 })),
   { ...SLEDGE, r: 5 }, { ...BRIDGE, r: 5 }, { ...ERRATIC, r: 7 }, { ...POND, r: 8 }, { ...BOTHY, r: 7 },
   ...RIME.map(([x, z]) => ({ x, z, r: 2.5 })), { ...CAIRN, r: 2 },
   { ...SHELTER, r: 4 }, { ...ICE_SLEDGE, r: 5 }, { ...MARKER, r: 2.5 },
@@ -218,6 +234,11 @@ export function buildWayScenes(sampler: TerrainSampler): WayScenes {
     reeds.strut([x + 0.2, -0.1, z], [x + 0.35, 0.9, z - 0.1], 0.03, 'WOOD_MID');
   }
   place(reeds, 'pond-reeds', POND.x, POND.z, 0);
+  for (const st of SEATS) {
+    const bb = new GeoBuilder();
+    bench(bb);
+    place(bb, `bench-${st.id}`, st.pos.x, st.pos.z, st.yaw);
+  }
 
   const bo = new GeoBuilder();
   bothy(bo);
@@ -273,6 +294,10 @@ export function buildWayScenes(sampler: TerrainSampler): WayScenes {
     { kind: 'box', x: BOTHY.x - 1.0, z: BOTHY.z - 2.25, hw: 0.85, hd: 0.3, yaw: Math.PI },
     ...RIME.map(([x, z, k]): Collider => ({ kind: 'circle', x, z, r: 1.1 * k })),
     { kind: 'circle', ...CAIRN, r: 0.8 },
+    // A bench stops Pip only at its two ends, so the middle of the seat, where Pip sits, is free.
+    ...SEATS.flatMap((st): Collider[] => [-0.75, 0.75].map((lx) => ({
+      kind: 'circle', x: st.pos.x + lx * Math.cos(st.yaw), z: st.pos.z - lx * Math.sin(st.yaw), r: 0.22, top: 0.5,
+    }))),
     { kind: 'box', x: SHELTER.x, z: SHELTER.z, hw: 1.05, hd: 0.95, yaw: SHELTER.yaw },
     { kind: 'circle', x: MARKER.x, z: MARKER.z, r: 0.9 },
   ];

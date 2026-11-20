@@ -534,7 +534,7 @@ export interface EventBus {
 // Interactions — owned by the Gameplay Engineer (src/game/interactions.ts)
 // ---------------------------------------------------------------------------
 
-export type InteractableKind = 'npc' | 'activity' | 'lantern' | 'sign' | 'spring' | 'pickup';
+export type InteractableKind = 'npc' | 'activity' | 'lantern' | 'sign' | 'spring' | 'pickup' | 'seat';
 
 export interface Interactable {
   kind: InteractableKind;

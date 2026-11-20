@@ -11,11 +11,15 @@ handoff notes live on the task board, `docs/board.html` (update it with `tools/b
   shows the ending. Once the mast quest is under way the valley eases to dusk over about a minute and
   the aurora rises (`src/game/render/dusk.ts`).
 - **Errands:** 18 side quests across the seven zones, given by 18 NPCs.
-- **Activities:** 22 posts. Races run through authored gate courses (`raceCourses.ts`); builds drop
+- **Activities:** 23 posts. Races run through authored gate courses (`raceCourses.ts`); builds drop
   visible pieces that stay in the world (`buildSites.ts`); throws are aimed with A/D and fly as real
   projectiles (`throwSetups.ts`, `throwFlight.ts`); photos use a viewfinder at Pip's eye with
   authored subjects (`photoSubjects.ts`); fishing is a timing strike; skating is a balance meter;
   sledding is a downhill time trial. None can be failed in a way that costs progress.
+- **Stops on the climb** (critic round 72 found it "mostly empty snow"): a bench by the frozen pond where
+  Pip sits, gets breath back and thinks about the view (`src/data/seats.ts`), the climbers' cairn on
+  the saddle (a build), and a feather on the ledge of a rime rock, taken with a hop (`lift` in
+  `src/data/pickups.ts`).
 - **Movement:** walk 6.5 u/s, sprint 13 u/s, jump, up to three flaps, glide, climbing; stamina
   grows with feathers. Props have colliders.
 - **Guidance:** tutorial script (`docs/ONBOARDING.md`), goal line, compass and next-step line,

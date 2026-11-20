@@ -114,7 +114,8 @@ export function buildWorld(
     const obj = buildPickup(def);
     obj.position.x = def.pos.x;
     obj.position.z = def.pos.z;
-    obj.position.y += sampler.heightAt(def.pos.x, def.pos.z);
+    // A feather on a ledge hangs a little lower over it than one over the snow does.
+    obj.position.y += sampler.heightAt(def.pos.x, def.pos.z) + (def.lift ? def.lift - 0.4 : 0);
     group.add(obj);
     pickupMap.set(def.id, obj);
     floating.push({ obj, restY: obj.position.y });
