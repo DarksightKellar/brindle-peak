@@ -38,6 +38,16 @@ const boughtAt = new WeakMap<GameState, number>();
 const WALKED_OFF = 12;
 const declinedAt = new WeakMap<GameState, { npc: string; x: number; z: number }>();
 
+/**
+ * Forget the "not now" once Pip has walked off, checked every frame. Checked only at the next talk, the
+ * distance was measured back beside Bram: critic round 72 walked away and back and heard "It'll keep"
+ * for good.
+ */
+export function noteWalkOff(state: GameState, pos: { x: number; z: number }): void {
+  const turned = declinedAt.get(state);
+  if (turned && Math.hypot(pos.x - turned.x, pos.z - turned.z) >= WALKED_OFF) declinedAt.delete(state);
+}
+
 /** Pip's own half-width, and the gap kept between the two bodies while they talk. */
 const PIP_BULK = 0.45;
 const TALK_GAP = 0.7;
@@ -77,9 +87,9 @@ export function interact(d: InteractVerbDeps): void {
   if (!target) return;
 
   if (target.kind === 'npc') {
+    noteWalkOff(d.state, d.player.pos);
     const turned = declinedAt.get(d.state);
-    if (turned && Math.hypot(d.player.pos.x - turned.x, d.player.pos.z - turned.z) >= WALKED_OFF) declinedAt.delete(d.state);
-    else if (turned && turned.npc === target.id) {
+    if (turned && turned.npc === target.id) {
       standClear(d.player, target.id);
       d.flow.remind(target.id);
       return;

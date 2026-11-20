@@ -4,33 +4,36 @@
    sits beside the map rather than under it, so the map can take the page's full height. */
 .ui-map { margin: 0; display: flex; align-items: flex-start; justify-content: center; gap: 18px; }
 /*
- * Height-driven, not width-driven: the journal panel is bounded by min(88vh, 640px), and the map takes
- * that height less the panel's head, foot and padding. Its width follows the 480:520 frame.
+ * Height-driven, not width-driven: on the map page the journal panel grows to min(96vh, 820px)
+ * (critic round 72 found the map small at 88vh / 640px), and the map takes that height less the
+ * panel's head, foot and padding. Its width follows the 480:520 frame.
  */
+.ui-journal__panel.is-map { width: min(920px, 100%); max-height: min(820px, 96vh); }
 .ui-map__svg {
-  display: block; flex: 0 0 auto; height: calc(min(88vh, 640px) - 132px); width: auto; max-width: 62%;
+  display: block; flex: 0 0 auto; height: calc(min(96vh, 820px) - 132px); width: auto; max-width: 68%;
   aspect-ratio: 480 / 520;
-  background: rgba(30, 42, 68, 0.42);
-  border: 1px solid rgba(156, 184, 210, 0.45);
+  /* A paler, solid sheet: the world showing through a thin wash made the whole page read dim. */
+  background: #33476E;
+  border: 1px solid rgba(198, 217, 234, 0.6);
 }
 
 /* The land. Contours strong enough to read the mountain at a glance; every fourth line heavier. */
-.ui-map__contour { fill: none; stroke: rgba(198, 217, 234, 0.24); stroke-width: 0.8; stroke-linecap: round; }
-.ui-map__contour.is-index { stroke: rgba(198, 217, 234, 0.46); stroke-width: 1.1; }
+.ui-map__contour { fill: none; stroke: rgba(214, 230, 244, 0.36); stroke-width: 0.8; stroke-linecap: round; }
+.ui-map__contour.is-index { stroke: rgba(214, 230, 244, 0.66); stroke-width: 1.2; }
 /* The frozen lake: the one filled shape, ice-pale, so the Reach reads as water from across the page. */
-.ui-map__water { fill: rgba(170, 214, 236, 0.26); stroke: none; }
+.ui-map__water { fill: rgba(186, 226, 244, 0.42); stroke: none; }
 
 /* Zone shapes are data for harnesses, never paint. */
 .ui-map__zone { fill: none; stroke: none; }
 
 /* Place names: walked ground in snow-white, the rest quieter but always there. */
 .ui-map__name {
-  fill: var(--snow-hi); font-family: var(--mono); font-size: 13px; font-weight: 700;
+  fill: var(--snow-hi); font-family: var(--mono); font-size: 15px; font-weight: 700;
   letter-spacing: 0.06em; text-anchor: middle;
   /* A halo, so a name stays legible over contours and the trail. */
   paint-order: stroke; stroke: var(--shadow); stroke-width: 3px; stroke-linejoin: round;
 }
-.ui-map__name.is-unwalked { fill: var(--snow-sh); font-weight: 400; }
+.ui-map__name.is-unwalked { fill: var(--snow-mid); font-weight: 400; }
 /* The place picked to go back to (session/travel.ts): lantern-lit name and a ring round its ground. */
 .ui-map__name.is-hop { fill: var(--lantern); }
 .ui-map__zone.is-hop { stroke: var(--lantern); stroke-width: 1.5; stroke-dasharray: 3 3; opacity: 0.8; }
@@ -42,10 +45,10 @@
 
 /* The whole path is there from the first look; where you have walked it, it is brighter. */
 .ui-map__trail {
-  fill: none; stroke: var(--snow-hi); stroke-width: 1.8; stroke-dasharray: 6 4;
-  stroke-linecap: round; opacity: 0.9;
+  fill: none; stroke: var(--snow-hi); stroke-width: 2.2; stroke-dasharray: 6 4;
+  stroke-linecap: round; opacity: 1;
 }
-.ui-map__trail.is-far { stroke: var(--snow-sh); stroke-width: 1.4; opacity: 0.6; }
+.ui-map__trail.is-far { stroke: var(--snow-mid); stroke-width: 1.5; opacity: 0.75; }
 
 .ui-map__home, .ui-map__goal { fill: none; stroke: var(--snow-hi); stroke-width: 1.8; stroke-linejoin: round;
   stroke-linecap: round; }

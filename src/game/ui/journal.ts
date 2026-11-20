@@ -163,6 +163,7 @@ export function createJournal(root: HTMLElement, content: JournalContent = {}): 
 
   const body = rootEl.querySelector('.ui-journal__body') as HTMLElement;
   const tabButtons = Array.from(rootEl.querySelectorAll('.ui-tab')) as HTMLElement[];
+  const panel = rootEl.querySelector('.ui-journal__panel') as HTMLElement;
   let tab: JournalTab = 'Field Notes';
   let state: GameState | null = null;
   let lastSig = '';
@@ -190,6 +191,8 @@ export function createJournal(root: HTMLElement, content: JournalContent = {}): 
       cursor = tracked !== null && pickable.includes(tracked) ? tracked : pickable[0] ?? null;
     }
     for (const [i, t] of TABS.entries()) tabButtons[i].classList.toggle('is-on', t === tab);
+    // The map page takes a bigger panel than the text pages: critic round 72 found it small and dim.
+    panel.classList.toggle('is-map', tab === 'Map');
     body.innerHTML = tabHTML(tab, m, s, src, errands?.trackedId() ?? null, cursor, tab === 'Map' ? hopFor(s) : undefined);
     lastSig = signature(tab, s, errands?.trackedId() ?? null, hopAt);
     body.querySelector('.ui-quest.is-cursor')?.scrollIntoView?.({ block: 'nearest' });

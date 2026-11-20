@@ -52,7 +52,7 @@ import { disposeSession } from './game/session/dispose';
 import { createDialogueFlow } from './game/session/dialogueFlow';
 import { DIALOGUE_FILLS, DIALOGUE_SKIPS } from './data/dialogueFills';
 import { createOverlayRouter } from './game/session/overlays';
-import { interact as interactVerb } from './game/session/interactVerb';
+import { interact as interactVerb, noteWalkOff } from './game/session/interactVerb';
 import { inPickupRange, LANTERN_PASS } from './game/session/interact';
 import { applyWorldRules } from './game/session/worldRules';
 import type { CameraRig } from './game/camera/rig';
@@ -294,6 +294,7 @@ export function createSession(opts: SessionOptions): Session {
       }
     }
 
+    noteWalkOff(state, player.pos);
     const nearest = blocked ? null : interactions.update(player.pos);
     reach = nearest;
     focusShadow(kit, player.pos.x, player.pos.z);

@@ -35,6 +35,14 @@ export const WEAR: Readonly<Record<NpcWear, (k: Kit) => void>> = {
     k.part('sphere', APRON, [0, 0.76, 0.28], [0.2, 0.14, 0.07]);
     // A pocket, a shade darker, so the panel reads as cloth rather than a second belly.
     k.part('sphere', TWEED_DARK, [0, 0.4, 0.36], [0.15, 0.06, 0.03]);
+    // Tied at the back: a green band round the waist and a big bow at the hip, beside the tail. With the
+    // apron all in front, Gus from behind was Bram again (critic round 72).
+    k.part('cyl', APRON, [0, 0.5, 0], [0.44, 0.13, 0.42]);
+    k.part('sphere', APRON, [0.32, 0.52, -0.28], [0.09, 0.09, 0.08]);
+    for (const side of [-1, 1]) {
+      k.part('sphere', APRON, [0.32 + side * 0.15, 0.6, -0.3], [0.17, 0.11, 0.07], 0, side * -0.5);
+      k.part('cyl', APRON, [0.32 + side * 0.07, 0.33, -0.31], [0.04, 0.16, 0.03], 0, side * 0.25);
+    }
   },
   'neck-bell': (k) => {
     // A shop bell on a cord, hung on the apron bib where it shows against the green.
