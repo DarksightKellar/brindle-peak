@@ -341,7 +341,35 @@
     "speaker": "edda",
     "lines": [
       "You'll be Nana's Pip. I'd know that lantern anywhere. And those must be my batteries.",
-      "There, can you hear it humming? The set's warming up. But it can only reach the valley when the aurora's out."
+      "There, can you hear it humming? The set's warming up. But it can only reach the valley when the aurora's out.",
+      "And how is Nana keeping? Is she well?"
+    ],
+    "choices": [
+      {
+        "text": "she's keeping well.",
+        "next": "edda-nana-well"
+      },
+      {
+        "text": "she said you'd ask that.",
+        "next": "edda-nana-caught"
+      }
+    ]
+  },
+  {
+    "id": "edda-nana-well",
+    "speaker": "edda",
+    "lines": [
+      "Good. Not that I was worried, mind you. I only asked to be polite.",
+      "Thirty years we've talked every evening, and these have been the quietest nights I've had up here."
+    ],
+    "next": "edda-ask"
+  },
+  {
+    "id": "edda-nana-caught",
+    "speaker": "edda",
+    "lines": [
+      "Did she, now? And I suppose she told you I'd pretend I wasn't worried.",
+      "Well, I was, a little. I haven't heard her voice since the set went dead. Don't you go telling her that."
     ],
     "next": "edda-ask"
   },

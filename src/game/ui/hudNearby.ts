@@ -79,28 +79,32 @@ export function createNearbyNotice(activities: readonly ActivityDef[]): {
     update(s, from, nowMs, extra = [], viewYaw): string {
       yaw = viewYaw;
       for (const [id, at] of named) if (Math.hypot(at.x - from.x, at.z - from.z) > FORGET_RANGE) named.delete(id);
-      if (current && nowMs < until) {
-        const d = Math.hypot(current.pos.x - from.x, current.pos.z - from.z);
-        if (d < 4) return '';
-        // A map hop carries Pip hundreds of units inside the line's few seconds: "nearby, 773 u".
-        if (d <= NOTICE_RANGE) return line(current, from, d);
-      }
-      current = null;
       const things: Notable[] = activities
         .filter((a) => (s.counters[`activity:${a.id}`] ?? 0) === 0)
         // Says what Pip would do there: critic round 25 read "Snowman nearby" and looked for a snowman.
         .map((a) => ({ id: `activity:${a.id}`, label: a.what ? `${a.name} nearby: ${a.what}` : `${a.name} nearby`, pos: a.pos }));
+      // The nearest thing not yet named, not the first in the list: on the saddle the line named the
+      // Chimney Scramble 36 u off while the cairn's flag stood 14 u ahead.
+      let next: Notable | null = null;
+      let nextD = Infinity;
       for (const n of [...things, ...extra]) {
         if (named.has(n.id)) continue;
         const d = Math.hypot(n.pos.x - from.x, n.pos.z - from.z);
-        if (d < NOTICE_RANGE && d >= 4) {
-          named.set(n.id, n.pos);
-          current = n;
-          until = nowMs + NOTICE_MS;
-          return line(n, from, d);
-        }
+        if (d < NOTICE_RANGE && d >= 4 && d < nextD) { next = n; nextD = d; }
       }
-      return '';
+      if (current && nowMs < until) {
+        const d = Math.hypot(current.pos.x - from.x, current.pos.z - from.z);
+        // A map hop carries Pip hundreds of units inside the line's few seconds: "nearby, 773 u".
+        // A thing come up much nearer than the one being named takes the line over.
+        if (d < 4) return '';
+        if (d <= NOTICE_RANGE && !(next && nextD < d * 0.6)) return line(current, from, d);
+      }
+      current = null;
+      if (!next) return '';
+      named.set(next.id, next.pos);
+      current = next;
+      until = nowMs + NOTICE_MS;
+      return line(next, from, nextD);
     },
   };
 }
