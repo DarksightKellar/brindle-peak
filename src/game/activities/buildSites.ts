@@ -146,10 +146,10 @@ const CAIRN_BASE: readonly Piece[] = [
   { look: 'stone', x: 0.04, y: 0.72, z: 0, size: 0.7, yaw: 1.1 },
 ];
 const CAIRN: readonly Piece[][] = [
-  [{ look: 'stone', x: -0.03, y: 1.36, z: 0.02, size: 0.56, yaw: 2.4 }],
-  [{ look: 'stone', x: 0.02, y: 1.875, z: -0.02, size: 0.46, yaw: 0.2 }],
-  [{ look: 'stone', x: 0, y: 2.295, z: 0.01, size: 0.38, yaw: 1.7 }],
-  [{ look: 'stone', x: 0.01, y: 2.645, z: 0, size: 0.3, yaw: 0.6 }],
+  [{ look: 'stone-laid', x: -0.03, y: 1.36, z: 0.02, size: 0.56, yaw: 2.4 }],
+  [{ look: 'stone-laid', x: 0.02, y: 1.875, z: -0.02, size: 0.46, yaw: 0.2 }],
+  [{ look: 'stone-laid', x: 0, y: 2.295, z: 0.01, size: 0.38, yaw: 1.7 }],
+  [{ look: 'stone-laid', x: 0.01, y: 2.645, z: 0, size: 0.3, yaw: 0.6 }],
 ];
 
 /**

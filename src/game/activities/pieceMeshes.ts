@@ -123,6 +123,9 @@ const BUILDERS: Readonly<Record<Solid, (b: GeoBuilder) => void>> = {
     b.add(GEO.box, propMatrix(0.18, -0.15, 0.22, 0.12, 0.3, 0.05, -0.4), 'PIP_SCARF');
   },
   stone: (b) => b.add(GEO.ico, propMatrix(0, 0.5, 0, 1, 0.62, 0.85, 0.4), 'ROCK_MID', 'ROCK_SNOWCAP', 0.5),
+  // A stone Pip has set on the climbers' cairn: warm grey-brown with only a dusting on top, so the
+  // stack reads as stones against the pale saddle (in the cold look it read as ice, or a snowy fir).
+  'stone-laid': (b) => b.add(GEO.ico, propMatrix(0, 0.5, 0, 1, 0.62, 0.85, 0.4), 'ROCK_WARM', 'ROCK_SNOWCAP', 0.85),
   // The dam's stone in hand, warm in Pip's lantern light: drawn like the wall's cold blue stones, critic
   // round 67 could not tell it from them, and took a signpost's lit arm for it.
   'stone-held': (b) => b.add(GEO.ico, propMatrix(0, 0.5, 0, 1, 0.62, 0.85, 0.4), 'ROCK_WARM', 'SUN_MID', 0.5),
