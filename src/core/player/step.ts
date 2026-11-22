@@ -21,6 +21,13 @@ import { applyAirControl, applyGlide } from './airControl';
 const GROUND_OFFSET = 0.02; // feet rest this far above the sampled surface
 const PROBE = 0.7; // how far ahead the wall and ledge probe looks
 export const CLIMB_MIN_SLOPE = 0.35; // above this a face needs the climb verb, not walking
+/**
+ * A push this square into a face (the cosine between Pip's way and straight up it) starts a climb; a
+ * more glancing one slides along the face's foot instead. Following the trail past the rock beside the
+ * spur and the saddle, Pip brushed the face, started climbing it, spending breath, and then ground
+ * along its foot at under a unit a second (the long-walk review, 2026-11-22).
+ */
+export const CLIMB_SQUARE = 0.6;
 const SLED_MIN_SLOPE = 0.25; // below this a sled is just a tray
 const MANTLE_FORWARD = 1.0; // how far past the lip a mantle carries the body
 const MAX_FRAME = 1.0; // hard cap on simulated seconds per call
@@ -47,6 +54,13 @@ const startMantle = (s: PlayerState, nx: number, nz: number, T: PlayerTuning, en
   s.mode = 'mantle'; s.grounded = false; s.mantleTimer = T.mantleDuration;
   setVel(s, (tx - s.pos.x) / T.mantleDuration, Math.max(0, ty - s.pos.y) / T.mantleDuration,
     (tz - s.pos.z) / T.mantleDuration);
+};
+
+/** How square a move along (nx, nz) pushes into the ground at (x, z): 1 straight up it, 0 along it. */
+const into = (terrain: PlayerEnvironment['terrain'], x: number, z: number, nx: number, nz: number): number => {
+  const n = terrain.normalAt(x, z);
+  const l = Math.hypot(n.x, n.z);
+  return l > 1e-4 ? -(nx * n.x + nz * n.z) / l : 1;
 };
 
 function slice(
@@ -102,7 +116,8 @@ function slice(
   // ---- climb -------------------------------------------------------------------------
   const ahead = terrain.sampleAt(state.pos.x + nx * PROBE, state.pos.z + nz * PROBE);
   const face = pressing && ahead.slope > CLIMB_MIN_SLOPE && ahead.slope <= T.climbMaxSlope
-    && ahead.height - here.height > T.stepHeight;
+    && ahead.height - here.height > T.stepHeight
+    && into(terrain, state.pos.x + nx * PROBE, state.pos.z + nz * PROBE, nx, nz) >= CLIMB_SQUARE;
 
   if (state.mode === 'climb' || (face && state.stamina > 0 && state.mode !== 'sled')) {
     if (ahead.slope <= CLIMB_MIN_SLOPE) {
@@ -187,10 +202,36 @@ function slice(
     state.vel.z = approach(state.vel.z, wantZ, rate * dt);
     const px = state.pos.x, pz = state.pos.z;
     state.pos.x += state.vel.x * dt; state.pos.z += state.vel.z * dt;
-    const dest = terrain.sampleAt(state.pos.x, state.pos.z);
-    if (dest.height - state.pos.y > T.stepHeight || (dest.slope > CLIMB_MIN_SLOPE && dest.height > state.pos.y)) {
+    const blocked = (d: { height: number; slope: number }): boolean =>
+      d.height - state.pos.y > T.stepHeight || (d.slope > CLIMB_MIN_SLOPE && d.height > state.pos.y);
+    let dest = terrain.sampleAt(state.pos.x, state.pos.z);
+    let refused = blocked(dest);
+    if (refused) {
       state.pos.x = px; // a face, not a step: refuse the move, let the climb verb answer
       state.pos.z = pz;
+      // A glancing push slides along the face's foot instead: the part of the move up the face is dropped.
+      // Glancing by the way Pip is pushed, not the velocity, which sets off from a stand at a diagonal.
+      const n = terrain.normalAt(px + state.vel.x * dt, pz + state.vel.z * dt);
+      const nl = Math.hypot(n.x, n.z);
+      const ux = nl > 1e-4 ? -n.x / nl : 0, uz = nl > 1e-4 ? -n.z / nl : 0; // straight up the face
+      const push = nx * ux + nz * uz;
+      const upPart = Math.max(0, state.vel.x * ux + state.vel.z * uz);
+      if (nl > 1e-4 && pressing && push < CLIMB_SQUARE) {
+        const vx = state.vel.x - upPart * ux, vz = state.vel.z - upPart * uz;
+        const along = terrain.sampleAt(px + vx * dt, pz + vz * dt);
+        // Along the foot of a face the ground is itself steep, so the slid move may rise a little: up to
+        // a walking grade. Held to no rise at all, Pip stood stuck on the bank beside the spur.
+        if (along.height - state.pos.y <= Math.hypot(vx, vz) * dt * CLIMB_MIN_SLOPE + GROUND_OFFSET) {
+          state.pos.x = px + vx * dt;
+          state.pos.z = pz + vz * dt;
+          state.vel.x = vx;
+          state.vel.z = vz;
+          dest = along;
+          refused = false;
+        }
+      }
+    }
+    if (refused) {
       setVel(state, 0, 0, 0);
     } else if (state.pos.y - dest.height > T.stepHeight) {
       state.grounded = false; // a ledge, not a slope: start falling inside the coyote window

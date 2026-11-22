@@ -36,6 +36,9 @@ const NEAR = 60;
 const AHEAD = 14;
 /** This close to a bend, the aim moves on round it. */
 const AT_BEND = 3;
+/** From this far before a bend the aim eases round it (see `ease` in routeAim). */
+const EASE = 8;
+const EASE_RATE = 2;
 /** Off the path by d, the aim is d × SLANT along it: back onto it at about 25° rather than square on. */
 const SLANT = 2;
 
@@ -116,7 +119,12 @@ export function routeAim(routes: readonly GuideRoute[], from: Vec2, target: Vec2
     // Off the path, the aim is further along it, so the way back meets it at a slant, not square on.
     const open = r.slantUntil === undefined || at < (bends[r.slantUntil] ?? total);
     const ahead = open ? Math.max(AHEAD, best * SLANT) : AHEAD;
-    const goal = up ? Math.min(at + ahead, bend) : Math.max(at - ahead, bend);
+    // Within EASE of a bend the aim starts round it, twice as fast as Pip closes on it, so the pin swings
+    // through the turn instead of holding on the corner and then flipping to "behind you": at the
+    // hairpin at the ridge foot it went from ahead to behind in one stride.
+    const ease = (b: number): number => (up ? b + EASE_RATE * Math.max(0, at - (b - EASE)) : b - EASE_RATE * Math.max(0, b + EASE - at));
+    const round = up ? (bend < total ? ease(bend) : bend) : bend > 0 ? ease(bend) : bend;
+    const goal = up ? Math.min(at + ahead, round) : Math.max(at - ahead, round);
     const distance = best + (up ? total - at : at) + Math.hypot(target.x - (up ? ex : sx), target.z - (up ? ez : sz));
     // The first hold from a little behind Pip up to the aim: the aim waits on the path beside it until Pip
     // is there. Beside it, not at it: on the spur a post stands on the steep side of the trail, and an aim

@@ -86,6 +86,20 @@ describe('time and space', () => {
     expect(s.pos.x).toBeGreaterThan(16);
     expect(s.pos.y).toBeCloseTo(heightOf(s.pos.x) + 0.02, 5);
   });
+
+  // The long-walk review: following the trail past rock, Pip brushed the face, climbed it, then ground
+  // along its foot. A glancing push walks on along the foot instead.
+  it('slides along a face it only brushes, and does not climb it', () => {
+    const s = spawn(11.9);
+    const env = makeEnv();
+    const yaw = (20 * Math.PI) / 180; // 20° off the face's line, toward it
+    for (let i = 0; i < 120; i++) {
+      stepPlayer(s, input({ camYaw: yaw, moveZ: 1 }), FRAME, TUNING, env);
+      expect(s.mode).not.toBe('climb');
+    }
+    expect(s.pos.z).toBeGreaterThan(8);
+    expect(s.pos.x).toBeLessThan(12.1);
+  });
 });
 
 describe('interactions', () => {
