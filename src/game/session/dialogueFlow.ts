@@ -83,7 +83,7 @@ const LATER = '§later';
  * read as a door closed rather than an offer kept open.
  */
 function laterNode(speaker: string): DialogueNode {
-  return { id: LATER, speaker, lines: ["No hurry. Ask me again when you're passing."] };
+  return { id: LATER, speaker, lines: ["No hurry. Have a look about first, and ask me again when you come back by."] };
 }
 
 /**

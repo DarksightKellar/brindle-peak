@@ -138,7 +138,7 @@ describe('a conversation that hands between speakers', () => {
     const yes = run(0);
     expect(yes.asked).toEqual(['(take on "Something on the Trail"?)']);
     expect(yes.took).toBe(1);
-    expect(run(1)).toMatchObject({ took: 0, left: 1, last: "No hurry. Ask me again when you're passing." }); // "not now." gets a reply
+    expect(run(1)).toMatchObject({ took: 0, left: 1, last: "No hurry. Have a look about first, and ask me again when you come back by." }); // "not now." gets a reply
     expect(yes.left).toBe(0);
     // An answer that already says yes takes it, with no second question; the other answer still asks.
     expect(run(0, 'orla', 'orla-root')).toMatchObject({ took: 1, asked: [] }); // "i'll ask skiff."
