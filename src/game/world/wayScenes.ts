@@ -21,13 +21,17 @@
  * TRAIL), which critics rounds 40 to 43 kept calling "500 u of nothing": an ice-fishing shelter with its
  * lamp lit, a loaded sledge left out on the ice (the heave of ice slabs first put here read as one more ice
  * block), and a marker cairn with a red pole, ~90 u apart.
+ *
+ * Two more on that trail where it still ran ~100 u with nothing solid beside it (critic round 74, "a
+ * blue-white sheet"): a red rowing boat turned over for the winter on the shore south of the Reach, and
+ * a feeding rack for the deer, hay in it, on the open snow east of the springs.
  */
 
 import * as THREE from 'three';
 import type { TerrainSampler } from '../../core/contracts';
 import type { Collider } from '../../core/player/collide';
 import type { Occluder } from '../camera/occlusion';
-import { GEO, GeoBuilder, propMatrix } from './geoBuilder';
+import { GEO, GeoBuilder, propMatrix, type Triple } from './geoBuilder';
 import { frozenPond, frozenStream, icicles } from './frozenWater';
 import { WAY_UP } from './trail';
 import { GULLY_X as GX } from '../../core/terrain/carving';
@@ -170,6 +174,55 @@ function markerCairn(b: GeoBuilder): void {
   b.add(GEO.box, propMatrix(0.45, 3.05, 0.05, 0.7, 0.36, 0.04, 0, 0, -0.12), 'PIP_SCARF');
 }
 
+/**
+ * A rowing boat turned over for the winter on two log chocks, red like Skiff's, snow along its keel,
+ * an oar stood up in the snow beside it. Long and low, so it reads as a hull and not a tent. Local +z
+ * is the bow.
+ */
+function upturnedBoat(b: GeoBuilder): void {
+  for (const z of [-1.3, 1.1]) log(b, [-1.0, 0.12, z], [1.0, 0.12, z], 0.13);
+  const g = 0.26, k = 0.78, sz = -2.3, mz = 0.9, bz = 2.7;
+  for (const sx of [-1, 1]) {
+    const out: Triple = [sx * 9, 0.4, 0];
+    b.quad([sx * 0.78, g, sz], [sx * 0.85, g, mz], [sx * 0.2, k, mz], [sx * 0.2, k, sz + 0.1], 'BRICK', out);
+    b.quad([sx * 0.2, k, sz + 0.1], [sx * 0.2, k, mz], [0, k + 0.06, mz], [0, k + 0.06, sz + 0.1], 'BRICK', [sx * 2, 9, 0]);
+    b.tri([sx * 0.85, g, mz], [0, g + 0.14, bz], [sx * 0.2, k, mz], 'BRICK', [sx * 9, 0.5, bz]);
+    b.tri([sx * 0.2, k, mz], [0, g + 0.14, bz], [0, k + 0.06, mz], 'BRICK', [sx * 2, 9, bz]);
+    b.strut([sx * 0.78, g, sz], [sx * 0.85, g, mz], 0.05, 'WOOD_DK');
+    b.strut([sx * 0.85, g, mz], [0, g + 0.14, bz], 0.05, 'WOOD_DK');
+  }
+  b.quad([-0.78, g, sz], [0.78, g, sz], [0.2, k, sz + 0.1], [-0.2, k, sz + 0.1], 'WOOD_MID', [0, 0.4, -9]);
+  // Snow lying along the flat of the upturned bottom, thinning toward the bow.
+  b.box(0, k + 0.04, (sz + mz) / 2, 0.42, 0.1, mz - sz - 0.3, 'SNOW_LT', 'SNOW_HI');
+  b.strut([0, k + 0.1, mz], [0, g + 0.26, bz - 0.2], 0.08, 'SNOW_LT');
+  b.cyl(1.45, 0, -0.8, 0.05, 1.7, 'WOOD_LT');
+  b.box(1.45, 1.55, -0.8, 0.06, 0.55, 0.2, 'WOOD_LT', 'SNOW_LT');
+}
+
+/**
+ * A feeding rack for the deer: a slatted trough on four posts, full of hay, under a little pitched
+ * roof with snow on it, and a salt stone at one end. Local +z runs along the rack.
+ */
+function hayRack(b: GeoBuilder): void {
+  const hw = 0.6, hl = 1.2, eave = 1.55, ridge = 2.05;
+  for (const sx of [-1, 1]) for (const sz of [-1, 1]) b.cyl(sx * hw, 0, sz * hl, 0.07, eave, 'WOOD_DK');
+  b.box(0, 0.5, 0, 2 * hw + 0.1, 0.12, 2 * hl + 0.1, 'WOOD_DK');
+  for (const sx of [-1, 1]) for (let z = -hl + 0.2; z < hl; z += 0.3) b.box(sx * hw, 0.62, z, 0.06, 0.55, 0.08, 'WOOD_MID');
+  for (const sz of [-1, 1]) b.box(0, 0.62, sz * hl, 2 * hw, 0.55, 0.06, 'WOOD_MID');
+  // Hay heaped in the trough, over the top of the slats.
+  b.add(GEO.ico, propMatrix(0, 1.1, 0, hw * 1.05, 0.32, hl * 1.05, 0.3), 'SUN_MID', 'SUN_HI', 0.4);
+  for (const sx of [-1, 1]) {
+    const out: Triple = [sx * 9, 9, 0];
+    b.quad([sx * (hw + 0.3), eave, -hl - 0.3], [sx * (hw + 0.3), eave, hl + 0.3], [0, ridge, hl + 0.3], [0, ridge, -hl - 0.3], 'WOOD_DK', out);
+    b.quad([sx * (hw + 0.32), eave + 0.08, -hl - 0.3], [sx * (hw + 0.32), eave + 0.08, hl + 0.3], [0, ridge + 0.1, hl + 0.3], [0, ridge + 0.1, -hl - 0.3], 'SNOW_LT', out);
+  }
+  for (const sz of [-1, 1]) b.tri([-hw - 0.3, eave, sz * (hl + 0.3)], [hw + 0.3, eave, sz * (hl + 0.3)], [0, ridge, sz * (hl + 0.3)], 'WOOD_MID', [0, eave, sz * 9]);
+  // Wisps of hay pulled down onto the snow, and the salt stone.
+  b.add(GEO.box, propMatrix(0.95, 0.04, 0.5, 0.5, 0.08, 0.35, 0.4), 'SUN_MID');
+  b.add(GEO.box, propMatrix(-0.9, 0.04, -0.7, 0.4, 0.07, 0.3, 1.1), 'SUN_MID');
+  b.add(GEO.ico, propMatrix(0.2, 0.2, hl + 0.9, 0.35, 0.25, 0.3, 0.7), 'ROCK_LT', 'SNOW_LT', 0.5);
+}
+
 export interface WayScenes {
   group: THREE.Group;
   colliders: Collider[];
@@ -192,12 +245,16 @@ const CAIRN = { x: 314.4, z: -333.2 };
 const SHELTER = { x: 186, z: 226.5, yaw: 2.3 };
 const ICE_SLEDGE = { x: 105, z: 275.5, yaw: 0.35 };
 const MARKER = { x: 84.5, z: 223.5 };
+/** On the valley trail's two longest empty runs: off the Reach toward the springs, and east of them. */
+const BOAT = { x: 98, z: 172, yaw: 1.33 };
+const HAY_RACK = { x: 85, z: 95, yaw: 1.38 };
 
 export const SCENE_CLEARINGS: readonly { x: number; z: number; r: number }[] = [
   ...SEATS.map((st) => ({ x: st.pos.x, z: st.pos.z, r: 2.5 })),
   { ...SLEDGE, r: 5 }, { ...BRIDGE, r: 5 }, { ...ERRATIC, r: 7 }, { ...POND, r: 8 }, { ...BOTHY, r: 7 },
   ...RIME.map(([x, z]) => ({ x, z, r: 2.5 })), { ...CAIRN, r: 2 },
   { ...SHELTER, r: 4 }, { ...ICE_SLEDGE, r: 5 }, { ...MARKER, r: 2.5 },
+  { ...BOAT, r: 4 }, { ...HAY_RACK, r: 3.5 },
 ];
 
 export function buildWayScenes(sampler: TerrainSampler): WayScenes {
@@ -273,6 +330,12 @@ export function buildWayScenes(sampler: TerrainSampler): WayScenes {
   const mk = new GeoBuilder();
   markerCairn(mk);
   place(mk, 'reach-marker', MARKER.x, MARKER.z, 0);
+  const bt = new GeoBuilder();
+  upturnedBoat(bt);
+  place(bt, 'upturned-boat', BOAT.x, BOAT.z, BOAT.yaw);
+  const hr = new GeoBuilder();
+  hayRack(hr);
+  place(hr, 'hay-rack', HAY_RACK.x, HAY_RACK.z, HAY_RACK.yaw);
 
   const rimeMesh = rime.finish('rime-rocks');
   rimeMesh.userData.noCollide = true;
@@ -300,6 +363,8 @@ export function buildWayScenes(sampler: TerrainSampler): WayScenes {
     }))),
     { kind: 'box', x: SHELTER.x, z: SHELTER.z, hw: 1.05, hd: 0.95, yaw: SHELTER.yaw },
     { kind: 'circle', x: MARKER.x, z: MARKER.z, r: 0.9 },
+    { kind: 'box', x: BOAT.x, z: BOAT.z, hw: 0.85, hd: 2.5, yaw: BOAT.yaw },
+    { kind: 'box', x: HAY_RACK.x, z: HAY_RACK.z, hw: 0.75, hd: 1.35, yaw: HAY_RACK.yaw },
   ];
   const occluders: Occluder[] = [
     { x: ERRATIC.x, z: ERRATIC.z, base: y(ERRATIC.x, ERRATIC.z), radius: 3, height: 5.2 },

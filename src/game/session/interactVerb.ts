@@ -16,6 +16,7 @@ import type { DialogueFlow } from './dialogueFlow';
 import type { Mechanics } from './mechanics';
 import { NPCS } from '../../data/npcs';
 import { PICKUPS } from '../../data/pickups';
+import { PIP_ASK_ANY, PIP_ASKS } from '../../data/pipAsks';
 import { SPECIES_SIZE } from '../world/npcSpecies';
 
 /** What the counter says when Pip cannot pay. */
@@ -107,6 +108,7 @@ export function interact(d: InteractVerbDeps): void {
     const state = d.state;
     d.flow.open(target.id, talk.node, offered && id !== null ? {
       title: offered.title,
+      ask: PIP_ASKS[id] ?? PIP_ASK_ANY,
       accept: () => d.mech.accept(id),
       decline: () => {
         state.flags[`declined:${id}`] = true;

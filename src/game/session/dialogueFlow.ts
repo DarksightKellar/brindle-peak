@@ -15,6 +15,7 @@
  * round 5 had to sit through a whole pitch again to say yes to something it had already heard.
  */
 
+import { PIP_ASK_ANY } from '../../data/pipAsks';
 import type { NpcDef } from '../../core/contracts';
 import type { DialogueNode } from '../../core/contracts';
 import type { AudioKit } from '../audio/audio';
@@ -38,6 +39,8 @@ export interface DialogueFlowDeps {
 /** An errand on offer in this conversation: its title, and what taking it on, or not, does. */
 export interface PendingOffer {
   title: string;
+  /** Pip's own line putting the errand, when the talk ends without an answer (data/pipAsks.ts). */
+  ask?: string;
   accept(): void;
   /** Pip said "not now": the journal keeps the offer, so it can be found again. */
   decline?(): void;
@@ -94,11 +97,11 @@ function remindNode(speaker: string): DialogueNode {
   return { id: LATER, speaker, lines: ["It'll keep. Go and see what else is about, and come back by."] };
 }
 
-function askNode(title: string): DialogueNode {
+function askNode(line: string): DialogueNode {
   return {
     id: ASK,
     speaker: PIP.id,
-    lines: [`(take on "${title}"?)`],
+    lines: [line],
     choices: [{ text: "i'll do it.", next: TAKE }, { text: 'not now.', next: LEAVE }],
   };
 }
@@ -112,10 +115,10 @@ export function createDialogueFlow(d: DialogueFlowDeps): DialogueFlow {
   /** Offers heard through to the question this run, by title: the next time, only the question is asked. */
   const heard = new Set<string>();
 
-  const ask = (title: string): void => {
-    heard.add(title);
+  const ask = (o: PendingOffer): void => {
+    heard.add(o.title);
     speechNode = ASK;
-    d.dialogue.open(askNode(title), PIP.name, (syllables) => d.audio.chirp(syllables, pitchFor(PIP.species)));
+    d.dialogue.open(askNode(o.ask ?? PIP_ASK_ANY), PIP.name, (syllables) => d.audio.chirp(syllables, pitchFor(PIP.species)));
   };
 
   const shut = (): void => {
@@ -144,7 +147,7 @@ export function createDialogueFlow(d: DialogueFlowDeps): DialogueFlow {
       agreed = false;
       if (offer && heard.has(offer.title)) {
         speakerId = npcId;
-        ask(offer.title);
+        ask(offer);
         return;
       }
       open(npcId, nodeId);
@@ -176,7 +179,7 @@ export function createDialogueFlow(d: DialogueFlowDeps): DialogueFlow {
           return;
         }
         if (offer && speechNode !== ASK) {
-          ask(offer.title);
+          ask(offer);
           return;
         }
         shut();

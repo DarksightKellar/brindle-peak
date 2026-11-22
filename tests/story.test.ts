@@ -20,6 +20,7 @@ import { createDialogueFlow } from '../src/game/session/dialogueFlow';
 import { NPCS } from '../src/data/npcs';
 import { DIALOGUE_FILLS } from '../src/data/dialogueFills';
 import { PICKUPS } from '../src/data/pickups';
+import { PIP_ASKS } from '../src/data/pipAsks';
 import type { AudioKit } from '../src/game/audio/audio';
 import { play } from './storyFixtures';
 
@@ -128,7 +129,7 @@ describe('a conversation that hands between speakers', () => {
         dialogue: view as never, audio: { chirp: () => undefined } as unknown as AudioKit, npcs: NPCS, nodes: DIALOGUE,
       });
       let took = 0, left = 0;
-      flow.open(npc, root, { title: 'Something on the Trail', accept: () => { took++; }, decline: () => { left++; } });
+      flow.open(npc, root, { title: 'Something on the Trail', ask: PIP_ASKS['fen-ledger'], accept: () => { took++; }, decline: () => { left++; } });
       for (let i = 0; i < 20 && flow.isOpen(); i++) {
         if (i >= escapeAfter) flow.close();
         else flow.advance();
@@ -136,13 +137,14 @@ describe('a conversation that hands between speakers', () => {
       return { took, left, asked, last: lastLine };
     };
     const yes = run(0);
-    expect(yes.asked).toEqual(['(take on "Something on the Trail"?)']);
+    // Pip puts it in Pip's own words, not a bracketed menu line (critic round 74).
+    expect(yes.asked).toEqual(['i could look out for it on the trail.']);
     expect(yes.took).toBe(1);
     expect(run(1)).toMatchObject({ took: 0, left: 1, last: "No hurry. Have a look about first, and ask me again when you come back by." }); // "not now." gets a reply
     expect(yes.left).toBe(0);
     // An answer that already says yes takes it, with no second question; the other answer still asks.
     expect(run(0, 'orla', 'orla-root')).toMatchObject({ took: 1, asked: [] }); // "i'll ask skiff."
-    expect(run(1, 'orla', 'orla-root')).toMatchObject({ took: 0, asked: ['(take on "Something on the Trail"?)'] });
+    expect(run(1, 'orla', 'orla-root')).toMatchObject({ took: 0, asked: ['i could look out for it on the trail.'] });
     // Escape after saying yes keeps the yes (critic round 20: Gus and Skiff); before it, it is "not now".
     expect(run(0, 'gus', 'gus-root', 1).took).toBe(1);
     expect(run(0, 'skiff', 'skiff-root', 1).took).toBe(1);
@@ -285,5 +287,16 @@ describe('the ending', () => {
     state.quests[ENDING_QUEST] = { status: 'complete', step: 1 };
     frame(); frame();
     expect(endings).toBe(1);
+  });
+});
+
+describe("Pip's own line when an errand is put", () => {
+  // Critic round 74: the bracketed "(take on ...?)" read as a menu line in the middle of warm talk.
+  it("has one for every errand a villager offers, in Pip's lowercase voice", () => {
+    for (const q of QUESTS.filter((d) => d.main !== true)) {
+      const line = PIP_ASKS[q.id];
+      expect(line, q.id).toBeTruthy();
+      expect(line, q.id).toBe(line.toLowerCase());
+    }
   });
 });
