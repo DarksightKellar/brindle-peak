@@ -7,25 +7,10 @@
  */
 
 import type { GameState } from '../core/contracts';
-import { NANA_HEARD, NANA_POSTS, NANA_TOMORROW, NANA_TOMORROW_ALL, VALLEY_LINES } from './endingLines';
-import { unmetAfterStory } from '../core/guide/goal';
-import { NPCS } from './npcs';
-import { QUESTS } from './quests';
-import { ZONE_NAMES } from './zoneNames';
+import { NANA_HEARD, NANA_POSTS, VALLEY_LINES } from './endingLines';
 import { PICKUPS } from './pickups';
 import { FISH } from './fish';
 import { KEY } from '../core/keys';
-
-/**
- * Nana's word for the morning: the villager the goal line will send Pip to next. Asked from her door with
- * the goal line's own rule, which also remembers the name, so the line under the compass agrees with her.
- */
-function tomorrow(s: GameState): string {
-  const nana = NPCS.find((n) => n.id === 'nana');
-  const from = nana ? { x: nana.pos.x, z: nana.pos.z } : { x: 0, z: 0 };
-  const met = unmetAfterStory(s, from, { quests: QUESTS, npcs: NPCS, activities: [], zones: [], places: [], zoneNames: ZONE_NAMES });
-  return (met && NANA_TOMORROW[met.id]) ?? NANA_TOMORROW_ALL;
-}
 
 /** Nana says "just one, tonight": she adds at most this many things she has heard. */
 const NANA_HEARD_MAX = 2;
@@ -135,14 +120,14 @@ export const DIALOGUE_FILLS: Readonly<Record<string, (s: GameState) => string[]>
       ? ['that snowman leans on purpose, by the way.']
       // Said before "take it on?" on the "why?" path, so it notices rather than promises (critic round 47).
       : ['a snowman on the green, then.'],
-  // In the card's order, so the threads between two people come first.
-  'nana-heard': (s) => [
-    ...VALLEY_LINES.map(([quest]) => quest)
+  // In the card's order, so the threads between two people come first. Nothing after them: she used to
+  // name the next villager to see here, and critic round 74 felt the homecoming turn into a job list a
+  // breath before "come and sit out here with me". The goal line sends Pip on once the card closes.
+  'nana-heard': (s) =>
+    VALLEY_LINES.map(([quest]) => quest)
       .filter((quest) => s.quests[quest]?.status === 'complete' && NANA_HEARD[quest] !== undefined)
       .slice(0, NANA_HEARD_MAX)
       .map((quest) => NANA_HEARD[quest] as string),
-    tomorrow(s),
-  ],
   // Her line about the posts says who lit them on this run: she used to say she watched Pip light
   // them all the way down, on a run where Pip had lit four of twelve and the rest lit themselves.
   // Ivy's roll-call line says how the pools are on this run: "steaming" sat oddly beside her errand

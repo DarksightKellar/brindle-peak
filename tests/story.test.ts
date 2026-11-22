@@ -11,7 +11,6 @@ import type { PlayerState, TerrainSampler } from '../src/core/contracts';
 import { createGameState } from '../src/core/contracts';
 import { createEventBus } from '../src/core/progress/events';
 import { ENDING_QUEST, FINALE_QUEST, QUESTS } from '../src/data/quests';
-import { NANA_TOMORROW } from '../src/data/endingLines';
 import { ZONE_NAMES } from '../src/data/zoneNames';
 import { unmetAfterStory } from '../src/core/guide/goal';
 import { applyWorldRules } from '../src/game/session/worldRules';
@@ -226,12 +225,11 @@ describe('Orla and the snowman', () => {
 describe('the homecoming hears about errands', () => {
   it('lets Nana mention up to two finished errands before her last lines, and none on a bare run', () => {
     const s = createGameState({ x: 0, y: 0, z: 0 }, 6);
-    // On a bare run only her word for the morning.
-    expect(DIALOGUE_FILLS['nana-heard']?.(s)).toHaveLength(1);
+    // On a bare run, nothing: her own lines follow.
+    expect(DIALOGUE_FILLS['nana-heard']?.(s)).toHaveLength(0);
     for (const q of ['hollis-mitten', 'tuck-rope', 'skiff-sled']) s.quests[q] = { status: 'complete', step: 0 };
     const heard = DIALOGUE_FILLS['nana-heard']?.(s) ?? [];
-    expect(heard).toHaveLength(3);
-    expect(heard[2]).toMatch(/^In the morning/);
+    expect(heard).toHaveLength(2);
     let opened: string[] = [];
     const flow = createDialogueFlow({
       dialogue: { open: (n) => { opened = n.lines; }, advance: () => 'close', close: () => undefined, isOpen: () => false },
@@ -242,22 +240,15 @@ describe('the homecoming hears about errands', () => {
     expect(opened).toEqual([...heard, ...(DIALOGUE['nana-home-close']?.lines ?? [])]);
   });
 
-  // Critic round 69 heard "The valley will be there in the morning" and then a hello line about anyone.
-  it('has Nana name, for the morning, the villager the goal line names next', () => {
+  // Critic round 74: the homecoming turned into a job list a breath before "come and sit out here with me".
+  it('keeps the homecoming free of the next job: the goal line sends Pip on after the card', () => {
     const s = createGameState({ x: 0, y: 0, z: 0 }, 6);
     for (const q of QUESTS.filter((d) => d.main === true)) s.quests[q.id] = { status: 'complete', step: 0 };
     for (const id of ['nana', 'bram', 'edda', 'tuck']) s.talked[id] = true;
+    expect((DIALOGUE_FILLS['nana-heard']?.(s) ?? []).some((l) => /in the morning/i.test(l))).toBe(false);
     const nana = NPCS.find((n) => n.id === 'nana');
-    const from = { x: nana?.pos.x ?? 0, z: nana?.pos.z ?? 0 };
     const guide = { quests: QUESTS, npcs: NPCS, activities: [], zones: [], places: [], zoneNames: ZONE_NAMES };
-    const lines = DIALOGUE_FILLS['nana-heard']?.(s) ?? [];
-    const next = unmetAfterStory(s, from, guide);
-    expect(next).not.toBeNull();
-    expect(lines.at(-1)).toBe(NANA_TOMORROW[next?.id ?? '']);
-    // And the goal line, asked from further off, keeps the same name until Pip has met them.
-    expect(unmetAfterStory(s, { x: from.x + 30, z: from.z }, guide)?.id).toBe(next?.id);
-    for (const n of NPCS) s.talked[n.id] = true;
-    expect((DIALOGUE_FILLS['nana-heard']?.(s) ?? []).at(-1)).toMatch(/the valley's all yours/);
+    expect(unmetAfterStory(s, { x: nana?.pos.x ?? 0, z: nana?.pos.z ?? 0 }, guide)).not.toBeNull();
   });
 
   it('has Nana say who lit the posts: Pip, the valley, or both', () => {
