@@ -45,8 +45,39 @@ export interface RouteAim {
   distance: number;
 }
 
-/** Where the goal should point for `target`, seen from `from`; null when no route leads there. */
-export function routeAim(routes: readonly GuideRoute[], from: Vec2, target: Vec2): RouteAim | null {
+/** A hold this far off the path is not on it. */
+const HOLD_ON = 4;
+/** A hold this far behind along the path is given up: walked past, it no longer turns the pin round. */
+const HOLD_BACK = 20;
+/** This close to a hold, the aim moves on. */
+const HOLD_REACH = 3;
+
+/** `pt`'s nearest point on `p`, as distance along it and distance off it. */
+function along(p: GuideRoute['path'], pt: Vec2): { at: number; off: number } {
+  let total = 0, best = Infinity, at = 0;
+  for (let i = 0; i < p.length - 1; i++) {
+    const [ax, az] = p[i];
+    const [bx, bz] = p[i + 1];
+    const dx = bx - ax, dz = bz - az, len = Math.hypot(dx, dz);
+    const t = len > 0 ? Math.max(0, Math.min(1, ((pt.x - ax) * dx + (pt.z - az) * dz) / (len * len))) : 0;
+    const d = Math.hypot(pt.x - (ax + dx * t), pt.z - (az + dz * t));
+    if (d < best) {
+      best = d;
+      at = total + len * t;
+    }
+    total += len;
+  }
+  return { at, off: best };
+}
+
+/**
+ * Where the goal should point for `target`, seen from `from`; null when no route leads there.
+ *
+ * `holds`: places on the path the aim waits at until Pip is there, Nana's unlit lantern posts. The aim
+ * used to move on once Pip drew level with a post, and a walk 10 to 15 u off the trail drew level with
+ * half of them without lighting one; the walk home goes by the lit posts, and came down half dark.
+ */
+export function routeAim(routes: readonly GuideRoute[], from: Vec2, target: Vec2, holds: readonly Vec2[] = []): RouteAim | null {
   for (const r of routes) {
     const p = r.path;
     if (p.length < 2) continue;
@@ -87,11 +118,25 @@ export function routeAim(routes: readonly GuideRoute[], from: Vec2, target: Vec2
     const ahead = open ? Math.max(AHEAD, best * SLANT) : AHEAD;
     const goal = up ? Math.min(at + ahead, bend) : Math.max(at - ahead, bend);
     const distance = best + (up ? total - at : at) + Math.hypot(target.x - (up ? ex : sx), target.z - (up ? ez : sz));
-    if (up ? goal >= total : goal <= 0) return { aim: target, distance };
+    // The first hold from a little behind Pip up to the aim: the aim waits on the path beside it until Pip
+    // is there. Beside it, not at it: on the spur a post stands on the steep side of the trail, and an aim
+    // at the post itself sent Pip up the slope, climbing.
+    let aimAt = goal;
+    let held = false;
+    for (const h of holds) {
+      const o = along(p, h);
+      if (o.off > HOLD_ON || (Math.abs(o.at - at) <= HOLD_REACH && best <= HOLD_REACH)) continue;
+      const due = up ? o.at > at - HOLD_BACK && o.at <= goal : o.at < at + HOLD_BACK && o.at >= goal;
+      if (due && (!held || (up ? o.at < aimAt : o.at > aimAt))) {
+        aimAt = o.at;
+        held = true;
+      }
+    }
+    if (!held && (up ? goal >= total : goal <= 0)) return { aim: target, distance };
     let s = 0;
     for (let i = 0; i < lengths.length; i++) {
-      if (goal <= s + lengths[i] || i === lengths.length - 1) {
-        const t = lengths[i] > 0 ? (goal - s) / lengths[i] : 0;
+      if (aimAt <= s + lengths[i] || i === lengths.length - 1) {
+        const t = lengths[i] > 0 ? (aimAt - s) / lengths[i] : 0;
         const [ax, az] = p[i];
         const [bx, bz] = p[i + 1];
         return { aim: { x: ax + (bx - ax) * t, z: az + (bz - az) * t }, distance };

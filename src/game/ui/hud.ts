@@ -35,6 +35,9 @@ import { QUESTS } from '../../data/quests';
 import { createFeatherNotice } from './hudFeather';
 import { KEY, TOUCH } from '../../core/keys';
 
+/** Nana's lantern posts, which the climb's pin leads past one by one. */
+const POSTS = PICKUPS.filter((p) => p.kind === 'lantern');
+
 export interface Hud {
   update(s: GameState, p: PlayerState): void;
   /** `at`: the target's spot on screen in CSS pixels, or null to sit under Pip. */
@@ -169,7 +172,9 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
     // An errand standing as the goal walks the trail too (route.ts): Tuck's bridge sits over a gorge.
     const point = story ?? (nextAllowed ? errandTarget : null);
     pointed = point;
-    const routed = point && guide?.routes ? routeAim(guide.routes, lastFrom, point) : null;
+    // Nana's unlit posts hold the pin until Pip has passed close enough to light them (route.ts).
+    const holds = lastState?.abilities.lantern ? POSTS.filter((l) => !lastState?.lanterns[l.id]).map((l) => l.pos) : [];
+    const routed = point && guide?.routes ? routeAim(guide.routes, lastFrom, point, holds) : null;
     goalDistance = routed?.distance;
     return routed?.aim ?? point;
   };
