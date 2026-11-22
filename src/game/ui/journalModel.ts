@@ -185,11 +185,13 @@ export function formatJournal(s: GameState, content: JournalContent = {}): Journ
                 title: q.title,
                 status: 'locked' as const,
                 step: 0,
+                // Each says what it's about, from its own blurb: critic round 74 read ten rows of only "With
+                // X, in Y. Go and say hello." and found nothing to draw it to any one of them.
                 stepText: gone
                   ? `${who} had this one for the climb, and the climb is done.`
                   : first
-                  ? `${who} will have this one after ${first}.`
-                  : `With ${who}${npc ? `, in ${ZONE_NAMES[npc.zone]}` : ''}. Go and say hello.`,
+                  ? `${q.blurb} ${who} will have this one after ${first}.`
+                  : `${q.blurb} Go and see ${who}${npc ? `, in ${ZONE_NAMES[npc.zone]}` : ''}.`,
                 nextText: null,
                 epilogue: q.blurb,
                 trackable: false,

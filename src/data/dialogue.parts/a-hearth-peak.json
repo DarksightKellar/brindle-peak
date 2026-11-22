@@ -193,9 +193,7 @@
     "speaker": "hollis",
     "lines": [
       "He's an owl, isn't he? He sits up there and watches everybody with those great big eyes.",
-      "And he never says a word to anyone. Looks guilty to me.",
-      "He sits in the pines, over on the creek side.",
-      "Go on, then. He won't be going anywhere."
+      "And he never says a word to anyone. Looks guilty to me."
     ],
     "next": "hollis-wait"
   },
@@ -203,7 +201,7 @@
     "id": "hollis-wait",
     "speaker": "hollis",
     "lines": [
-      "Fen, the owl in the pines, won't tell you anything unless you ask him. So ask him straight out.",
+      "Fen won't tell you a thing unless you ask him, so ask him straight out.",
       "And while you're over there, try dropping a line in the creek pool below the split pine. Just in case he dropped it in when he flew off.",
       "Then come back and tell me what he said."
     ]

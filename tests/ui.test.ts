@@ -202,8 +202,13 @@ describe('journal model', () => {
     expect(rows).toHaveLength(errands.length);
     const waiting = rows.filter((q) => q.status === 'locked');
     expect(waiting.length).toBeGreaterThan(0);
-    expect(waiting.find((q) => q.id === 'gus-ledger')?.stepText).toBe('With Gus, in Hollowpine Hamlet. Go and say hello.');
-    expect(waiting.find((q) => q.id === 'orla-night-bake')?.stepText).toBe('Orla will have this one after Four Loaves.');
+    // Each says what it's about, not only who and where (critic round 74).
+    expect(waiting.find((q) => q.id === 'gus-ledger')?.stepText).toBe(
+      'Gus sells bells, but he has never once heard the big one ring. Go and see Gus, in Hollowpine Hamlet.',
+    );
+    expect(waiting.find((q) => q.id === 'orla-night-bake')?.stepText).toBe(
+      'Four loaves could become nine, if nobody goes to bed. Orla will have this one after Four Loaves.',
+    );
   });
 
   it('counts every post lit once the radio call has the valley light the rest, and keeps Pip\'s share', () => {
