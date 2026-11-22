@@ -6,9 +6,11 @@
  * in the valley set, said as the run starts and measured against at the end. Beating it is the reward;
  * missing it costs nothing.
  *
- * Set against runs in the game: sprinting straight at each gate, the Deer Trail takes 9.4 s and the
- * Chimney Scramble 9.0 s, and walked they are over 20 s and 16 s. So both bests need the sprint a race
- * leaves free, with room for a player's steering. Ivy has not cleaned her slide yet, so it can be beaten.
+ * Set against runs in the game: sprinting straight at each gate, the Deer Trail takes 9.4 s, and walked
+ * it is over 20 s, so its best needs the sprint a race leaves free, with room for a player's steering.
+ * The Chimney Scramble goes up the crag's three walls now, and climbing has one speed: run cleanly it
+ * takes 22 s, so Sable's 26 s leaves room for a missed gate and nothing more. Ivy has not cleaned her
+ * slide yet, so it can be beaten.
  */
 
 export interface VillagerBest {
@@ -22,7 +24,7 @@ export interface VillagerBest {
 
 export const VILLAGER_BESTS: Readonly<Record<string, VillagerBest>> = {
   'pinewind-deer-run': { who: 'Ilsa', seconds: 15 },
-  'ridge-chimney-race': { who: 'Sable', seconds: 13 },
+  'ridge-chimney-race': { who: 'Sable', seconds: 26 },
   'peak-thermal-flight': { who: 'Edda', count: 8, noun: 'hoops' },
   'reach-sled-hill': { who: 'Skiff', count: 5, noun: 'rings' },
   'kettles-otter-slide': { who: 'Ivy', count: 10, noun: 'rings' },

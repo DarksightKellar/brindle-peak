@@ -15,8 +15,7 @@ const sampler = createSampler(generateHeightfield(WORLD_SEED, WORLD_SIZE, WORLD_
  * It ignores stamina on purpose, so it is a *necessary* condition only: it proves the mountain is
  * not severed by an unclimbable wall between spawn and summit, not that the summit is reachable at
  * the player's current feather count. 1.15 units of rise per 1.5-unit step permits the steep ridge
- * faces (slope ~0.7) while still refusing the Nettle Chimney (slope ~0.88), which is exactly the
- * authored intent: the chimney is a climb, not a walk.
+ * faces (slope ~0.7); the route it proves never needs a climb.
  */
 describe('spawn to summit connectivity', () => {
   const MAX_STEP = 1.15;

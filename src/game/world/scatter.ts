@@ -10,7 +10,8 @@ import * as THREE from 'three';
 import type { Rng, TerrainSample, TerrainSampler, ZoneId } from '../../core/contracts';
 import { makeRng, smoothstep } from '../../core/contracts';
 import { fbm2D } from '../../core/math/noise';
-import { beforeCuts } from '../../core/terrain/heightfield';
+import { beforeCuts, CHIMNEY } from '../../core/terrain/heightfield';
+import { CLIMB_MIN_SLOPE } from '../../core/player/step';
 import type { Placement } from './scatterRules';
 import {
   CLEAR_ZONES, DENSITY, FENCE_PITCH, GRID, KINDS, MAX_SLOPE, MIN_SPACING, SCALE, WOOD, WORLD_MARGIN,
@@ -183,7 +184,11 @@ export function scatterProps(valley: TerrainSampler, seed: number): Placement[] 
   }
   // Named places are cleared after placement, not before: dropping a candidate here leaves its gap
   // empty instead of letting another tree take the quota somewhere a course was validated as clear.
-  return out.filter((p) => clearOfNamedPlaces(p.x, p.z));
+  // Nettle Chimney's walls stay bare rock, so nothing stands in the way of a climb up them; its
+  // ledges and top keep what grows there.
+  const onCragWall = (p: Placement): boolean =>
+    Math.hypot(p.x - CHIMNEY.x, p.z - CHIMNEY.z) < 40 && sampler.sampleAt(p.x, p.z).slope > CLIMB_MIN_SLOPE;
+  return out.filter((p) => clearOfNamedPlaces(p.x, p.z) && !onCragWall(p));
 }
 
 /** One InstancedMesh per (kind, variant): 17 draw calls for the whole valley. */

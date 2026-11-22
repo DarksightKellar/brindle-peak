@@ -6,10 +6,11 @@
  * Every course here was routed against the real heightfield and the real tree colliders, and each
  * leg was walked by the real player stepper (see the report that came with this file):
  *
- *   - no leg needs a slope steeper than the 0.35 walk limit in step.ts, so nothing needs stamina;
+ *   - no leg needs a slope steeper than the 0.35 walk limit in step.ts, except the chimney scramble's
+ *     three walls, each of which goes on one bar of breath;
  *   - every gate stands on open ground, clear of trunks and rocks;
  *   - the course reads like its name: the deer trail winds through Pinewind, the chimney scramble
- *     goes round the foot of Nettle Chimney and up onto the ridge crest above it, the lantern ascent
+ *     goes up Nettle Chimney ledge by ledge to its top, the lantern ascent
  *     climbs the only walkable line up the north face, the thermal descent runs down off the peak.
  *
  * The start is the activity post (`ActivityDef.pos`); gates do not repeat it. Positions are world XZ.
@@ -71,19 +72,18 @@ export const RACE_COURSES: Readonly<Record<string, RaceCourse>> = {
     ],
   },
 
-  // Down to the rope at the foot of the chimney, round its east side, then up onto the crest.
+  // Down the west foot of the chimney to the rope on its tall south-west side, then up it: a gate on
+  // each ledge and the last on top. Every wall goes on one bar of breath without a feather.
   'ridge-chimney-race': {
     look: 'arch',
     radius: GATE_RADIUS,
     gates: [
-      { x: 239, z: -219 },
-      { x: 252, z: -224 },
-      { x: 264, z: -228 },
-      { x: 270, z: -240 },
-      { x: 273, z: -222 },
-      { x: 274, z: -208 },
-      { x: 272, z: -197 },
-      { x: 286, z: -185 },
+      { x: 222, z: -220 },
+      { x: 226, z: -244 },
+      { x: 238, z: -252 },
+      { x: 245.7, z: -244.3 },
+      { x: 254.2, z: -235.8 },
+      { x: 266, z: -228 },
     ],
   },
 

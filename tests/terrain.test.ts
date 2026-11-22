@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { createSampler, generateHeightfield } from '../src/core/terrain/heightfield';
+import { CHIMNEY, createSampler, generateHeightfield } from '../src/core/terrain/heightfield';
+import { CLIMB_MIN_SLOPE } from '../src/core/player/step';
+import { TUNING } from '../src/core/player/tuning';
 import { buildTerrainMesh, TERRAIN_TRIANGLES } from '../src/game/world/terrainMesh';
 import { PEAK, SPAWN, WORLD_RES, WORLD_SEED, WORLD_SIZE, ZONES } from '../src/data/zones';
 import { makeRng } from '../src/core/contracts';
@@ -7,9 +9,6 @@ import type { TerrainSampler } from '../src/core/contracts';
 
 const SEED = WORLD_SEED;
 const RES = WORLD_RES;
-
-/** Nettle Chimney, the authored wall. Fixed world position; see heightfield.ts. */
-const CHIMNEY = { x: 250, z: -240 };
 
 const hf = generateHeightfield(SEED, WORLD_SIZE, RES, ZONES, PEAK);
 const sampler: TerrainSampler = createSampler(hf, ZONES);
@@ -87,13 +86,13 @@ describe('heightfield generation', () => {
     expect(worst).toBeLessThan(0.12);
   });
 
-  it('carves the Nettle Chimney at (250, -240)', () => {
+  it('stands Nettle Chimney up as a crag that needs a climb and can hold one', () => {
     let steepest = 0;
     let steepestAt = { x: 0, z: 0 };
 
-    for (let dz = -25; dz <= 25; dz += 0.25) {
-      for (let dx = -25; dx <= 25; dx += 0.25) {
-        if (dx * dx + dz * dz > 625) continue;
+    for (let dz = -40; dz <= 40; dz += 0.25) {
+      for (let dx = -40; dx <= 40; dx += 0.25) {
+        if (dx * dx + dz * dz > 1600) continue;
         const x = CHIMNEY.x + dx;
         const z = CHIMNEY.z + dz;
         const slope = sampler.sampleAt(x, z).slope;
@@ -104,10 +103,11 @@ describe('heightfield generation', () => {
       }
     }
 
-    expect(
-      steepest,
-      `steepest point ${steepestAt.x.toFixed(1)},${steepestAt.z.toFixed(1)}`,
-    ).toBeGreaterThan(0.85);
+    const where = `steepest point ${steepestAt.x.toFixed(1)},${steepestAt.z.toFixed(1)}`;
+    expect(steepest, where).toBeGreaterThan(CLIMB_MIN_SLOPE + 0.1);
+    expect(steepest, where).toBeLessThan(TUNING.climbMaxSlope);
+    // Its top stands a good 30 u over the shelf it rises from.
+    expect(sampler.heightAt(CHIMNEY.x + 6, CHIMNEY.z) - sampler.heightAt(CHIMNEY.x - 40, CHIMNEY.z)).toBeGreaterThan(30);
   });
 
   it('keeps heightAt continuous away from the authored wall', () => {
@@ -126,9 +126,9 @@ describe('heightfield generation', () => {
         x += dx * 0.1;
         z += dz * 0.1;
         const h = sampler.heightAt(x, z);
-        // The chimney is a 40-unit face over one cell: an 81-degree wall is not a continuity
-        // bug, it is the feature. It is asserted by its own slope test above.
-        if (Math.hypot(x - CHIMNEY.x, z - CHIMNEY.z) > 20) {
+        // The chimney's walls rise 14 u over one cell: steep ground there is the feature, not a
+        // continuity bug. It is asserted by its own slope test above.
+        if (Math.hypot(x - CHIMNEY.x, z - CHIMNEY.z) > 42) {
           worst = Math.max(worst, Math.abs(h - prev));
           steps++;
         }

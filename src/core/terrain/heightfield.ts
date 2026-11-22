@@ -11,7 +11,7 @@
  *               only nudge the massif into its band, with a smooth radial weight, so the
  *               result stays one continuous landform.
  *   4. DETAIL   seeded fbm, damped at the summit and scaled by altitude.
- *   5. CHIMNEY  Nettle Chimney: an authored buttress with a near-vertical south face.
+ *   5. CHIMNEY  Nettle Chimney: an authored crag of three tiers, climbable wall by wall.
  *   6. LAKE     the Frozen Reach is flattened to a true plane, last, so nothing can re-noise it.
  *
  * All of it is baked into one Float32Array at generation time. Sampling afterwards is plain
@@ -40,15 +40,30 @@ const SPUR_DX = SPUR_BX - SPUR_AX;
 const SPUR_DZ = SPUR_BZ - SPUR_AZ;
 const SPUR_LEN2 = SPUR_DX * SPUR_DX + SPUR_DZ * SPUR_DZ;
 
-/** Nettle Chimney — the wall. Fixed world position, fixed height, fixed face. */
-const CHIMNEY_X = 250;
-const CHIMNEY_Z = -240;
-const CHIMNEY_RISE = 40;
-/** Flat top radius. Wider than one 5.33-unit cell so the grid cannot miss it. */
-const CHIMNEY_CORE = 9;
-/** Width of the face. One cell wide: this is what makes the slope exceed 0.85. */
-const CHIMNEY_RIM = 4.2;
-/** Depth and radius of the gully at the foot of the chimney. */
+/**
+ * Nettle Chimney: three tiers stacked into a crag, each stepped back east of the one below, with a
+ * ledge between them. It used to be one 40-unit drum with a one-cell face (slope 0.85, past the 0.8
+ * climb limit), so the climb Sable sends Pip on could only be walked round; the director asked for a
+ * crag Pip can really go up. Each wall is about 5.5 u wide for a 13-unit rise, steep enough to need a
+ * climb and gentle enough to hold one, and the ledges are where Pip stops to get breath back.
+ */
+export const CHIMNEY = { x: 262, z: -228 };
+/**
+ * Outer radius, eastward shift and rise of each tier, bottom to top: 40 u in all. Every wall has to
+ * go on one bar of breath without a feather (8 breath is five seconds of climbing, about 11 u), and
+ * the top one is a little lower because the ridge already rises under it.
+ */
+const CHIMNEY_TIERS: readonly (readonly [number, number, number])[] = [[31, 0, 14], [22, 4, 14], [13, 7, 12]];
+/** Width of each wall. One cell: climbable (about 0.75), not sheer. */
+const CHIMNEY_WALL = 5.5;
+/** Nothing beyond this distance is touched by the crag (the widest rim with its wobble). */
+const CHIMNEY_REACH = 42;
+/**
+ * The gully at the foot of the chimney, and the calm ground round it where the detail noise is held
+ * off. It stays where the old pillar stood: the trail, the cairn and the race post were set on it.
+ */
+const SHELF = { x: 250, z: -240 };
+/** Depth and radius of the gully. */
 const CHIMNEY_SHELF = 7;
 const CHIMNEY_SHELF_R = 34;
 
@@ -176,7 +191,7 @@ export function generateHeightfield(
         h += smoothstep(f.radius, 0, Math.hypot(dx, dz)) * f.delta;
       }
 
-      const dc = Math.hypot(x - CHIMNEY_X, z - CHIMNEY_Z);
+      const dc = Math.hypot(x - SHELF.x, z - SHELF.z);
       const dPeak = Math.hypot(x - peak.x, z - peak.z);
       const amp =
         (1.5 + 2.3 * smoothstep(3, 45, h)) * smoothstep(14, 90, dPeak) * smoothstep(4, 34, dc);
@@ -187,8 +202,14 @@ export function generateHeightfield(
         h -= CHIMNEY_SHELF * Math.exp(-((dc / CHIMNEY_SHELF_R) ** 2));
       }
 
-      if (dc < CHIMNEY_CORE + CHIMNEY_RIM) {
-        h += CHIMNEY_RISE * (1 - smoothstep(CHIMNEY_CORE, CHIMNEY_CORE + CHIMNEY_RIM, dc));
+      // The crag. Its rims wobble with the bearing, so it reads as rock and not as a stack of drums.
+      if (Math.hypot(x - CHIMNEY.x, z - CHIMNEY.z) < CHIMNEY_REACH) {
+        const ang = Math.atan2(z - CHIMNEY.z, x - CHIMNEY.x);
+        const wob = 1 + 0.1 * Math.sin(3 * ang + 1) + 0.06 * Math.sin(5 * ang + 2);
+        for (const [r, shift, rise] of CHIMNEY_TIERS) {
+          const d = Math.hypot(x - (CHIMNEY.x + shift), z - CHIMNEY.z) / wob;
+          h += rise * (1 - smoothstep(r - CHIMNEY_WALL, r, d));
+        }
       }
 
       h = softCeiling(h);

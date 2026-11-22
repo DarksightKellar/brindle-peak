@@ -40,7 +40,7 @@ export const LANDMARKS: readonly { id: string; x: number; z: number }[] = [
   { id: 'hamlet', x: 250, z: 120 },
   { id: 'springs', x: -40, z: 60 },
   { id: 'mast', x: 330, z: -360 },
-  { id: 'chimney', x: 243, z: -232 },
+  { id: 'chimney', x: 235, z: -255 },
 ];
 
 /** The valley trail, anchor to anchor. Dressing follows it, and so will the player. */
@@ -214,7 +214,7 @@ function springs(sampler: TerrainSampler): THREE.Group {
   return group;
 }
 
-/** Two boulders and a climbing rope at the foot of Nettle Chimney. */
+/** Two boulders and a climbing rope at the foot of Nettle Chimney, where the scramble goes up it. */
 function chimneyMarker(b: GeoBuilder): void {
   b.add(GEO.ico, propMatrix(-1.5, 0.55, 0.4, 1.15, 0.9, 1, 0.3), 'ROCK_DK', 'ROCK_SNOWCAP', 0.5);
   b.add(GEO.ico, propMatrix(1.6, 0.4, -0.5, 0.9, 0.68, 0.84, 1.1), 'ROCK_MID', 'ROCK_SNOWCAP', 0.5);
