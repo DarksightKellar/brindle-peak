@@ -113,10 +113,18 @@ function touchesWall(p: { x: number; z: number }, radius: number, colliders: rea
 export interface Slip {
   side: number;
   frames: number;
+  /** Frames since the last slip ended, while it still decides the next one's side (SLIP_KEEP). */
+  after?: number;
 }
 
 /** Frames a slip keeps to its side once begun: about half a second, enough to clear a rock. */
 const SLIP_FRAMES = 30;
+/**
+ * A new slip this soon after the last one ended goes the same way. Walking square at a cluster of
+ * rocks wider than one slip carries, each new slip took the side the push leaned to, which flipped,
+ * and Pip stepped left, right, left at the face of the boulders below the mast (2026-11-22).
+ */
+const SLIP_KEEP = 30;
 
 /**
  * `resolveCollisions` for a body that stepped from `from` to `p`, which also slips round small props.
@@ -139,9 +147,13 @@ export function resolveWithSlip(
 ): boolean {
   const mx = p.x - from.x, mz = p.z - from.z;
   const m = Math.hypot(mx, mz);
+  if (slip.frames === 0 && slip.after !== undefined) slip.after = slip.after < SLIP_KEEP ? slip.after + 1 : undefined;
   const hit = resolveCollisions(p, radius, colliders, height);
   if (!hit || m < 1e-4) {
-    if (!hit) slip.frames = 0;
+    if (!hit && slip.frames > 0) {
+      slip.frames = 0;
+      slip.after = 0;
+    }
     return hit;
   }
   const ux = mx / m, uz = mz / m;
@@ -159,32 +171,41 @@ export function resolveWithSlip(
   // Headway counts, but so does getting anywhere at all: out of a notch the way round starts sideways
   // and a little back, along a rock's face.
   const score = (dx: number, dz: number): number => dx * ux + dz * uz + Math.hypot(dx, dz);
-  // A slip under way keeps its side; a new one starts on the side the push already leans to.
-  const lean = Math.sign(ux * az - uz * ax) || 1;
-  const sides = going ? [slip.side] : [lean, -lean];
-  let best: { x: number; z: number; side: number } | null = null;
+  // A slip under way keeps its side, and so does one that follows close on the last (SLIP_KEEP); a new
+  // one starts on the side the push already leans to.
+  type Step = { x: number; z: number; side: number };
   let bestScore = going ? -Infinity : score(ax, az);
-  for (const deg of [35, 70, 100]) {
-    for (const s of sides) {
-      const a = (s * deg * Math.PI) / 180;
-      const q = { x: from.x + mx * Math.cos(a) - mz * Math.sin(a), z: from.z + mx * Math.sin(a) + mz * Math.cos(a) };
-      resolveCollisions(q, radius, colliders, height);
-      const dx = q.x - from.x, dz = q.z - from.z;
-      const sc = score(dx, dz);
-      const len = Math.hypot(dx, dz);
-      if (len > 0.4 * m && dx * ux + dz * uz > -0.7 * len && sc > bestScore + 1e-6) {
-        best = { x: q.x, z: q.z, side: s };
-        bestScore = sc;
+  const search = (sides: readonly number[]): Step | null => {
+    let best: Step | null = null;
+    for (const deg of [35, 70, 100]) {
+      for (const s of sides) {
+        const a = (s * deg * Math.PI) / 180;
+        const q = { x: from.x + mx * Math.cos(a) - mz * Math.sin(a), z: from.z + mx * Math.sin(a) + mz * Math.cos(a) };
+        resolveCollisions(q, radius, colliders, height);
+        const dx = q.x - from.x, dz = q.z - from.z;
+        const sc = score(dx, dz);
+        const len = Math.hypot(dx, dz);
+        if (len > 0.4 * m && dx * ux + dz * uz > -0.7 * len && sc > bestScore + 1e-6) {
+          best = { x: q.x, z: q.z, side: s };
+          bestScore = sc;
+        }
       }
+      if (best && !going) break;
     }
-    if (best && !going) break;
-  }
+    return best;
+  };
+  const lean = Math.sign(ux * az - uz * ax) || 1;
+  const best = going ? search([slip.side])
+    : slip.after !== undefined ? search([slip.side]) ?? search([-slip.side]) // the kept side shut: the other
+    : search([lean, -lean]);
   if (best && (going || score(best.x - from.x, best.z - from.z) > score(ax, az))) {
     p.x = best.x;
     p.z = best.z;
     slip.frames = going ? slip.frames - 1 : SLIP_FRAMES;
     slip.side = best.side;
+    if (slip.frames === 0) slip.after = 0;
   } else {
+    if (going) slip.after = 0;
     slip.frames = 0;
   }
   return hit;

@@ -57,6 +57,7 @@ export const FENCE_HEIGHT = 1.15;
 
 export function propColliders(placements: readonly Placement[]): Collider[] {
   const out: Collider[] = [];
+  const stones: Circle[] = [];
   for (const p of placements) {
     if (p.kind === 'fence') {
       // The rail geometry runs from the anchor along local +X for one pitch, then yaw turns it.
@@ -76,8 +77,52 @@ export function propColliders(placements: readonly Placement[]): Collider[] {
       continue;
     }
     // Drift and brush give nothing back: walk through the snow, as intended.
-    out.push(...solidOf(p.kind, p.variant, p.x, p.z, p.yaw, p.scale));
+    const solid = solidOf(p.kind, p.variant, p.x, p.z, p.yaw, p.scale);
+    out.push(...solid);
+    if (p.kind === 'rock') stones.push(...(solid as Circle[]));
   }
+  return [...out, ...closeNarrowGaps(stones)];
+}
+
+type Circle = Extract<Collider, { kind: 'circle' }>;
+/**
+ * A gap between stones narrower than this is closed. Pip resolves as a 0.42 circle, so a gap under
+ * 0.84 already stops it, and one just wider let it in and held it: the long-walk review's loose walk
+ * walked into a 0.87 gap between two boulders below the mast and stood there pressing on.
+ */
+const GAP_SHUT = 1.5;
+/** Bucket size for finding neighbouring stones; wider than any stone pair worth closing. */
+const CELL = 8;
+
+/**
+ * A capsule across each gap between scattered rocks' stones too narrow to walk through, so a cluster of rocks is one
+ * thing to go round rather than a notch to walk into. A guide, so Pip still slips round the cluster
+ * the way it slips round a single rock (core/player/collide.ts resolveWithSlip).
+ */
+export function closeNarrowGaps(stones: readonly Circle[]): Collider[] {
+  const grid = new Map<string, number[]>();
+  const key = (i: number, j: number): string => `${i},${j}`;
+  stones.forEach((c, n) => {
+    const k = key(Math.floor(c.x / CELL), Math.floor(c.z / CELL));
+    const list = grid.get(k);
+    if (list) list.push(n);
+    else grid.set(k, [n]);
+  });
+  const out: Collider[] = [];
+  stones.forEach((a, n) => {
+    const ci = Math.floor(a.x / CELL), cj = Math.floor(a.z / CELL);
+    for (let di = -1; di <= 1; di++) {
+      for (let dj = -1; dj <= 1; dj++) {
+        for (const m of grid.get(key(ci + di, cj + dj)) ?? []) {
+          if (m <= n) continue;
+          const b = stones[m];
+          const gap = Math.hypot(b.x - a.x, b.z - a.z) - a.r - b.r;
+          if (gap <= 0 || gap >= GAP_SHUT) continue;
+          out.push({ kind: 'segment', ax: a.x, az: a.z, bx: b.x, bz: b.z, r: Math.min(a.r, b.r), guide: true });
+        }
+      }
+    }
+  });
   return out;
 }
 
