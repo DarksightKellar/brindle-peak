@@ -41,7 +41,8 @@ describe('a goal along a route (critic round 17, the pin through the north face)
 
 describe('close in a straight line, far round by the path (critic round 90, Tuck over Windscar face)', () => {
   // A U: out east, up north, back west, to a target at its end, 55 u straight across the U from the start.
-  const u = [{ path: [[0, 0], [100, 0], [100, 100], [0, 100]] as const }];
+  // Among cliffs from its first vertex: in the open, close at hand is always straight (next test).
+  const u = [{ path: [[0, 0], [100, 0], [100, 100], [0, 100]] as const, slantUntil: 0 }];
   const end = { x: 0, z: 100 };
 
   it('follows the path when its walk is far longer than the straight line', () => {
@@ -52,6 +53,12 @@ describe('close in a straight line, far round by the path (critic round 90, Tuck
 
   it('still points straight when the target is close along the path too', () => {
     expect(routeAim(u, { x: 10, z: 95 }, end)).toBeNull();
+  });
+
+  it('points straight at a target close at hand on open ground (critic round 91 beside Bram)', () => {
+    // The trail's start by the cabin: Pip a little way out along it, the woodpile just off its start.
+    const open = [{ path: [[0, 0], [400, 0], [400, -100]] as const, slantUntil: 1 }];
+    expect(routeAim(open, { x: 40, z: 2 }, { x: 10, z: 25 })).toBeNull();
   });
 });
 

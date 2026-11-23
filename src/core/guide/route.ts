@@ -113,13 +113,16 @@ export function routeAim(routes: readonly GuideRoute[], from: Vec2, target: Vec2
       total += len;
     }
     if (best > NEAR) continue;
-    // A target close at hand is pointed at straight, unless the path's walk there is far longer than the
-    // straight line: critic round 90, under Windscar's face, read Tuck 43 u away straight up it, while the
-    // trail round by the spur to his bridge is some 250 u.
-    const walk = best + (up ? total - at : at) + Math.hypot(target.x - (up ? ex : sx), target.z - (up ? ez : sz));
-    if (straight <= END_REACH && walk <= straight * DETOUR + 15) continue;
     const bends: number[] = [0];
     for (const len of lengths) bends.push(bends[bends.length - 1] + len);
+    // A target close at hand is pointed at straight. Among the cliffs (past slantUntil) that holds only
+    // while the path's walk there is not far longer: critic round 90, under Windscar's face, read Tuck
+    // 43 u away straight up it, while the trail round by the spur to his bridge is some 250 u. On open
+    // ground the straight line is walkable: critic round 91, beside Bram's woodpile, was sent the long
+    // way back to the trail's start, and read the distance rising as it walked up to the pile.
+    const walk = best + (up ? total - at : at) + Math.hypot(target.x - (up ? ex : sx), target.z - (up ? ez : sz));
+    const cliffs = r.slantUntil !== undefined && at >= (bends[r.slantUntil] ?? total) - AHEAD;
+    if (straight <= END_REACH && (!cliffs || walk <= straight * DETOUR + 15)) continue;
     if (at < (bends[r.leaves ?? 0] ?? 0) - AHEAD) continue;
 
     // The aim waits at the next bend until Pip is nearly there: past it, a stake on the spur stood in
