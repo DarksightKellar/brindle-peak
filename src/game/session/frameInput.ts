@@ -48,6 +48,11 @@ export const TALK_REST = 1;
 export const TALK_STAY = 2.5;
 export const TALK_STEP = 0.75;
 
+/** The way a key moves the highlighted choice: up is -1 (the one before), down or right is +1. */
+function choiceAxis(input: { moveX: number; moveZ: number }): number {
+  return Math.abs(input.moveZ) > 0.5 ? -Math.sign(input.moveZ) : Math.abs(input.moveX) > 0.5 ? Math.sign(input.moveX) : 0;
+}
+
 /** One per session, so the edge memory below belongs to this run rather than to the module. */
 export function createFrameInput(d: FrameInputDeps): FrameInput {
   const { ui } = d;
@@ -95,12 +100,15 @@ export function createFrameInput(d: FrameInputDeps): FrameInput {
        * left/right still do: the choices stack as a list, so down and right both mean "the next one".
        * The mouse used to be the only way to choose, and then E silently took the first option.
        */
-      const axis = Math.abs(input.moveZ) > 0.5 ? -Math.sign(input.moveZ) : Math.abs(input.moveX) > 0.5 ? Math.sign(input.moveX) : 0;
+      const axis = choiceAxis(input);
       if (axis !== 0 && axis !== lastChoiceSign) ui.dialogue.selectChoice(axis);
       lastChoiceSign = axis;
       if (input.interactPressed) d.flow.advance();
     } else {
-      lastChoiceSign = 0;
+      // A walking key still down as the talk opens is the walk, not a pick: critic round 104 walked up to
+      // Ilsa, pressed F with a key still held, and her one-line offer opened on "not now.". Only a press
+      // made inside the conversation moves the highlight.
+      lastChoiceSign = choiceAxis(input);
       if (!blocked && input.interactPressed && rested) d.interact();
     }
 

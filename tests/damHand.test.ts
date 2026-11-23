@@ -26,7 +26,8 @@ describe('dam hand', () => {
     const hand = new DamHand();
     let now = 0;
     hand.reset(now);
-    for (let i = 0; i < 20; i++) hand.update((now += FRAME), FRAME, false, -1);
+    // A short hold: part way back, not yet caught.
+    for (let i = 0; i < 8; i++) hand.update((now += FRAME), FRAME, false, -1);
     const before = hand.off;
     expect(hand.update((now += FRAME), FRAME, true, -1)).toBe(false);
     expect(hand.miss(now)).toBe('off');
