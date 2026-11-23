@@ -36,6 +36,23 @@ export interface RouterDeps {
 // The keys by their bindings: it said "E" after interact moved to F (critic round 79's capture).
 export const HOP_TIP = `Walked places are on the map now. ${KEY.map}, then ↑↓ and ${KEY.interact}, to go back to one.`;
 
+/**
+ * When each place was last named, per run of the router's deps. A slide or a lantern line that runs along
+ * the edge between two places crossed it again and again: critic round 86 saw "Hollowpine Hamlet / The
+ * Frozen Reach / Hollowpine Hamlet" stacked on Boathouse Hill. A place named this recently is not named again.
+ */
+const NAMED_AT = new WeakMap<RouterDeps, Map<string, number>>();
+const RENAME_MS = 30000;
+
+function freshZone(d: RouterDeps, id: string, byMap: boolean): boolean {
+  let seen = NAMED_AT.get(d);
+  if (!seen) NAMED_AT.set(d, (seen = new Map()));
+  const now = Date.now();
+  const last = seen.get(id);
+  seen.set(id, now);
+  return byMap || last === undefined || now - last > RENAME_MS;
+}
+
 export function routeEvent(e: GameEvent, d: RouterDeps, s?: Readonly<GameState>): void {
   switch (e.name) {
     case 'feather:collected':
@@ -49,6 +66,7 @@ export function routeEvent(e: GameEvent, d: RouterDeps, s?: Readonly<GameState>)
       return;
 
     case 'zone:entered': {
+      if (!freshZone(d, e.data.id, e.data.byMap === true)) return;
       d.audio.sfx('ui');
       push(d, d.naming.zone(e.data.id), 'mountain', 'milestone');
       const walked = s ? Object.values(s.visited).filter(Boolean).length : 0;

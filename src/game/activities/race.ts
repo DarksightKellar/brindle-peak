@@ -28,11 +28,12 @@ import { VILLAGER_BESTS } from '../../data/villagerBests';
 import { floorArrowTo, steadyRound, steadyWay, type Way } from './pointer';
 
 /** Further than this from the next gate, the run has been walked away from and ends. */
-const LEFT_COURSE = 150;
+// Three of the longest leg (24 u): critic round 86 ran 140 u past the Deer Trail before it was called off.
+const LEFT_COURSE = 70;
 /** A gate on foot this much higher than Pip is said to be up the rock. */
 const GATE_ABOVE = 3;
 /** Past this from the next gate the line warns that the run is about to end. */
-const STRAY = 100;
+const STRAY = 45;
 /** A hoop counts within this many metres of its centre height (so walking under one does not). */
 const HOOP_BAND = 2.8;
 /** The hoop mesh sits this far above its marker base (world/activityMarkers.ts PROTOTYPES.hoop.lift). */
