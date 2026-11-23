@@ -268,6 +268,9 @@ export class TargetActivity implements ActivityInstance {
     } else {
       this.locked = -1;
       this.throwsLeft--;
+      // The last throw's "Missed" goes with it: critic round 81 read it over the next throw in the air
+      // and thought the new one had missed before it landed.
+      this.call = null;
       this.cooldown = THROW.cooldown;
       // Let go a reaction after the cue, it goes as it would have on the cue.
       let reach = this.reachAt(this.draw);

@@ -414,6 +414,22 @@ describe('build', () => {
     const at = siteFor(d).at;
     expect(Math.hypot(at.x - d.pos.x, at.z - d.pos.z)).toBeLessThan(0.5);
   });
+  it('logs laid before Esc are still laid when the woodpile is taken up again (critic round 81)', () => {
+    const d = def('build', 'hearth-kindling', { x: -335.5, z: 296.4 });
+    const h = host({ x: d.pos.x + 2, y: 0, z: d.pos.z });
+    const first = createBuildActivity(d);
+    first.start(h);
+    step(first, h);
+    let guard = 0;
+    while (!first.squareNow && guard++ < 600) step(first, h);
+    step(first, h, { interactPressed: true });
+    expect(first.placed).toBe(1);
+    step(first, h, { cancelPressed: true });
+    expect(first.isComplete()).toBe(true);
+    const again = createBuildActivity(d);
+    again.start(h);
+    expect(again.placed).toBe(1);
+  });
 });
 
 // ---------------------------------------------------------------------------

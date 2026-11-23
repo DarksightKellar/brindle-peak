@@ -39,6 +39,12 @@ export function settleAt(age: number): { drop: number; skew: number } {
   return { drop: BUILD.drop * fall + hop, skew: (1 - t) * (1 - t) };
 }
 
+/**
+ * Steps laid before a build was left with Esc, by activity, for this run of the game. Critic round 81 laid
+ * a log, stepped away, and came back to "Logs 0 / 8".
+ */
+const KEPT = new Map<string, number>();
+
 export class BuildActivity implements ActivityInstance {
   readonly def: ActivityDef;
   private readonly site: BuildSite;
@@ -96,11 +102,12 @@ export class BuildActivity implements ActivityInstance {
     this.ground = host.terrain.heightAt(this.site.at.x, this.site.at.z);
     this.groundAt = (x, z) => host.terrain.heightAt(x, z);
     this.opening = Math.atan2(this.site.at.x - host.playerPos.x, this.site.at.z - host.playerPos.z);
-    this.stage = 0;
+    // The cairn is a choice of order, so it starts over; the rest keep what was laid.
+    this.stage = this.isCairn ? 0 : Math.min(KEPT.get(this.def.id) ?? 0, this.steps.length - 1);
     this.presses = 0;
     this.elapsed = 0;
-    this.placedAt = [];
-    this.pressAngle = [];
+    this.placedAt = Array.from({ length: this.stage }, () => -60);
+    this.pressAngle = Array.from({ length: this.stage }, () => 0);
     this.hand.reset(0);
     this.stone.reset(0);
     // Mixed up, and the stone under Pip's eye to begin with is not the biggest.
@@ -210,6 +217,7 @@ export class BuildActivity implements ActivityInstance {
   }
 
   private finish(host: ActivityHost): void {
+    KEPT.delete(this.def.id);
     const outcome: ActivityResult = { score: this.steps.length, bonus: this.def.id };
     this.outcome = outcome;
     this.phase = 'done';
@@ -359,7 +367,8 @@ export class BuildActivity implements ActivityInstance {
   abort(): void {
     if (this.phase !== 'build') return;
     this.phase = 'aborted';
-    this.stage = 0; // the half-built pile goes back to how it was, as it would after a reload
+    KEPT.set(this.def.id, this.stage);
+    this.stage = 0;
     this.hand.reset(this.elapsed);
     this.stone.reset(this.elapsed);
     this.outcome = null;

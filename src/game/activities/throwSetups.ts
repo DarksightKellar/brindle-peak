@@ -30,7 +30,8 @@ export interface ThrowSetup {
 }
 
 export const THROW_SETUPS: Readonly<Record<string, ThrowSetup>> = {
-  'pinewind-pinecone-throw': { kind: 'fan', need: 3, budget: 8, missile: 'pinecone', facing: 0 },
+  // Twelve throws: critics rounds 80 and 81 each landed one in eight on first meeting.
+  'pinewind-pinecone-throw': { kind: 'fan', need: 3, budget: 12, missile: 'pinecone', facing: 0 },
   'hamlet-bell-throw': { kind: 'bell', need: 1, budget: 8, missile: 'shot' },
 };
 

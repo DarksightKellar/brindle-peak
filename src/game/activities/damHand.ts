@@ -116,23 +116,23 @@ export class DamHand {
    */
   markers(now: number, rest: PlacedMarker, place: (drop: number, off: number) => PlacedMarker, along: { x: number; z: number }): PlacedMarker[] {
     const off = this.offset;
-    const stone: PlacedMarker = { ...place(this.caught ? SWING.hover * 0.5 : SWING.hover, off), look: 'stone-held' };
+    const drop = this.caught ? SWING.hover * 0.5 : SWING.hover;
+    const stone: PlacedMarker = { ...place(drop, off), look: 'stone-held' };
     const near = Math.max(0, 1 - (Math.abs(off) - DAM.gap) / (DAM.reach - DAM.gap));
-    // The gap is the space between two lights, and only the stone in hand has a ring: critic round 77
-    // saw a ring on the gap and another under the stone and could not tell which one it steered.
-    const y = rest.y + 0.5;
-    const ends: PlacedMarker[] = [-1, 1].map((end) => ({
-      shape: 'float', look: 'dot', size: this.caught ? 2.6 : 1.9, strength: this.caught ? 1 : 0.7 + 0.3 * near,
-      x: rest.x + along.x * end * (DAM.gap + 0.35), y, z: rest.z + along.z * end * (DAM.gap + 0.35),
-    }));
+    // One warm stone, and its gap a gate of two posts of light standing up out of the water as tall as the
+    // stone in hand rides, a stone's width apart, so it is plainly steered in between them. Critic round 81 saw the lights low by the
+    // water, a dot over the stone, a red ring under it and flecks on the current, all warm, and could not
+    // tell which was the stone or where "between the lights" was.
+    const lit = this.caught ? 1 : 0.6 + 0.4 * near;
+    const ends: PlacedMarker[] = [-1, 1].flatMap((end) => [0.2, 0.65, 1.1, 1.55, 2].map((up, k) => ({
+      shape: 'float' as const, look: 'dot' as const, size: k === 4 ? (this.caught ? 2.8 : 2.2) : 1.2, strength: lit,
+      x: rest.x + along.x * end * (DAM.gap + 0.6), y: rest.y + up, z: rest.z + along.z * end * (DAM.gap + 0.6),
+    })));
+    // The current, in the water's own pale colour, so the push has something to see.
     const flecks: PlacedMarker[] = [0, 0.5].map((phase) => {
       const k = ((now * 0.35 + phase) % 1) * 2 - 1;
-      return { shape: 'float', look: 'dot', size: 0.9, strength: 0.5, x: rest.x + along.x * k * 2.4, y: rest.y + 0.08, z: rest.z + along.z * k * 2.4 };
+      return { shape: 'float', look: 'dot', size: 0.9, strength: 0.5, color: PALETTE.WATER_FOAM, x: rest.x + along.x * k * 2.4, y: rest.y + 0.08, z: rest.z + along.z * k * 2.4 };
     });
-    const held: PlacedMarker = { shape: 'float', look: 'dot', size: 1.4, strength: 1, x: stone.x, y: stone.y + 0.9 + 0.08 * Math.sin(now * 4), z: stone.z };
-    // A warm ring on the water under the stone in hand: among the pool's blue boulders, critic round 64
-    // could not pick out which one was theirs, or see it move.
-    const mine: PlacedMarker = { shape: 'ring', look: 'halo', x: stone.x, y: rest.y + 0.1, z: stone.z, size: 0.65, strength: 1, color: PALETTE.PIP_SCARF };
-    return [stone, held, mine, ...ends, ...flecks];
+    return [stone, ...ends, ...flecks];
   }
 }
