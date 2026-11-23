@@ -104,6 +104,13 @@ const SAME_PLACE = 6;
 /** Milliseconds the line says which errand it moved on to. */
 const SWITCH_SHOW = 5000;
 
+/**
+ * After a distance that is the walk along the trail (route.ts), not the straight line. Critic round 92 read
+ * "Mast 261 u" over an errand's "555 u", and a number that jumped from 118 to 188 u off the trail, with
+ * nothing saying either was the way round.
+ */
+const BY_TRAIL = ' by the trail';
+
 export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
   const layer = document.createElement('div');
   layer.className = 'ui-hud';
@@ -259,7 +266,7 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
         const goal = unmet
           ? `${line.replace(/\.$/, '')}: ${formatDistance(away)}, ${viewWay(unmet.pos.x - p.pos.x, unmet.pos.z - p.pos.z, viewYaw)}.`
           : storyAway !== null && line !== ''
-            ? `${line.replace(/\.$/, '')} — ${formatDistance(storyAway)}`
+            ? `${line.replace(/\.$/, '')} — ${formatDistance(storyAway)}${goalDistance !== undefined ? BY_TRAIL : ''}`
             : line;
         if (goal !== lastGoal) {
           lastGoal = goal;
@@ -307,7 +314,7 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
 ` : '';
         // A word on the way (errandLine.ts) says so, so the followed errand isn't thought dropped.
         const said = errands?.onTheWay() ? formatNextStep(walked).replace(/^Next: /, 'On the way: ') : formatNextStep(walked);
-        const errandText = step ? `${now}${said}${offStrip(errandAim)}${hopHint(s, step)}` : '';
+        const errandText = step ? `${now}${said}${errandRoute && walked?.distance !== null ? BY_TRAIL : ''}${offStrip(errandAim)}${hopHint(s, step)}` : '';
         if (feather.line !== '') writeNext(feather.line, null);
         // Two lines at most under the compass: critic round 57 read four, "Now on the line", the errand,
         // its wrap and a nearby line. The nearby line waits while the switch is being said.

@@ -22,7 +22,8 @@ export interface PlayerMesh {
   root: THREE.Object3D;
   /** `lantern`: Pip is carrying Nana's lantern (state.abilities.lantern), so it hangs at the side. */
   /** `perch`: Pip is sitting on something this high above the snow (a bench, data/seats.ts). */
-  sync(s: PlayerState, dt: number, lantern?: boolean, perch?: number): void;
+  /** `tip`: a sideways tip, -1 (all the way left) to 1 (right): the skating balance (activities/skate.ts). */
+  sync(s: PlayerState, dt: number, lantern?: boolean, perch?: number, tip?: number): void;
 }
 
 const FLAT = { flatShading: true } as const;
@@ -182,11 +183,12 @@ export function createPlayerMesh(groundAt?: (x: number, z: number) => number): P
   let flap = 0;
   let flare = 0;
   let lean = 0;
+  let side = 0;
   let prevGrounded = true;
   let prevVy = 0;
   let prevFlaps = 0;
 
-  const sync = (s: PlayerState, dt: number, carrying = false, perch = 0): void => {
+  const sync = (s: PlayerState, dt: number, carrying = false, perch = 0, tip = 0): void => {
     clock += dt;
     lantern.visible = carrying;
     root.position.set(s.pos.x, s.pos.y + perch, s.pos.z);
@@ -250,6 +252,10 @@ export function createPlayerMesh(groundAt?: (x: number, z: number) => number): P
       : s.vel.y > 0.5 ? -0.2 : 0.26;
     lean += (wantLean - lean) * Math.min(1, dt * (s.grounded ? 6 : 14));
     body.rotation.x = lean;
+    // Tipping on the ice: critic round 92 read "Tipping right" in the panel and saw Pip skate on upright.
+    // Positive z rolls the top of the body toward -X, Pip's right (the model faces +Z).
+    side += (Math.max(-1, Math.min(1, tip)) * 0.55 - side) * Math.min(1, dt * 10);
+    body.rotation.z = side;
 
     // On the snow under Pip, not under its feet: in the air it stays down, smaller and fainter with height.
     const up = groundAt ? Math.max(0, s.pos.y - groundAt(s.pos.x, s.pos.z) - FEET_ABOVE_SNOW) : 0;

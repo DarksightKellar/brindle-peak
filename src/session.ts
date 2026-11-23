@@ -34,6 +34,7 @@ import type { Collider } from './core/player/collide';
 import { focusShadow } from './game/render/scene';
 import { createFinale } from './game/session/finale';
 import { createActivity } from './game/activities/index';
+import { SkateActivity } from './game/activities/skate';
 import { DIALOGUE as DIALOGUE_NODES } from './data/dialogue';
 import { bootstrap } from './game/session/bootstrap';
 import { createActivityRunner } from './game/session/activityRunner';
@@ -336,7 +337,9 @@ export function createSession(opts: SessionOptions): Session {
       player.pos.z = seated.pos.z;
       player.facing = seated.yaw;
     }
-    pip.sync(player, dt, state.abilities.lantern, seated ? seated.height : 0);
+    // On the ice Pip's body tips the way the balance does (activities/skate.ts).
+    const tip = runner.isRunning() && live instanceof SkateActivity ? live.balance : 0;
+    pip.sync(player, dt, state.abilities.lantern, seated ? seated.height : 0, tip);
     // Look (Q/R) works during an activity, not under menus or dialogue. A conversation (or an activity's
     // subject) is framed with Pip; a photo's viewfinder takes the camera to Pip's eye. Reduce-motion snaps eases.
     const overlayOpen = ui.dialogue.isOpen() || ui.journal.isOpen() || ui.menu.isOpen();
