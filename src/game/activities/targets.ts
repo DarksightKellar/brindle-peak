@@ -140,6 +140,8 @@ export class TargetActivity implements ActivityInstance {
   private paid = false;
   private swallowPress = false;
   /** The last throw's outcome and when it landed (`elapsed`), for the panel and the hit ring. */
+  /** `elapsed` at a press made while a throw was still in the air. */
+  private waitAt = -9;
   private call: { hit: boolean; at: number; pos: Vec3; side: Side; timing?: Timing } | null = null;
   /**
    * How the throw in flight was let go: whether the aim was on the target (so a miss was the strength)
@@ -194,6 +196,7 @@ export class TargetActivity implements ActivityInstance {
     this.stage = 'throwing';
     this.swallowPress = true;
     this.call = null;
+    this.waitAt = -9;
     /*
      * Open aimed near the middle of what is to be hit, but not on it: pointed straight at the bell, the
      * first press rang it and the round was over before it began. The aim starts a little way off,
@@ -255,6 +258,9 @@ export class TargetActivity implements ActivityInstance {
     }
 
     if (this.draw < 0) {
+      // A press while the last throw is still flying is said, not silently dropped: critic round 88 pressed
+      // between throws, nothing happened, and it took the toss to be ignoring it.
+      if (pressed && this.decidedAt < 0 && this.throwsLeft > 0 && (this.shots.length > 0 || this.cooldown > 0)) this.waitAt = this.elapsed;
       if (pressed && this.decidedAt < 0 && this.cooldown <= 0 && this.throwsLeft > 0 && this.shots.length === 0) {
         this.draw = 0;
         this.locked = this.predict();
@@ -525,8 +531,9 @@ export class TargetActivity implements ActivityInstance {
     const wind = this.bell && this.stage === 'throwing' && this.decidedAt < 0 && this.throwsLeft > 0
       ? `${WORDS.bellWind(g > 0 ? 'right' : 'left', Math.abs(g))} · `
       : '';
+    const wait = this.elapsed - this.waitAt < 1.2 && this.shots.length > 0 ? `${WORDS.throwWait} · ` : '';
     return {
-      label: `${said}${wind}${cue}Hits ${Math.min(this.hits, need)} / ${need} · ${this.throwsLeft} left`,
+      label: `${wait}${said}${wind}${cue}Hits ${Math.min(this.hits, need)} / ${need} · ${this.throwsLeft} left`,
       fraction: need === 0 ? 0 : Math.min(1, this.hits / need),
       urgent: on,
       cue: this.sayingNow ? WORDS.throwNow : undefined,

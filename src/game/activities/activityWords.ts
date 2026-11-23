@@ -164,6 +164,8 @@ export const WORDS = {
   throwDrawing: 'Let go as the arc reaches it',
   /** While E is held and the arc is bold: letting go now hits. */
   throwNow: 'Let go!',
+  /** Pressed while the last throw is still in the air. */
+  throwWait: 'Wait for that one to land',
   // The big cues in the middle of the view (ActivityReadout.cue): the moment, and the key.
   cueBite: `Now! Press ${KEY.interact}`,
   cueSquare: `Square! Press ${KEY.interact}`,
