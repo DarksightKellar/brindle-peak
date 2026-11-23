@@ -38,7 +38,9 @@ const GATE_ABOVE = 3;
  */
 const STRAY = 30;
 /** A hoop counts within this many metres of its centre height (so walking under one does not). */
-const HOOP_BAND = 2.8;
+// 3.3 since critic round 108, which glided through three of the Thermal Descent's eight and sank under the
+// fourth: rounds 103 to 108 never finished it. A glide a little low still counts.
+const HOOP_BAND = 3.3;
 /** The hoop mesh sits this far above its marker base (world/activityMarkers.ts PROTOTYPES.hoop.lift). */
 const HOOP_LIFT = 3;
 /** A hoop's drawn scale: its ring (2 u at scale 1) as tall as the band a body passes it in. */

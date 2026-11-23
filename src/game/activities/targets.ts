@@ -54,8 +54,10 @@ export const THROW = {
    */
   // Slower since critic rounds 83 and 84, which landed nothing: at 1.8 the bold arc came and went too fast.
   drawPeriod: 2.3,
-  drawMin: 0.75,
-  drawMax: 1.25,
+  // 0.82 to 1.18 since critic round 108: rounds 101 to 108 hit one or two in three every time, often
+  // lined up and let go a beat off. Narrower, more of the swell lands, and the bold arc lasts longer.
+  drawMin: 0.82,
+  drawMax: 1.18,
   /** Seconds a puff of snow (a hit or a landing) stays visible. */
   puff: 0.35,
   /**
