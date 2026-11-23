@@ -56,9 +56,10 @@ describe('the line under the goal', () => {
     const s = fresh();
     const line = createErrandLine(far);
     line.pick(s, { x: 0, z: 0 });
-    take(s, 'bell');
+    take(s, 'letter');
     line.pick(s, { x: 0, z: 0 });
-    take(s, 'letter'); // the newest is followed
+    take(s, 'bell'); // taken on far from Gus, beside Nana: the letter keeps the line (critic round 80)
+    expect(line.pick(s, { x: -590, z: 0 })?.questId).toBe('letter');
     expect(line.pick(s, { x: 200, z: 0 })?.questId).toBe('letter');
     expect(line.onTheWay()).toBeNull();
     expect(line.pick(s, { x: 0, z: 0 })?.questId).toBe('bell'); // Gus 15 u off, Nana 600: a word on the way

@@ -66,7 +66,9 @@ const ARROW_FAR = 30;
 const ARROW_NEAR = 4;
 const ARROW_OFF = 0.6;
 /** How far out from Pip the arrow lies, and its length. */
-const ARROW_OUT = 1.7;
+const ARROW_OUT = 2.3;
+/** The arrow's size, swelling a little so it catches the eye: critic round 80 found it easy to miss. */
+const ARROW_SIZE = 1.5;
 
 /** A flat arrow, nose along +Z, lying in the XZ plane. */
 function floorArrow(): THREE.BufferGeometry {
@@ -192,6 +194,8 @@ export function createGoalMarker(sampler: TerrainSampler, look: MarkerLook = GOA
     const x = from.x + Math.sin(toYaw) * ARROW_OUT, z = from.z + Math.cos(toYaw) * ARROW_OUT;
     arrow.position.set(x, groundHeightAt(sampler, x, z) + 0.12, z);
     arrow.rotation.set(0, toYaw, 0);
+    const still = document.documentElement.dataset.reduceMotion === 'on';
+    arrow.scale.setScalar(ARROW_SIZE * (still ? 1 : 1 + 0.12 * Math.sin(performance.now() / 180)));
     arrowMat.opacity = Math.min(1, (off - ARROW_OFF) / 0.3);
     arrow.visible = true;
   };

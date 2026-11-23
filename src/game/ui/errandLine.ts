@@ -214,7 +214,12 @@ export function createErrandLine(guide: GuideContent): ErrandLine {
           story = false;
           unpin(s);
         }
-        if (chosen && !pinned && !story) tracked = def.id;
+        // A new errand handed over takes the line only if its place is nearer than the one being followed:
+        // critic round 80 took Pell's letter at Hollowpine, climbed toward the mast, and read the letter's
+        // step 800 u behind it under the goal the whole way up.
+        const further = handed && tracked !== null && tracked !== def.id && live(tracked, s)
+          && (stepOf(def.id, s, from)?.distance ?? Infinity) > (stepOf(tracked, s, from)?.distance ?? Infinity);
+        if (chosen && !pinned && !story && !further) tracked = def.id;
       }
       seeded = true;
 

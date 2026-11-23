@@ -239,7 +239,11 @@ export class SledActivity implements ActivityInstance {
     const next = this.finishedAt < 0 ? this.rings.find((r) => !r.got && r.at > this.run.distance) : undefined;
     // + lateral is the rider's right, where D steers.
     const off = next ? next.side - this.run.lateral : 0;
-    const cue = next ? `${WORDS.sledRing(Math.abs(off) <= SLED.ringReach * 0.6 ? 'on' : off > 0 ? 'right' : 'left')} · ` : '';
+    const on = Math.abs(off) <= SLED.ringReach * 0.6;
+    // Round a bend, a ring to the right of the run can stand to the left of the view: critic round 80 saw
+    // it on the left under "Keep right for the ring". Until the two agree, the words wait for the bend.
+    const bend = next !== undefined && !on && Math.sign(this.screenSide(next)) !== Math.sign(off);
+    const cue = next ? `${bend ? WORDS.sledBend : WORDS.sledRing(on ? 'on' : off > 0 ? 'right' : 'left')} · ` : '';
     const counted = this.run.elapsed - this.ringAt < FLASH;
     return {
       label: `${cue}${WORDS.rings(got, this.rings.length)}`,
@@ -269,6 +273,14 @@ export class SledActivity implements ActivityInstance {
     if (this.stage !== 'run') return;
     this.stage = 'aborted';
     this.outcome = null;
+  }
+
+  /** Which side of the rider's own heading a ring stands, as the view shows it: + right. */
+  private screenSide(r: { at: number; side: number }): number {
+    const p = this.position;
+    const d = pathAt(this.path, this.run.distance);
+    const at = this.pointAt(r.at, r.side);
+    return (at.x - p.x) * -d.dz + (at.z - p.z) * d.dx;
   }
 
   private pointAt(distance: number, lateral: number): Vec3 {
