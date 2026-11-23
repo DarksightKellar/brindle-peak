@@ -173,14 +173,15 @@ function tryRows(activities: readonly ActivityDef[], s: GameState) {
  * The page lists the nearest; one already being followed stays on it wherever it is.
  */
 export function tryIds(activities: readonly ActivityDef[], s: GameState, tracked: string | null = null): string[] {
-  // In the order the page shows them: the close ones (the followed one among them), then the far ones.
-  // A followed row a walk away is listed under "close by" but was reached among the far ones, so the
-  // cursor jumped about the page: critic round 100 followed the wrong row.
+  // In the order the page shows them: the followed one under its own heading, then the close ones, then
+  // the far ones. The cursor goes down the page in that order: critic round 100 followed the wrong row
+  // when they differed. Critic round 116 read a followed row 870 u off under "close by", where it used to go.
   const rows = tryRows(activities, s);
-  const close = (e: (typeof rows)[number]): boolean => e.d <= TRY_NEAR || `try:${e.a.id}` === tracked;
-  const ids = [...rows.filter(close), ...rows.filter((e) => !close(e))].map((e) => `try:${e.a.id}`);
+  const ids = [...rows.filter((e) => e.d <= TRY_NEAR), ...rows.filter((e) => e.d > TRY_NEAR)]
+    .map((e) => `try:${e.a.id}`)
+    .filter((id) => id !== tracked);
   const kept = tracked?.startsWith('try:') && activities.some((a) => `try:${a.id}` === tracked && (s.counters[`activity:${a.id}`] ?? 0) === 0);
-  return kept && tracked && !ids.includes(tracked) ? [tracked, ...ids] : ids;
+  return kept && tracked ? [tracked, ...ids] : ids;
 }
 
 export function tryHTML(activities: readonly ActivityDef[], s: GameState, tracked: string | null = null, cursor: string | null = null): string {
@@ -199,9 +200,11 @@ export function tryHTML(activities: readonly ActivityDef[], s: GameState, tracke
     const cls = ` is-pickable${id === cursor ? ' is-cursor' : ''}${on ? ' is-tracked' : ''}`;
     return `<li class="ui-try${cls}" data-quest="${esc(id)}"><span class="ui-try__name">${esc(e.a.name)}${what}</span><span class="ui-quest__where">${esc(on ? `following · ${where}` : where)}</span></li>`;
   }).join('');
-  const near = rows.filter((e) => e.d <= TRY_NEAR || `try:${e.a.id}` === tracked);
-  const far = rows.filter((e) => !near.includes(e));
+  const followed = rows.filter((e) => `try:${e.a.id}` === tracked);
+  const near = rows.filter((e) => e.d <= TRY_NEAR && !followed.includes(e));
+  const far = rows.filter((e) => !near.includes(e) && !followed.includes(e));
   let html = '';
+  if (followed.length > 0) html += `<h3 class="ui-try__head">Following</h3><ul class="ui-tries">${list(followed)}</ul>`;
   if (near.length > 0) html += `<h3 class="ui-try__head">Things to try close by</h3><ul class="ui-tries">${list(near)}</ul>`;
   if (far.length > 0) html += `<h3 class="ui-try__head">Things to try, a walk away</h3><ul class="ui-tries">${list(far)}</ul>`;
   // Followed like an errand: critic round 77 read "High Tarn, 36 u west" here and had nothing to follow it by.
