@@ -104,6 +104,19 @@ describe('race', () => {
     expect(race.progress()?.label).not.toContain('wandering');
   });
 
+  it("says the way back to the trail on the Chimney Scramble's result, from its top (critic round 118)", () => {
+    const real = ACTIVITIES.find((a) => a.id === 'ridge-chimney-race')!;
+    const race = createRaceActivity(real);
+    const h = host({ x: real.pos.x, y: 0, z: real.pos.z });
+    race.start(h);
+    for (const g of race.gates) {
+      h.playerPos = { x: g.x, y: 0, z: g.z };
+      for (let i = 0; i < 30; i++) step(race, h);
+    }
+    expect(race.finished).toBe(true);
+    expect(race.summary()).toMatch(/^Over the line in .*The trail is below you, down the slope to the northwest\.$/);
+  });
+
   it('standing at the post gains nothing however long you hold forward', () => {
     const d = def('race', 'ridge-chimney-race', { x: 232, z: -206 });
     const race = createRaceActivity(d);

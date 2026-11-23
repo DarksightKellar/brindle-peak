@@ -270,7 +270,8 @@ export class RaceActivity implements ActivityInstance {
     const best = VILLAGER_BESTS[this.def.id];
     const par = best ? WORDS.parAfter(best, this.elapsed, this.reached) : '';
     if (this.course.look === 'hoop') return WORDS.hoopResult(this.elapsed, this.reached, total, par);
-    return WORDS.raceResult(this.elapsed, this.bestBefore, par);
+    const said = WORDS.raceResult(this.elapsed, this.bestBefore, par);
+    return this.course.after ? `${said} ${this.course.after}` : said;
   }
 
   isComplete(): boolean {

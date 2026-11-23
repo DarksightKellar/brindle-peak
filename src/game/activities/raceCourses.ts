@@ -28,6 +28,8 @@ export interface RaceCourse {
   readonly look: GateLook;
   /** Absolute height of each gate's centre, for gates hung in the air; omitted for gates on the ground. */
   readonly heights?: readonly number[];
+  /** Said on the result card after the time: the way back, for a course that ends away from the trail. */
+  readonly after?: string;
 }
 
 export const GATE_RADIUS = 4.5;
@@ -88,6 +90,9 @@ export const RACE_COURSES: Readonly<Record<string, RaceCourse>> = {
       { x: 254.2, z: -235.8 },
       { x: 266, z: -228 },
     ],
+    // It ends on top of the chimney, off the trail. Critic round 118 ran on past the top, dropped down the
+    // far side, and had nothing saying which way was back.
+    after: 'The trail is below you, down the slope to the northwest.',
   },
 
   /*
