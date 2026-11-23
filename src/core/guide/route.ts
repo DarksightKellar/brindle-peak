@@ -30,6 +30,8 @@ export interface GuideRoute {
 
 /** A target this close to a path's end is what the path leads to: the mast, Edda, and the aurora 50 u past them. */
 const END_REACH = 60;
+/** Within END_REACH, a walk along the path this many times the straight line (plus a little) is a detour. */
+const DETOUR = 1.5;
 /** Further than this from the path, Pip is off finding their own way, and the goal points straight. */
 // 120 since critic round 87: 70 u off the trail below Windscar, the goal pointed straight up the face and
 // it stalled there. From this far the way back onto the trail is still the walkable one.
@@ -91,7 +93,7 @@ export function routeAim(routes: readonly GuideRoute[], from: Vec2, target: Vec2
     const up = Math.hypot(target.x - ex, target.z - ez) <= END_REACH;
     const down = !up && Math.hypot(target.x - sx, target.z - sz) <= END_REACH;
     if (!up && !down) continue;
-    if (Math.hypot(target.x - from.x, target.z - from.z) <= END_REACH) continue;
+    const straight = Math.hypot(target.x - from.x, target.z - from.z);
 
     // Pip's nearest point on the path, as distance along it.
     const lengths: number[] = [];
@@ -111,6 +113,11 @@ export function routeAim(routes: readonly GuideRoute[], from: Vec2, target: Vec2
       total += len;
     }
     if (best > NEAR) continue;
+    // A target close at hand is pointed at straight, unless the path's walk there is far longer than the
+    // straight line: critic round 90, under Windscar's face, read Tuck 43 u away straight up it, while the
+    // trail round by the spur to his bridge is some 250 u.
+    const walk = best + (up ? total - at : at) + Math.hypot(target.x - (up ? ex : sx), target.z - (up ? ez : sz));
+    if (straight <= END_REACH && walk <= straight * DETOUR + 15) continue;
     const bends: number[] = [0];
     for (const len of lengths) bends.push(bends[bends.length - 1] + len);
     if (at < (bends[r.leaves ?? 0] ?? 0) - AHEAD) continue;
@@ -127,7 +134,7 @@ export function routeAim(routes: readonly GuideRoute[], from: Vec2, target: Vec2
     const ease = (b: number): number => (up ? b + EASE_RATE * Math.max(0, at - (b - EASE)) : b - EASE_RATE * Math.max(0, b + EASE - at));
     const round = up ? (bend < total ? ease(bend) : bend) : bend > 0 ? ease(bend) : bend;
     const goal = up ? Math.min(at + ahead, round) : Math.max(at - ahead, round);
-    const distance = best + (up ? total - at : at) + Math.hypot(target.x - (up ? ex : sx), target.z - (up ? ez : sz));
+    const distance = walk;
     // The first hold from a little behind Pip up to the aim: the aim waits on the path beside it until Pip
     // is there. Beside it, not at it: on the spur a post stands on the steep side of the trail, and an aim
     // at the post itself sent Pip up the slope, climbing.

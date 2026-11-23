@@ -143,6 +143,12 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
   /** A running activity's own point (its next gate), which the strip shows instead of the goal. */
   let course: Vec2 | null = null;
   let errandTarget: Vec2 | null = null;
+  /**
+   * Where the errand's mark points, and the walk left to it, along the trail when one leads there. Critic
+   * round 90 followed "Next: … Tuck … 49 u" straight up Windscar's face while the goal above it, on the
+   * trail, said "behind you": the errand went straight and the goal went round.
+   */
+  let errandAim: Vec2 | null = null;
   let otherErrands: ReturnType<ErrandLine['others']> = [];
   let lastState: GameState | null = null;
   let lastFrom: Vec2 = { x: 0, z: 0 };
@@ -154,6 +160,12 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
   let buildings: readonly GuideBox[] = [];
   /** After the story with an errand under way: the unmet villager the goal line names, for its own mark. */
   let helloAt: Vec2 | null = null;
+
+  // Nana's unlit posts hold the pin until Pip has passed close enough to light them (route.ts).
+  const trailAim = (point: Vec2) => {
+    const holds = lastState?.abilities.lantern ? POSTS.filter((l) => !lastState?.lanterns[l.id]).map((l) => l.pos) : [];
+    return guide?.routes ? routeAim(guide.routes, lastFrom, point, holds) : null;
+  };
 
   const liveTarget = (): Vec2 | null => {
     if (held) return heldTarget;
@@ -172,9 +184,7 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
     // An errand standing as the goal walks the trail too (route.ts): Tuck's bridge sits over a gorge.
     const point = story ?? (nextAllowed ? errandTarget : null);
     pointed = point;
-    // Nana's unlit posts hold the pin until Pip has passed close enough to light them (route.ts).
-    const holds = lastState?.abilities.lantern ? POSTS.filter((l) => !lastState?.lanterns[l.id]).map((l) => l.pos) : [];
-    const routed = point && guide?.routes ? routeAim(guide.routes, lastFrom, point, holds) : null;
+    const routed = point ? trailAim(point) : null;
     goalDistance = routed?.distance;
     return routed?.aim ?? point;
   };
@@ -266,6 +276,9 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
           switchedUntil = performance.now() + SWITCH_SHOW;
         }
         errandTarget = step?.target ?? null;
+        const errandRoute = errandTarget ? trailAim(errandTarget) : null;
+        errandAim = errandRoute?.aim ?? errandTarget;
+        const walked = step && errandRoute && step.distance !== null ? { ...step, distance: Math.round(errandRoute.distance) } : step;
         heldTarget = liveTarget();
         // The feather's one line outranks an errand for its few seconds; the errand is still in the journal.
         // So does a thing to do coming near for the first time (hudNearby.ts), for its few seconds.
@@ -293,8 +306,8 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
         const now = performance.now() < switchedUntil ? `Now on the line: ${switchedTitle}
 ` : '';
         // A word on the way (errandLine.ts) says so, so the followed errand isn't thought dropped.
-        const said = errands?.onTheWay() ? formatNextStep(step).replace(/^Next: /, 'On the way: ') : formatNextStep(step);
-        const errandText = step ? `${now}${said}${offStrip(step.target ?? null)}${hopHint(s, step)}` : '';
+        const said = errands?.onTheWay() ? formatNextStep(walked).replace(/^Next: /, 'On the way: ') : formatNextStep(walked);
+        const errandText = step ? `${now}${said}${offStrip(errandAim)}${hopHint(s, step)}` : '';
         if (feather.line !== '') writeNext(feather.line, null);
         // Two lines at most under the compass: critic round 57 read four, "Now on the line", the errand,
         // its wrap and a nearby line. The nearby line waits while the switch is being said.
@@ -303,7 +316,7 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
         else if (nearby !== '') writeNext(nearby, null);
         else writeNext(errandText, step);
       }
-      const side = nextAllowed && errandTarget && errandTarget !== pointed ? errandTarget : null;
+      const side = nextAllowed && errandTarget && errandTarget !== pointed ? errandAim : null;
       // Each line wears the mark it has on the strip. Critic round 69 read "Take the batteries to Edda"
       // over "Next: Take Bram's good rope… 773 u", saw one diamond and 1164 u, and could not tell whose.
       goalEl.classList.toggle('is-goal', !held && storyMarked);

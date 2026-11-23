@@ -39,6 +39,22 @@ describe('a goal along a route (critic round 17, the pin through the north face)
   });
 });
 
+describe('close in a straight line, far round by the path (critic round 90, Tuck over Windscar face)', () => {
+  // A U: out east, up north, back west, to a target at its end, 55 u straight across the U from the start.
+  const u = [{ path: [[0, 0], [100, 0], [100, 100], [0, 100]] as const }];
+  const end = { x: 0, z: 100 };
+
+  it('follows the path when its walk is far longer than the straight line', () => {
+    const r = routeAim(u, { x: 0, z: 45 }, end);
+    expect(r).not.toBeNull();
+    expect(r?.distance).toBeCloseTo(345);
+  });
+
+  it('still points straight when the target is close along the path too', () => {
+    expect(routeAim(u, { x: 10, z: 95 }, end)).toBeNull();
+  });
+});
+
 describe('a near goal behind a building (critic round 48, "6 u" through the radio hut wall)', () => {
   // A 10 by 6 hut at the origin, square to the axes; the target stands beside its east wall's middle.
   const hut = [{ x: 0, z: 0, hw: 5, hd: 3, yaw: 0 }];
