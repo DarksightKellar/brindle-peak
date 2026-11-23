@@ -84,20 +84,22 @@ export const WORDS = {
     `${Math.round(metres)} u ${way === 'ahead' ? 'ahead' : way === 'behind' ? `behind you, to your ${round}` : `on your ${way}`}`,
   /** A race walked away from: it ends, and says so. */
   raceLeft: "You left the course, so the run's off. The start is right where it was.",
+  /** Most of the way to leaving it: said before the run is off, not only after (critic round 77). */
+  raceStray: "You're wandering off the course. Turn back for the next one, or the run ends",
   // Woodpile: a crooked press, before the log came square or after it swung past.
   woodEarly: 'Too soon. Let it swing square first',
   woodLate: 'Too late. Wait for it to swing back square',
   // While the log hangs square: the moment in words, not only the panel turning amber (critic round 8).
   woodNow: `Square — press ${KEY.interact}`,
-  stoneNow: `Over the gap — press ${KEY.interact}`,
+  stoneNow: `It's caught in the gap — press ${KEY.interact} to set it`,
   /** The dam (damHand.ts): the current pushes the stone off its gap and Pip holds it there. */
   stoneSteer: (key: 'A' | 'D' | 'W' | 'S'): string =>
-    `The current has it. Bring it back over the gap, ${{ A: 'to your left', D: 'to your right', W: 'away from you', S: 'toward you' }[key]}`,
-  stoneHold: 'The current has it. Steer it back over the gap',
+    `The current has it. Bring it back between the two lights, ${{ A: 'to your left', D: 'to your right', W: 'away from you', S: 'toward you' }[key]}`,
+  stoneHold: 'The current has it. Steer it back between the two lights',
   cairnPick: 'The biggest stone still on the ground goes on next',
   cairnWrong: "That one won't sit there yet. A bigger one has to go under it",
-  stoneOff: `Not over the gap. Hold it there first, then press ${KEY.interact}`,
-  stoneMash: 'Easy: one press, once it sits over the gap',
+  /** A press before the stone has caught: nothing is lost, the stone stays in hand. */
+  stoneOff: 'Not yet. Steer it between the two lights, and it catches there',
   /** Pressed again straight after a press: the woodpile and the dam both take one press per swing. */
   buildMash: 'Easy: one press per swing. Watch for the lights',
   // Snowman, rolled: the ball is growing; it is big enough to push onto the spot; the face goes on with E.
@@ -195,7 +197,7 @@ export const HINT_FOR_ID: Readonly<Record<string, string>> = {
   'reach-sled-hill': `${KEY.steer} steer. Keep off the edges, and ride through the rings for speed.`,
   'hearth-kindling': `Each log swings over the pile. Press ${KEY.interact} when it hangs square.`,
   'hamlet-bell-throw': `Wind blows across the square and shifts after every throw: the arrow over the bell shows it. Aim into the wind, then hold ${KEY.interact} and let go on the arc.`,
-  'kettles-dam-build': `The current pushes each stone off its gap. Hold it there with the move keys, then press ${KEY.interact} to set it.`,
+  'kettles-dam-build': `The current pushes each stone downstream. Steer it back between the two lights, where it catches in its gap, then press ${KEY.interact} to set it.`,
   'ridge-cairn': `Everyone who climbs to the mast leaves a stone here. Your four lie beside it: A / D picks one, and ${KEY.interact} sets it on top, the biggest first and the smallest last.`,
   'hamlet-snowman': `Walk to roll a ball bigger, then push it onto the lit ring. Three balls, then ${KEY.interact} for the face.`,
 };

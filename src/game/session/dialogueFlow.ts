@@ -48,8 +48,8 @@ export interface PendingOffer {
 
 export interface DialogueFlow {
   open(npcId: string, nodeId: string, offer?: PendingOffer): void;
-  /** One line from a villager Pip has just said "not now" to, with no offer in it. */
-  remind(npcId: string): void;
+  /** One line from a villager Pip has just said "not now" to, then Pip's answer again when an offer is kept. */
+  remind(npcId: string, offer?: PendingOffer): void;
   /** Pip thinking out loud, with nobody else in the talk (sitting on a bench, data/seats.ts). */
   think(lines: readonly string[]): void;
   advance(): void;
@@ -91,10 +91,16 @@ function laterNode(speaker: string): DialogueNode {
 
 /**
  * Talking to the same villager again before walking off. Critic round 69 said "not now" to Orla, pressed
- * E again and had the errand put to it again on the spot: an offer just turned down is not asked twice.
+ * E again and had the errand put to it again on the spot: an offer just turned down is not pitched twice.
+ * It is still Pip's to take, though: the line asks whether Pip has changed its mind, and Pip's answer
+ * follows (critic round 77 asked Bram again and heard only "It'll keep").
  */
-function remindNode(speaker: string): DialogueNode {
-  return { id: LATER, speaker, lines: ["It'll keep. Go and see what else is about, and come back by."] };
+function remindNode(speaker: string, asking: boolean): DialogueNode {
+  return {
+    id: LATER,
+    speaker,
+    lines: [asking ? "It'll keep, so there's no hurry. Have you changed your mind already?" : "It'll keep. Go and see what else is about, and come back by."],
+  };
 }
 
 function askNode(line: string): DialogueNode {
@@ -152,14 +158,15 @@ export function createDialogueFlow(d: DialogueFlowDeps): DialogueFlow {
       }
       open(npcId, nodeId);
     },
-    remind(npcId): void {
+    remind(npcId, pending): void {
       const npc = d.npcs.find((n) => n.id === npcId);
       if (!npc) return;
-      offer = null;
+      // With an offer kept, the line's close goes on to Pip's answer (`advance`), as an offer's last line does.
+      offer = pending ?? null;
       agreed = false;
       speechNode = LATER;
       speakerId = npc.id;
-      d.dialogue.open(remindNode(npc.id), npc.name, (syllables) => d.audio.chirp(syllables, pitchFor(npc.species)));
+      d.dialogue.open(remindNode(npc.id, offer !== null), npc.name, (syllables) => d.audio.chirp(syllables, pitchFor(npc.species)));
     },
     think(lines): void {
       offer = null;

@@ -8,21 +8,30 @@ import { DAM, DamHand } from '../src/game/activities/damHand';
 const FRAME = 1 / 60;
 
 describe('dam hand', () => {
-  it('a press a reaction after the stone slides off its gap still sets it (critic round 38)', () => {
-    const run = (late: number): boolean => {
-      const hand = new DamHand();
-      let now = 0;
-      hand.reset(now);
-      // Hold against the current (A, upstream) until the stone is over its gap.
-      for (let i = 0; i < 600 && !hand.over(); i++) hand.update((now += FRAME), FRAME, false, -1);
-      expect(hand.over()).toBe(true);
-      // Let go: the current carries it off the gap.
-      for (let i = 0; i < 600 && hand.over(); i++) hand.update((now += FRAME), FRAME, false, 0);
-      expect(hand.over()).toBe(false);
-      for (let t = FRAME; t < late; t += FRAME) hand.update((now += FRAME), FRAME, false, 0);
-      return hand.update((now += FRAME), FRAME, true, 0);
-    };
-    expect(run(DAM.react * 0.6)).toBe(true);
-    expect(run(DAM.react + 0.3)).toBe(false);
+  it('a stone steered over its gap catches there and waits to be set (critic round 77)', () => {
+    const hand = new DamHand();
+    let now = 0;
+    hand.reset(now);
+    // Hold against the current (upstream) until the stone catches.
+    for (let i = 0; i < 600 && !hand.over(); i++) hand.update((now += FRAME), FRAME, false, -1);
+    expect(hand.over()).toBe(true);
+    // Let go, and keep pushing upstream: it stays caught either way.
+    for (let i = 0; i < 300; i++) hand.update((now += FRAME), FRAME, false, i < 150 ? 0 : -1);
+    expect(hand.over()).toBe(true);
+    expect(Math.abs(hand.off)).toBeLessThanOrEqual(DAM.gap);
+    expect(hand.update((now += FRAME), FRAME, true, 0)).toBe(true);
+  });
+
+  it('a press before the stone catches loses nothing: the stone stays where it was', () => {
+    const hand = new DamHand();
+    let now = 0;
+    hand.reset(now);
+    for (let i = 0; i < 20; i++) hand.update((now += FRAME), FRAME, false, -1);
+    const before = hand.off;
+    expect(hand.update((now += FRAME), FRAME, true, -1)).toBe(false);
+    expect(hand.miss(now)).toBe('off');
+    expect(Math.abs(hand.off - before)).toBeLessThan(0.1);
+    for (let i = 0; i < 600 && !hand.over(); i++) hand.update((now += FRAME), FRAME, false, -1);
+    expect(hand.update((now += FRAME), FRAME, true, 0)).toBe(true);
   });
 });

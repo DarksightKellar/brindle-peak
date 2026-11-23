@@ -80,8 +80,10 @@ describe('race', () => {
     step(race, h);
     // The count, then where the gate is from the view (critic round 17 lost the lantern line).
     expect(race.progress()?.label).toMatch(new RegExp(`^Gate 1 of ${race.gates.length} · \\d+ u (ahead|behind you, to your (left|right)|on your (left|right))$`));
+    // One gate stands, drawn once in the world and once faintly through whatever is in front of it.
     const arches = (race.markers() as PlacedMarker[]).filter((m) => m.look === 'arch');
-    expect(arches).toHaveLength(1);
+    expect(arches.filter((m) => m.through !== true)).toHaveLength(1);
+    expect(arches.filter((m) => m.through === true).map((m) => [m.x, m.z])).toEqual(arches.filter((m) => m.through !== true).map((m) => [m.x, m.z]));
     expect(arches[0].strength).toBe(1);
 
     for (const g of race.gates) {
@@ -230,7 +232,7 @@ describe('build', () => {
     }
     expect(mash.placed).toBe(0);
     expect(Math.abs(mash.stoneOff)).toBeGreaterThan(1);
-    expect(mash.progress()?.label).toMatch(/^(The current has it\. Bring it back over the gap, (to your (left|right)|away from you|toward you)|Not over the gap)/);
+    expect(mash.progress()?.label).toMatch(/^(The current has it\. Bring it back between the two lights, (to your (left|right)|away from you|toward you)|Not yet)/);
 
     // Steering the way the line says brings it home, and a press there sets it.
     const watched = createBuildActivity(d);
@@ -244,10 +246,10 @@ describe('build', () => {
       // Steer the way it names while far off; near the gap, ease against the current.
       const moveX = way ? (way === 'right' ? 1 : -1) : Math.max(-1, Math.min(1, (-watched.stoneOff * 4) / k.d));
       const now = watched.squareNow && f - last > 30;
-      if (watched.squareNow) expect(said).toMatch(/^Over the gap — press F · /);
+      if (watched.squareNow) expect(said).toMatch(/^It's caught in the gap — press F to set it · /);
       // Every stone says which way while off the gap (critic round 28 stalled at stone 2 without it).
-      if (!watched.squareNow && Math.abs(watched.stoneOff) > 0.3 && !/^Not over|^Easy/.test(said)) {
-        expect(said).toMatch(/^The current has it\. Bring it back over the gap, (to your (left|right)|away from you|toward you) · /);
+      if (!watched.squareNow && Math.abs(watched.stoneOff) > 0.3 && !/^Not yet/.test(said)) {
+        expect(said).toMatch(/^The current has it\. Bring it back between the two lights, (to your (left|right)|away from you|toward you) · /);
       }
       if (now) last = f;
       step(watched, h, { moveX, interactPressed: now });

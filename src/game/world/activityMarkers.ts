@@ -113,6 +113,9 @@ interface Prototype {
   lift: number;
 }
 
+/** How strongly a marker drawn through the scenery shows: there, but plainly behind something. */
+const THROUGH_OPACITY = 0.35;
+
 const PROTOTYPES: Readonly<Record<MarkerShape | TransientLook, Prototype>> = {
   ring: { geometry: new THREE.TorusGeometry(1.1, 0.16, 6, 12), color: PALETTE.LANTERN, lift: 1.6 },
   post: { geometry: new THREE.CylinderGeometry(0.16, 0.22, 2.2, 5), color: PALETTE.BARK, lift: 1.1 },
@@ -258,9 +261,17 @@ export function createActivityMarkers(): ActivityMarkerLayer {
         const strength = spec.strength ?? 1;
         mesh.geometry = proto.geometry;
         const beam = proto === PROTOTYPES.beam;
+        const through = spec.through === true;
         const mat = mesh.material as THREE.MeshBasicMaterial;
-        if (mat.transparent !== beam) { mat.transparent = beam; mat.depthWrite = !beam; mat.needsUpdate = true; }
-        if (!beam) mat.opacity = 1;
+        const glassy = beam || through;
+        if (mat.transparent !== glassy || mat.depthTest !== !through) {
+          mat.transparent = glassy;
+          mat.depthWrite = !glassy;
+          mat.depthTest = !through;
+          mat.needsUpdate = true;
+        }
+        mesh.renderOrder = through ? 5 : 0;
+        if (!beam) mat.opacity = through ? THROUGH_OPACITY : 1;
         place(mesh, spec, proto.lift);
         if (spec.yaw === undefined && !spec.look) mesh.rotation.y = slot * 0.7;
         mesh.scale.setScalar(spec.size ?? 0.72 + 0.28 * strength);

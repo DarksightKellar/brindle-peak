@@ -29,10 +29,14 @@ import { floorArrowTo, steadyRound, steadyWay, type Way } from './pointer';
 
 /** Further than this from the next gate, the run has been walked away from and ends. */
 const LEFT_COURSE = 150;
+/** Past this from the next gate the line warns that the run is about to end. */
+const STRAY = 100;
 /** A hoop counts within this many metres of its centre height (so walking under one does not). */
-const HOOP_BAND = 2.2;
+const HOOP_BAND = 2.8;
 /** The hoop mesh sits this far above its marker base (world/activityMarkers.ts PROTOTYPES.hoop.lift). */
 const HOOP_LIFT = 3;
+/** A hoop's drawn scale: its ring (2 u at scale 1) as tall as the band a body passes it in. */
+const HOOP_DRAWN = 1.4;
 
 export class RaceActivity implements ActivityInstance {
   readonly def: ActivityDef;
@@ -150,7 +154,13 @@ export class RaceActivity implements ActivityInstance {
         const g = gates[i];
         const strength = i === this.next ? 1 : 0.35;
         const yaw = gateYaw(this.def.pos, gates, i);
-        out.push({ shape: 'ring', look: look === 'hoop' ? 'hoop' : 'arch', x: g.x, y: this.baseOf(i), z: g.z, yaw, strength });
+        // A hoop is drawn as big as the space that counts (HOOP_BAND up and down): drawn at 2 u across a
+        // 2.8 u band, critic round 77 found the hoops small and flew past three of them.
+        const size = look === 'hoop' ? (i === this.next ? HOOP_DRAWN : HOOP_DRAWN * 0.8) : undefined;
+        out.push({ shape: 'ring', look: look === 'hoop' ? 'hoop' : 'arch', x: g.x, y: this.baseOf(i), z: g.z, yaw, strength, size });
+        // The next gate's ghost shows through rock and trees: on the Chimney Scramble critic round 77
+        // could not see the gates on the crag behind the rock, only read where they were.
+        if (i === this.next) out.push({ shape: 'ring', look: look === 'hoop' ? 'hoop' : 'arch', x: g.x, y: this.baseOf(i), z: g.z, yaw, strength, size, through: true });
       }
     }
     const aim = this.aimIndex();
@@ -219,7 +229,9 @@ export class RaceActivity implements ActivityInstance {
     // critic round 49 read it, then "through 1 of 8 hoops" at the end. The count through says so as it
     // goes, from the first hoop on: critic round 51 could not tell from the screen how its run stood.
     const missed = this.course.look === 'hoop' && this.next > 0 ? ` · ${WORDS.hoopsThrough(this.reached)}` : '';
-    return { label: `${lead}${missed} · ${WORDS.gateWay(Math.hypot(g.x - p.x, g.z - p.z), way, round)}${rise}`, fraction: total === 0 ? 0 : this.next / total };
+    const away = Math.hypot(this.course.gates[this.next]?.x - p.x, this.course.gates[this.next]?.z - p.z);
+    const stray = away > STRAY ? `${WORDS.raceStray} · ` : '';
+    return { label: `${stray}${lead}${missed} · ${WORDS.gateWay(Math.hypot(g.x - p.x, g.z - p.z), way, round)}${rise}`, fraction: total === 0 ? 0 : this.next / total, urgent: stray !== '' || undefined };
   }
 
   /** Turn to the first gate as the run opens: it is in front of you, not behind the camera. */

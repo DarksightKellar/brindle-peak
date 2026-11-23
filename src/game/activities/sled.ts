@@ -206,6 +206,9 @@ export class SledActivity implements ActivityInstance {
       const at = this.pointAt(r.at, r.side);
       const rd = pathAt(this.path, r.at);
       out.push({ shape: 'ring', look: 'arch', x: at.x, y: at.y, z: at.z, yaw: Math.atan2(rd.dx, rd.dz), strength: shown === 0 ? 1 : 0.35 });
+      // The next ring shows faintly over the brow before the run tips over it: critic round 77 on the Otter
+      // Slide saw each ring only once it was nearly on it.
+      if (shown === 0) out.push({ shape: 'ring', look: 'arch', x: at.x, y: at.y, z: at.z, yaw: Math.atan2(rd.dx, rd.dz), strength: 1, through: true });
       shown++;
     }
     if (this.finishedAt < 0) {

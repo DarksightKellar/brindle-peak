@@ -248,10 +248,11 @@ export class BuildActivity implements ActivityInstance {
     if (this.isCairn && this.phase === 'build') {
       this.slots.forEach((stepIndex, i) => {
         if (stepIndex < 0) return;
-        const size = this.steps[stepIndex][0].size ?? 0.4;
+        const size = (this.steps[stepIndex][0].size ?? 0.4) * CAIRN_ROW_SHOW;
         const since = this.elapsed - this.wrongAt;
         const hop = i === this.pick && since < 0.5 ? 0.5 * Math.sin((since / 0.5) * Math.PI) : 0;
-        const at = placePiece(this.site, this.ground, { look: 'stone', x: CAIRN_ROW_X, y: -0.05 + hop, z: cairnRowZ(i), size, yaw: i * 1.3 }, this.def.id);
+        // Pip's own stones in the warm colour the dam's stone in hand wears, apart from the cairn's blue ones.
+        const at = placePiece(this.site, this.ground, { look: 'stone-held', x: CAIRN_ROW_X, y: -0.05 + hop, z: cairnRowZ(i), size, yaw: i * 1.3 }, this.def.id);
         out.push(at);
         if (i === this.pick) {
           const bob = 0.12 * Math.sin(this.elapsed * 4);
@@ -316,7 +317,7 @@ export class BuildActivity implements ActivityInstance {
   /** The dam's line: why a press missed, else set it now, else which key brings it home. */
   private stoneWords(): string {
     const miss = this.stone.miss(this.elapsed);
-    if (miss) return miss === 'mash' ? WORDS.stoneMash : WORDS.stoneOff;
+    if (miss && !this.squareNow) return WORDS.stoneOff;
     if (this.squareNow) return WORDS.stoneNow;
     // The key is named for every stone. Round 27 dropped it after two, and critic round 28 sat at stone 2
     // of 5 for over a minute reading "Steer it back over the gap" with no key to press.
@@ -374,7 +375,10 @@ export class BuildActivity implements ActivityInstance {
 /** The cairn's stones in their row, by step (0 is the biggest): mixed, so the first one looked at is not it. */
 const CAIRN_ROW: readonly number[] = [2, 0, 3, 1];
 /** Where each slot of the row lies, in the site's own frame: across the side shot, between the cairn and Pip. */
-const cairnRowZ = (i: number): number => 0.9 + i * 0.85;
+// A clear step from the cairn, and shown a size larger (CAIRN_ROW_SHOW): critic round 77 saw them clumped
+// against the cairn's own stones and could not tell the sizes. Any longer, the last ones lie under Pip.
+const cairnRowZ = (i: number): number => 1.15 + i * 0.85;
+const CAIRN_ROW_SHOW = 1.35;
 const CAIRN_ROW_X = 1.3;
 
 export function createBuildActivity(def: ActivityDef): BuildActivity {

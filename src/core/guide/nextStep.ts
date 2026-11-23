@@ -144,7 +144,8 @@ interface Placed {
 }
 
 /** Resolve a target into what the line prints, measured from `from`. */
-function place(from: Vec2, at: { pos: Vec2; zone: ZoneId } | null): { placed: Placed; away: number } {
+/** Where `at` lies from `from`, as a guide step carries it. */
+export function place(from: Vec2, at: { pos: Vec2; zone: ZoneId } | null): { placed: Placed; away: number } {
   if (!at) {
     return { placed: { zone: null, target: null, bearing: null, distance: null }, away: Number.POSITIVE_INFINITY };
   }

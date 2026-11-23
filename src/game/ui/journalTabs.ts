@@ -155,24 +155,49 @@ const TRY_NEAR = 80;
  * does there: critic round 48 could not plan from "Boathouse Hill" or "Ice Hole" until 15 u away.
  * The close ones and the ones a walk away are listed under their own headings.
  */
-export function tryHTML(activities: readonly ActivityDef[], s: GameState): string {
+function tryRows(activities: readonly ActivityDef[], s: GameState) {
   const from = s.player.pos;
-  const rows = activities
+  return activities
     .filter((a) => (s.counters[`activity:${a.id}`] ?? 0) === 0)
     .map((a) => ({ a, dx: a.pos.x - from.x, dz: a.pos.z - from.z }))
     .map((e) => ({ ...e, d: Math.hypot(e.dx, e.dz) }))
     .sort((x, y) => x.d - y.d)
     .slice(0, TRY_ROWS);
+}
+
+/**
+ * The things to try the Quests page lists, as followable ids (`try:<id>`, errandLine.ts), in page order.
+ * The page lists the nearest; one already being followed stays on it wherever it is.
+ */
+export function tryIds(activities: readonly ActivityDef[], s: GameState, tracked: string | null = null): string[] {
+  const ids = tryRows(activities, s).map((e) => `try:${e.a.id}`);
+  const kept = tracked?.startsWith('try:') && activities.some((a) => `try:${a.id}` === tracked && (s.counters[`activity:${a.id}`] ?? 0) === 0);
+  return kept && tracked && !ids.includes(tracked) ? [tracked, ...ids] : ids;
+}
+
+export function tryHTML(activities: readonly ActivityDef[], s: GameState, tracked: string | null = null, cursor: string | null = null): string {
+  const from = s.player.pos;
+  const ids = tryIds(activities, s, tracked);
+  const rows = ids
+    .map((id) => activities.find((a) => `try:${a.id}` === id))
+    .filter((a): a is ActivityDef => a !== undefined)
+    .map((a) => ({ a, dx: a.pos.x - from.x, dz: a.pos.z - from.z }))
+    .map((e) => ({ ...e, d: Math.hypot(e.dx, e.dz) }));
   const list = (part: typeof rows): string => part.map((e) => {
+    const id = `try:${e.a.id}`;
     const where = e.d < 4 ? 'here' : `${formatDistance(e.d)} ${compassWord(e.dx, e.dz)}`;
     const what = e.a.what ? `<span class="ui-try__what">${esc(e.a.what)}</span>` : '';
-    return `<li class="ui-try"><span class="ui-try__name">${esc(e.a.name)}${what}</span><span class="ui-quest__where">${esc(where)}</span></li>`;
+    const on = id === tracked;
+    const cls = ` is-pickable${id === cursor ? ' is-cursor' : ''}${on ? ' is-tracked' : ''}`;
+    return `<li class="ui-try${cls}" data-quest="${esc(id)}"><span class="ui-try__name">${esc(e.a.name)}${what}</span><span class="ui-quest__where">${esc(on ? `following · ${where}` : where)}</span></li>`;
   }).join('');
-  const near = rows.filter((e) => e.d <= TRY_NEAR);
-  const far = rows.filter((e) => e.d > TRY_NEAR);
+  const near = rows.filter((e) => e.d <= TRY_NEAR || `try:${e.a.id}` === tracked);
+  const far = rows.filter((e) => !near.includes(e));
   let html = '';
   if (near.length > 0) html += `<h3 class="ui-try__head">Things to try close by</h3><ul class="ui-tries">${list(near)}</ul>`;
   if (far.length > 0) html += `<h3 class="ui-try__head">Things to try, a walk away</h3><ul class="ui-tries">${list(far)}</ul>`;
+  // Followed like an errand: critic round 77 read "High Tarn, 36 u west" here and had nothing to follow it by.
+  if (rows.length > 0) html += '<p class="ui-journal__meta">E on one of these follows it, as it does an errand</p>';
   return html;
 }
 

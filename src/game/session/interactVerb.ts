@@ -12,12 +12,13 @@ import { QUESTS } from '../../data/quests';
 import type { InteractionSystem } from '../interactions';
 import type { WorldBuild } from '../world/assemble';
 import type { ActivityRunner } from './activityRunner';
-import type { DialogueFlow } from './dialogueFlow';
+import type { DialogueFlow, PendingOffer } from './dialogueFlow';
 import type { Mechanics } from './mechanics';
 import { NPCS } from '../../data/npcs';
 import { PICKUPS } from '../../data/pickups';
 import { PIP_ASK_ANY, PIP_ASKS } from '../../data/pipAsks';
 import { SPECIES_SIZE } from '../world/npcSpecies';
+import { allSatisfied } from '../../core/progress/conditions';
 
 /** What the counter says when Pip cannot pay. */
 const WORDS_SHOP = {
@@ -83,6 +84,23 @@ export interface InteractVerbDeps {
   sit?(seatId: string): void;
 }
 
+/** The errand put to Pip in this talk, and what Pip's answer does. */
+function offerFor(d: InteractVerbDeps, id: string, npc: string): PendingOffer | undefined {
+  const offered = QUESTS.find((q) => q.id === id);
+  if (!offered) return undefined;
+  const state = d.state;
+  return {
+    title: offered.title,
+    ask: PIP_ASKS[id] ?? PIP_ASK_ANY,
+    accept: () => d.mech.accept(id),
+    // A "not now" is kept in the save: critic round 34 declined Bram's rope and had nothing to find it by.
+    decline: () => {
+      state.flags[`declined:${id}`] = true;
+      declinedAt.set(state, { npc, x: d.player.pos.x, z: d.player.pos.z });
+    },
+  };
+}
+
 /** Returns nothing; every effect goes through the bus or the systems it was given. */
 export function interact(d: InteractVerbDeps): void {
   if (d.flow.isOpen()) return;
@@ -94,7 +112,11 @@ export function interact(d: InteractVerbDeps): void {
     const turned = declinedAt.get(d.state);
     if (turned && turned.npc === target.id) {
       standClear(d.player, target.id);
-      d.flow.remind(target.id);
+      // A word first, then Pip's answer again: critic round 77 read "talk to Bram again to take it on",
+      // asked straight away, and heard only "It'll keep" however often it asked.
+      const kept = QUESTS.find((q) => q.giver === target.id && d.state.flags[`declined:${q.id}`] === true
+        && d.state.quests[q.id] === undefined && allSatisfied(q.requires, d.state));
+      d.flow.remind(target.id, kept ? offerFor(d, kept.id, target.id) : undefined);
       return;
     }
     // The talk is counted first and the node chosen from what it changed (core/progress/conversation),
@@ -102,19 +124,7 @@ export function interact(d: InteractVerbDeps): void {
     const talk = d.mech.talk(target.id);
     if (talk === null) return;
     standClear(d.player, target.id);
-    const offered = talk.offer === null ? undefined : QUESTS.find((q) => q.id === talk.offer);
-    const id = talk.offer;
-    // A "not now" is kept in the save: critic round 34 declined Bram's rope and had nothing to find it by.
-    const state = d.state;
-    d.flow.open(target.id, talk.node, offered && id !== null ? {
-      title: offered.title,
-      ask: PIP_ASKS[id] ?? PIP_ASK_ANY,
-      accept: () => d.mech.accept(id),
-      decline: () => {
-        state.flags[`declined:${id}`] = true;
-        declinedAt.set(state, { npc: target.id, x: d.player.pos.x, z: d.player.pos.z });
-      },
-    } : undefined);
+    d.flow.open(target.id, talk.node, talk.offer === null ? undefined : offerFor(d, talk.offer, target.id));
     return;
   }
 

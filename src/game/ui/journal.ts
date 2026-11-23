@@ -22,7 +22,7 @@ import { formatDistance } from '../../core/guide/compass';
 import { mapHTML, type MapHop } from './journalMap';
 import type { JournalContent, JournalModel } from './journalModel';
 import { formatJournal } from './journalModel';
-import { achHTML, fishHTML, notesHTML, questsHTML, settingsHTML, tryHTML } from './journalTabs';
+import { achHTML, fishHTML, notesHTML, questsHTML, settingsHTML, tryHTML, tryIds } from './journalTabs';
 import { ACTIVITIES } from '../../data/activities';
 import { BINDINGS, KEY, TOUCH, keyName } from '../../core/keys';
 import { tapKey } from '../touch';
@@ -102,7 +102,7 @@ function tabHTML(
         ? mapHTML(s, content.map, content.mapDecor?.(), hop)
         : '<p class="ui-empty">No map to draw: the valley content is not loaded.</p>';
     case 'Quests':
-      return questsHTML(m, tracked, cursor, content.map ? errandWhere(s, content.map) : undefined) + tryHTML(ACTIVITIES, s);
+      return questsHTML(m, tracked, cursor, content.map ? errandWhere(s, content.map) : undefined) + tryHTML(ACTIVITIES, s, tracked, cursor);
     case 'Fish':
       return fishHTML(m, s, content.fish);
     case 'Achievements':
@@ -185,7 +185,8 @@ export function createJournal(root: HTMLElement, content: JournalContent = {}): 
   const paint = (s: GameState): void => {
     state = s;
     const m = formatJournal(s, src);
-    pickable = m.quests.filter((q) => q.trackable).map((q) => q.id);
+    // The things to try come after the errands, as the page lists them: E follows either.
+    pickable = [...m.quests.filter((q) => q.trackable).map((q) => q.id), ...tryIds(ACTIVITIES, s, errands?.trackedId() ?? null)];
     if (cursor === null || !pickable.includes(cursor)) {
       const tracked = errands?.trackedId() ?? null;
       cursor = tracked !== null && pickable.includes(tracked) ? tracked : pickable[0] ?? null;
@@ -195,7 +196,7 @@ export function createJournal(root: HTMLElement, content: JournalContent = {}): 
     panel.classList.toggle('is-map', tab === 'Map');
     body.innerHTML = tabHTML(tab, m, s, src, errands?.trackedId() ?? null, cursor, tab === 'Map' ? hopFor(s) : undefined);
     lastSig = signature(tab, s, errands?.trackedId() ?? null, hopAt);
-    body.querySelector('.ui-quest.is-cursor')?.scrollIntoView?.({ block: 'nearest' });
+    body.querySelector('.ui-quest.is-cursor, .ui-try.is-cursor')?.scrollIntoView?.({ block: 'nearest' });
   };
 
   const follow = (s: GameState, id: string): void => {
@@ -237,7 +238,7 @@ export function createJournal(root: HTMLElement, content: JournalContent = {}): 
       }
       return;
     }
-    const row = (e.target as HTMLElement).closest?.('.ui-quest.is-pickable') as HTMLElement | null;
+    const row = (e.target as HTMLElement).closest?.('.ui-quest.is-pickable, .ui-try.is-pickable') as HTMLElement | null;
     const id = row?.dataset.quest;
     if (id && state) follow(state, id);
   });

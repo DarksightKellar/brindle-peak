@@ -33,12 +33,25 @@
 
 import type { GameState, Vec2 } from '../../core/contracts';
 import type { GuideContent, GuideStep } from '../../core/guide/nextStep';
-import { nextStepFor, nextStepOf, worthShowing } from '../../core/guide/nextStep';
+import { nextStepFor, nextStepOf, place, worthShowing } from '../../core/guide/nextStep';
+import { ACTIVITIES } from '../../data/activities';
 
 /** The save flag that remembers the player's pick: `track:<questId>`. At most one is set. */
 const PIN = 'track:';
 /** The pick that means "the story, no errand". */
 const STORY = '@story';
+/**
+ * A thing to try followed from the journal, `try:<activityId>`, as an errand is: critic round 77 read
+ * "High Tarn, 36 u west" on the Quests page and had nothing to follow it by.
+ */
+export const TRY = 'try:';
+
+/** The activity a `try:` pick names, while Pip has not done it yet. */
+function tryOf(id: string, s: GameState): (typeof ACTIVITIES)[number] | null {
+  if (!id.startsWith(TRY)) return null;
+  const def = ACTIVITIES.find((a) => a.id === id.slice(TRY.length));
+  return def && (s.counters[`activity:${def.id}`] ?? 0) === 0 ? def : null;
+}
 /** The followed errand is this far off or more before a word on the way may stand in for it. */
 const FAR_OFF = 300;
 /** A talk this close takes the line as a word on the way; it keeps it until Pip is WORD_KEEP away. */
@@ -114,11 +127,18 @@ export function createErrandLine(guide: GuideContent): ErrandLine {
     guide.quests.find((q) => q.main === true && nextStepOf(q, s) !== null)?.id ?? null;
 
   const live = (id: string, s: GameState): boolean => {
+    if (id.startsWith(TRY)) return tryOf(id, s) !== null;
     const def = guide.quests.find((q) => q.id === id);
     return def !== undefined && def.main !== true && nextStepOf(def, s) !== null;
   };
 
   const stepOf = (id: string, s: GameState, from: Vec2): GuideStep | null => {
+    const act = tryOf(id, s);
+    if (act) {
+      const what = act.what ? `: ${act.what.charAt(0).toUpperCase()}${act.what.slice(1)}` : '';
+      return { kind: 'quest', questId: id, questTitle: act.name, stepIndex: 0, stepText: `${act.name}${what}.`, ...place(from, act).placed };
+    }
+    if (id.startsWith(TRY)) return null;
     const def = guide.quests.find((q) => q.id === id);
     if (!def || !nextStepOf(def, s)) return null;
     let only = single.get(id);
@@ -159,6 +179,12 @@ export function createErrandLine(guide: GuideContent): ErrandLine {
           tracked = saved;
           pinned = true;
         }
+      }
+      // A followed thing to try is let go once it has been done.
+      if (tracked !== null && tracked.startsWith(TRY) && !live(tracked, s)) {
+        tracked = null;
+        if (pinned) unpin(s);
+        pinned = false;
       }
       for (const def of guide.quests) {
         if (def.main === true) continue;

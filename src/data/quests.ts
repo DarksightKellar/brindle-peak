@@ -216,11 +216,13 @@ export const QUESTS: readonly QuestDef[] = [
   // Bram hands the rope over with the batteries (the-line's `offers`), so it goes up the ridge with the
   // climb, and the word that it is tied comes down with the walk home. Tuck asking first sent Pip from
   // the ridge to Hearth Hollow and back up: 1,500 units for one coil of rope.
+  // It stays open from the stacked woodpile on, not only while Pip holds the batteries: critic round 77
+  // said "not now", and once the batteries reached Edda the rope could never be taken.
   q('tuck-rope', 'The Good Rope', 'bram', 'hearth', "Bram is sending his best rope up to a bridge keeper he hasn't spoken to in years.",
     { offer: 'bram-rope', waiting: 'bram-rope-wait' }, [
       talk('bridge', "Take Bram's good rope up to Tuck at the bridge on Windscar Ridge.", 'tuck', 'tuck-root', { gives: { item: 'key' } }),
       talk('bram', 'Tell Bram by the big pine that Tuck has tied the rope.', 'bram', 'bram-rope-done'),
-    ], { bells: 16 }, { requires: [{ kind: 'hasItem', id: 'batteries' }], gives: { item: 'rope' } }),
+    ], { bells: 16 }, { requires: [{ kind: 'activity', id: 'hearth-kindling' }], gives: { item: 'rope' } }),
 
   q('sable-kite', 'Forty, Gusting', 'sable', 'ridge', 'Sable measures the wind, and she files a report whatever it says.',
     { offer: 'sable-root', waiting: 'sable-wait' }, [

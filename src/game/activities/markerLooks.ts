@@ -38,6 +38,8 @@ export interface PlacedMarker extends MarkerSpec {
   color?: string;
   /** Uniform scale. When set it replaces the strength-based scale. */
   size?: number;
+  /** Drawn faintly through whatever stands in front of it: a race's next gate behind a crag. */
+  through?: boolean;
   /**
    * Group key for a kept piece. Each frame the layer replaces a group with exactly the pieces sent
    * under its key, and leaves every other group alone, so a finished build stays standing after the
