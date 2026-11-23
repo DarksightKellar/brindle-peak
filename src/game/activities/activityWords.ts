@@ -148,7 +148,8 @@ export const WORDS = {
   throwWide: (side: 'left' | 'right' | 'short' | 'long' | null, timing?: 'early' | 'late'): string =>
     side === 'short' || side === 'long'
       ? `${side === 'short' ? 'Fell short' : 'Sailed over'}${timing ? `: ${ARC_WAS[side][timing]}. Let go ${timing === 'early' ? 'later' : 'sooner'}` : ''}`
-      : side ? `Missed, wide ${side}` : 'Missed, by a whisker',
+      // And what to do about it: critic round 76 missed wide right and couldn't tell how to correct.
+      : side ? `Missed, wide ${side}. Aim a touch more ${side === 'left' ? 'right' : 'left'}` : 'Missed, by a whisker',
   // The aim line's cue, until the throw is lined up; A turns the aim left, D right.
   throwTurn: (way: 'left' | 'right'): string => `Aim ${way}`,
   throwOn: `Lined up: hold ${KEY.interact}`,

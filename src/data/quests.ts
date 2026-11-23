@@ -90,7 +90,7 @@ export const QUESTS: readonly QuestDef[] = [
 
   q('nana-home', 'Home Again', 'nana', 'hearth', "Nana will want to hear what you got up to, though she'll probably know already.",
     { offer: 'nana-home-done', waiting: 'nana-home-done' }, [
-      talk('kettle', 'Follow the lit posts home to Nana at the cabin.', 'nana', 'nana-home-done'),
+      talk('kettle', "Follow the lit posts home to Nana at the cabin. Once you're down off the peak, the map can take you.", 'nana', 'nana-home-done'),
     ], { bells: 20 }, { main: true, requires: [done('the-mast')] }),
 
   // ---- Hearth Hollow -------------------------------------------------------

@@ -181,7 +181,7 @@ describe('throw', () => {
       let f = 0;
       while (game.inFlight > 0 && f++ < 300) step(game, h);
       expect(game.hitCount).toBe(0);
-      expect(game.progress()?.label).toMatch(new RegExp(`^Missed, wide ${way} · `));
+      expect(game.progress()?.label).toMatch(new RegExp(`^Missed, wide ${way}\. Aim a touch more ${way === 'left' ? 'right' : 'left'} · `));
     }
   });
 
@@ -219,7 +219,7 @@ describe('throw', () => {
     let f = 0;
     while (game.inFlight > 0 && f++ < 300) step(game, h);
     expect(game.hitCount).toBe(0);
-    expect(game.progress()?.label).toMatch(/^Missed, wide left · Wind from the /);
+    expect(game.progress()?.label).toMatch(/^Missed, wide left\. Aim a touch more right · Wind from the /);
   });
 
   it('reports hits and throws left, and waits for the hit to be seen before closing', () => {

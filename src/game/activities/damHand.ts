@@ -19,8 +19,11 @@ export const DAM = {
   /** The stream's push, metres a second: `current` on average, eddying `eddy` either side. */
   current: 0.5,
   eddy: 0.25,
-  /** How fast A / D moves the stone along the wall, metres a second, against or with the current. */
-  steer: 1.3,
+  /**
+   * How fast A / D moves the stone along the wall, metres a second, against or with the current. At 1.3,
+   * against a strong eddy it crept back at 0.55 a second, and critic round 76 called the stone sluggish.
+   */
+  steer: 1.6,
   /** Within this many metres of its gap the stone drops in true. */
   gap: 0.22,
   /**

@@ -116,7 +116,10 @@ export function questsHTML(
     // Critic round 46 met "line under the goal", "the goal only" and "active" on the same page and could
     // not tell which was being followed: whatever E picked now says "following", story or errand.
     const status = on ? 'following' : q.main && q.status === 'active' ? 'the goal'
-      : q.status === 'available' ? 'on offer' : q.status === 'locked' ? 'waiting' : q.status;
+      : q.status === 'available' ? 'on offer' : q.status === 'locked' ? 'waiting'
+      // A finished chapter of the story isn't an errand: critic round 76 counted two "complete" here and
+      // read "Errands for villagers 1 of 18" on the end card as a mismatch.
+      : q.main && q.status === 'complete' ? 'story, done' : q.status;
     const pick = q.trackable ? ` is-pickable${q.id === cursor ? ' is-cursor' : ''}${on ? ' is-tracked' : ''}` : '';
     return (
       `<li class="ui-quest is-${q.status}${pick}" data-quest="${esc(q.id)}"><div class="ui-quest__row"><span class="ui-quest__title">${tick}${esc(q.title)}</span>` +

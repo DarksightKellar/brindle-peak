@@ -43,6 +43,12 @@ const NPC_EDGE = 1.5;
  * woodpile's ring, 6 m from its post, and got TALK for Bram, who stood nearer, instead of STACK.
  */
 const WANTED_REACH = 2;
+/**
+ * Extra reach (metres) for talking to anyone. A held key walks one straight line, so the last few metres
+ * to a villager were a run of overshoots: critic round 76 circled Nana's door at 12 u four times and
+ * Hollis from 55 u down to 33 u. A step or two further out, the prompt comes up on the first pass.
+ */
+const TALK_REACH = 2;
 
 /** Distance as `priority` sees it: a person reads as standing a little nearer than they are. */
 const reach = (it: Interactable, d2: number): number => {
@@ -73,7 +79,7 @@ export function createInteractionSystem(
         const dz = it.pos.z - playerPos.z;
         const raw = dx * dx + dz * dz;
         const w = wanted(it);
-        const r = it.radius + (w ? WANTED_REACH : 0);
+        const r = it.radius + (w ? WANTED_REACH : 0) + (it.kind === 'npc' ? TALK_REACH : 0);
         if (raw > r * r || !usable(it)) continue;
         const d2 = reach(it, raw);
         if (bestWanted && !w) continue;

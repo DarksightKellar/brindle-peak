@@ -38,11 +38,18 @@ export const NOTICE_MS = 12000;
  * names each once for a few seconds; critic round 6 overshot the deer run after its line had gone and
  * had nothing left on screen to turn back to. The strip keeps them while they are near.
  */
+/**
+ * The strip shows things to do from further off than the line names them. Critic round 76 read "Steam
+ * Columns, 44 u" in the journal and twice walked the wrong way at it: at 60 u the strip's mark came too
+ * late to steer by.
+ */
+export const TODO_RANGE = 100;
+
 export function nearbyTodo(activities: readonly ActivityDef[], s: GameState, from: Vec2): Vec2[] {
   return activities
     .filter((a) => (s.counters[`activity:${a.id}`] ?? 0) === 0)
     .map((a) => ({ a, d: Math.hypot(a.pos.x - from.x, a.pos.z - from.z) }))
-    .filter((e) => e.d < NOTICE_RANGE && e.d > 3)
+    .filter((e) => e.d < TODO_RANGE && e.d > 3)
     .sort((x, y) => x.d - y.d)
     .map((e) => e.a.pos);
 }
