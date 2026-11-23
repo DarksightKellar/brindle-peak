@@ -16,6 +16,11 @@ describe('a goal along a route (critic round 17, the pin through the north face)
     expect(at?.aim.z).toBeCloseTo(12); // 2 to the corner, 12 up the second leg
   });
 
+  it('says how far off the path Pip stands, for the goal line\'s "once you\'re back on it" (critic round 112)', () => {
+    expect(routeAim(routes, { x: 50, z: 2 }, top)?.off).toBeCloseTo(2);
+    expect(routeAim(routes, { x: 50, z: -30 }, top)?.off).toBeCloseTo(30);
+  });
+
   it('points straight within reach of the target (critic round 18: "73 u, behind you" beside Bram)', () => {
     expect(routeAim(routes, { x: 100, z: 90 }, top)).toBeNull();
     expect(routeAim(routes, { x: 20, z: 3 }, foot)).toBeNull();

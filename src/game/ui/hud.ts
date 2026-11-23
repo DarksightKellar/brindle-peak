@@ -111,6 +111,12 @@ const SWITCH_SHOW = 5000;
  * nothing saying either was the way round.
  */
 const BY_TRAIL = ' by the trail';
+/**
+ * Said after BY_TRAIL when Pip is OFF_TRAIL or more off it. Critic rounds 108 and 112 walked off the trail,
+ * watched the number climb as the pin led them back, and found nothing saying they had left it.
+ */
+const BACK_ON = ", once you're back on it";
+const OFF_TRAIL = 15;
 /** In place of a distance when the prompt up acts on the line's own target. */
 const HERE = 'here';
 
@@ -176,6 +182,8 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
 
   /** The walk left to the goal when it follows a route rather than the straight line (route.ts). */
   let goalDistance: number | undefined;
+  /** How far Pip stands off the trail the goal follows, when it follows one. */
+  let goalOff = 0;
   let buildings: readonly GuideBox[] = [];
   /** After the story with an errand under way: the unmet villager the goal line names, for its own mark. */
   let helloAt: Vec2 | null = null;
@@ -209,6 +217,7 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
     pointed = point;
     const routed = point ? trailAim(point) : null;
     goalDistance = routed?.distance;
+    goalOff = routed?.off ?? 0;
     return routed?.aim ?? point;
   };
 
@@ -290,7 +299,7 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
         const goal = unmet
           ? `${line.replace(/\.$/, '')}: ${formatDistance(away)}, ${viewWay(unmet.pos.x - p.pos.x, unmet.pos.z - p.pos.z, viewYaw)}.`
           : storyAway !== null && line !== ''
-            ? `${line.replace(/\.$/, '')} — ${atHand(pointed) ? HERE : `${formatDistance(storyAway)}${goalDistance !== undefined ? BY_TRAIL : ''}`}`
+            ? `${line.replace(/\.$/, '')} — ${atHand(pointed) ? HERE : `${formatDistance(storyAway)}${goalDistance !== undefined ? `${BY_TRAIL}${goalOff >= OFF_TRAIL ? BACK_ON : ''}` : ''}`}`
             : line;
         if (goal !== lastGoal) {
           lastGoal = goal;
@@ -339,7 +348,7 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
         // A word on the way (errandLine.ts) says so, so the followed errand isn't thought dropped.
         const here = atHand(errandTarget);
         const said = errands?.onTheWay() ? formatNextStep(walked, here).replace(/^Next: /, 'On the way: ') : formatNextStep(walked, here);
-        const errandText = step ? `${now}${said}${errandRoute && walked?.distance !== null && !here ? BY_TRAIL : ''}${offStrip(errandAim)}${hopHint(s, step)}` : '';
+        const errandText = step ? `${now}${said}${errandRoute && walked?.distance !== null && !here ? `${BY_TRAIL}${errandRoute.off >= OFF_TRAIL ? BACK_ON : ''}` : ''}${offStrip(errandAim)}${hopHint(s, step)}` : '';
         if (feather.line !== '') writeNext(feather.line, null);
         // Two lines at most under the compass: critic round 57 read four, "Now on the line", the errand,
         // its wrap and a nearby line. The nearby line waits while the switch is being said.

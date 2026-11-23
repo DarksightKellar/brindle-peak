@@ -50,6 +50,8 @@ export interface RouteAim {
   aim: Vec2;
   /** Walking distance left: to the path, along it, and on to the target. */
   distance: number;
+  /** How far Pip stands off the path. */
+  off: number;
 }
 
 /** Among the cliffs, Pip this far off the path is not on the trail, and is led back to it (routeAim). */
@@ -164,14 +166,14 @@ export function routeAim(routes: readonly GuideRoute[], from: Vec2, target: Vec2
         held = true;
       }
     }
-    if (!held && (up ? goal >= total : goal <= 0)) return { aim: target, distance };
+    if (!held && (up ? goal >= total : goal <= 0)) return { aim: target, distance, off: best };
     let s = 0;
     for (let i = 0; i < lengths.length; i++) {
       if (aimAt <= s + lengths[i] || i === lengths.length - 1) {
         const t = lengths[i] > 0 ? (aimAt - s) / lengths[i] : 0;
         const [ax, az] = p[i];
         const [bx, bz] = p[i + 1];
-        return { aim: { x: ax + (bx - ax) * t, z: az + (bz - az) * t }, distance };
+        return { aim: { x: ax + (bx - ax) * t, z: az + (bz - az) * t }, distance, off: best };
       }
       s += lengths[i];
     }
@@ -233,9 +235,10 @@ export function aroundAim(boxes: readonly GuideBox[], from: Vec2, target: Vec2):
     });
     if (!best) continue;
     const { legs, distance } = best as { legs: Vec2[]; distance: number };
-    if (span(from, legs[0]) > AT_CORNER) return { aim: legs[0], distance };
+    // Round a building there is no trail to be off.
+    if (span(from, legs[0]) > AT_CORNER) return { aim: legs[0], distance, off: 0 };
     // On the corner: the next leg, or straight on when the target is round it.
-    return legs.length > 1 ? { aim: legs[1], distance } : null;
+    return legs.length > 1 ? { aim: legs[1], distance, off: 0 } : null;
   }
   return null;
 }
