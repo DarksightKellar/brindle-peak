@@ -104,6 +104,10 @@ export const WORDS = {
   stoneHold: 'The current has it. Steer it back between the two lights',
   cairnPick: 'The biggest stone still on the ground goes on next',
   cairnWrong: "That one won't sit there yet. A bigger one has to go under it",
+  // Which stone it is, said as the pick moves: critic round 99 misjudged the sizes and was turned back
+  // again and again. The ring shows the pick; this says whether it is the one, and if not, which way.
+  cairnRight: "That's the biggest one left. Set it on top",
+  cairnBigger: (side: 'left' | 'right' | null): string => `A bigger stone is still on the ground${side ? `, to your ${side}` : ''}`,
   /** A press before the stone has caught: nothing is lost, the stone stays in hand. */
   stoneOff: 'Not yet. Steer it between the two lights, and it catches there',
   /** Pressed again straight after a press: the woodpile and the dam both take one press per swing. */

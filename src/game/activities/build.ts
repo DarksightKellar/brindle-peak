@@ -184,6 +184,16 @@ export class BuildActivity implements ActivityInstance {
     return -(wx * Math.sin(f) + wz * Math.cos(f));
   }
 
+  /** Which side of the pick, as the view shows it, the stone that goes on next lies; null when it is the pick. */
+  private biggerSide(): 'left' | 'right' | null {
+    const at = this.slots.indexOf(this.stage);
+    if (at < 0 || at === this.pick) return null;
+    // D's push along the row: with the view square on to it, D moves the pick one way and A the other.
+    const d = this.alongRow(1, 0);
+    if (Math.abs(d) < 0.3) return null;
+    return (at > this.pick) === (d > 0) ? 'right' : 'left';
+  }
+
   /** The cairn: a push moves the pick along the row, a press tries the picked stone on top. */
   private choose(push: number, pressed: boolean): void {
     const dir = Math.abs(push) > 0.5 && Math.abs(this.lastPush) <= 0.5 ? Math.sign(push) : 0;
@@ -313,7 +323,10 @@ export class BuildActivity implements ActivityInstance {
     }
     if (this.isCairn) {
       const wrong = this.elapsed - this.wrongAt < 2.5;
-      return { label: `${wrong ? WORDS.cairnWrong : WORDS.cairnPick} · ${count}`, fraction: placed / total };
+      const right = this.slots[this.pick] === this.stage;
+      const said = wrong ? `${WORDS.cairnWrong}. ${WORDS.cairnBigger(this.biggerSide())}`
+        : placed >= total ? WORDS.cairnPick : right ? WORDS.cairnRight : WORDS.cairnBigger(this.biggerSide());
+      return { label: `${said} · ${count}`, fraction: placed / total, urgent: right && !wrong };
     }
     const miss = this.aligned ? this.hand.miss(this.elapsed) : null;
     // The moment is said for every log. Round 16 said it for the first only, and critic round 16 read

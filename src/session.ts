@@ -45,7 +45,8 @@ import { setSteamLens } from './game/world/steam';
 import { PHOTO_SUBJECTS } from './game/activities/photoSubjects';
 import { WORDS } from './game/activities/activityWords';
 import { advancePlayer } from './game/session/playerAdvance';
-import { createSteepNudge } from './game/session/steepNudge';
+import { createSteepNudge, OFF_TRAIL_FAR, OFF_TRAIL_NEAR } from './game/session/steepNudge';
+import { wayDistance } from './game/world/trail';
 import { TUNING } from './core/player/tuning';
 import { CLIMB_MIN_SLOPE } from './core/player/step';
 import { pushFrame } from './game/session/frameFeedback';
@@ -283,7 +284,8 @@ export function createSession(opts: SessionOptions): Session {
         : player.grounded && ahead.slope > TUNING.climbMaxSlope ? 'wall'
         : ahead.slope > CLIMB_MIN_SLOPE && player.stamina < 1 ? 'breath'
         : null;
-      const said = steep.update(dt, into, speed);
+      const fromTrail = into === 'breath' ? wayDistance(player.pos.x, player.pos.z) : 0;
+      const said = steep.update(dt, into, speed, fromTrail >= OFF_TRAIL_NEAR && fromTrail <= OFF_TRAIL_FAR);
       if (said) bus.emit('toast', { text: said, icon: 'mountain', tier: 'discovery' });
     }
 

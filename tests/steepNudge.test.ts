@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { BREATH_WORDS, createSteepNudge, STEEP_WORDS } from '../src/game/session/steepNudge';
+import { BREATH_WORDS, createSteepNudge, OFF_TRAIL_WORDS, STEEP_WORDS } from '../src/game/session/steepNudge';
+import { wayDistance } from '../src/game/world/trail';
 
 describe('steep nudge', () => {
   it('speaks after Pip pushes into a face too steep to climb, then keeps quiet a while', () => {
@@ -27,5 +28,16 @@ describe('steep nudge', () => {
     let said: string | null = null;
     for (let i = 0; i < 60 * 3 && said === null; i++) said = n.update(1 / 60, 'breath', 0.1);
     expect(said).toBe(BREATH_WORDS);
+  });
+
+  // Critic round 99 was winded twice on Windscar's rock below the trail and read "push into the slope again".
+  it('off the trail, a winded climb is told the trail goes round instead', () => {
+    const n = createSteepNudge();
+    let said: string | null = null;
+    for (let i = 0; i < 60 * 3 && said === null; i++) said = n.update(1 / 60, 'breath', 0.1, true);
+    expect(said).toBe(OFF_TRAIL_WORDS);
+    // The critic's face, and the trail beside it.
+    expect(wayDistance(205, -215)).toBeGreaterThan(8);
+    expect(wayDistance(198, -231)).toBeLessThan(1);
   });
 });
