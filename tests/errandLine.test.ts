@@ -44,6 +44,24 @@ describe('the line under the goal', () => {
     expect(line.switched()).toBeNull(); // said once
   });
 
+  it('an errand just taken on takes the line from a followed thing to try (critic round 106)', () => {
+    const s = fresh();
+    const line = createErrandLine(guide);
+    line.pick(s, { x: 0, z: 0 });
+    line.track(s, 'try:pinewind-pinecone-throw');
+    line.pick(s, { x: 0, z: 0 });
+    expect(line.trackedId()).toBe('try:pinewind-pinecone-throw');
+    take(s, 'bundle');
+    line.pick(s, { x: 0, z: 0 });
+    expect(line.trackedId()).toBe('bundle');
+    expect(line.switched()).toBe('The Bundle');
+    // A followed errand still holds against the next one taken on.
+    line.track(s, 'bundle');
+    take(s, 'later');
+    line.pick(s, { x: 0, z: 0 });
+    expect(line.trackedId()).toBe('bundle');
+  });
+
   it('a talk a few steps away stands in for a far errand, then the line goes back (critic round 45)', () => {
     const far: GuideContent = {
       ...guide,

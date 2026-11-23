@@ -219,7 +219,17 @@ export function createErrandLine(guide: GuideContent): ErrandLine {
         // step 800 u behind it under the goal the whole way up.
         const further = handed && tracked !== null && tracked !== def.id && live(tracked, s)
           && (stepOf(def.id, s, from)?.distance ?? Infinity) > (stepOf(tracked, s, from)?.distance ?? Infinity);
-        if (chosen && !pinned && !story && !further) tracked = def.id;
+        // But an errand just said yes to takes the line from a followed thing to try: critic round 106
+        // followed the Thermal Descent once, took on eight errands after it, and read "Next: Thermal
+        // Descent, 1000 u" for the rest of the run. A thing to try is a whim; an errand is a promise.
+        const overTry = handed && pinned && tracked !== null && tracked.startsWith(TRY);
+        if (chosen && (!pinned || overTry) && !story && (!further || overTry)) {
+          if (overTry) {
+            unpin(s);
+            pinned = false;
+          }
+          tracked = def.id;
+        }
       }
       seeded = true;
 
