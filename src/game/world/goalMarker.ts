@@ -18,7 +18,8 @@
  *
  * The tracked errand gets a second, lesser marker (`SIDE_LOOK`): a smaller amber gem on a shorter,
  * fainter column, the world's copy of the dimmer diamond under the compass strip. The warm pool, Ivy
- * and Gus's bell were found by trial and error when only the story had a mark.
+ * and Gus's bell were found by trial and error when only the story had a mark. Only one arrow lies on
+ * the snow at a time, the nearer target's.
  */
 
 import * as THREE from 'three';
@@ -146,8 +147,16 @@ export function mountGoalMarker(d: GoalMarkerDeps): GoalMarker {
     const dt = Math.min(0.1, (now - last) / 1000);
     last = now;
     const show = !held && !d.busy();
-    marker.update(dt, target, from, d.camera, show);
-    side.update(dt, errand, from, d.camera, show, !marker.arrowShown);
+    // The nearer of the two lays its arrow: critic round 96 followed Bram's errand, 11 u behind it, while
+    // the only arrow on the snow pointed the other way, at the goal 42 u off.
+    const far = (p: Vec2 | null): number => (p ? Math.hypot(p.x - from.x, p.z - from.z) : Infinity);
+    if (far(errand) < far(target)) {
+      side.update(dt, errand, from, d.camera, show);
+      marker.update(dt, target, from, d.camera, show, !side.arrowShown);
+    } else {
+      marker.update(dt, target, from, d.camera, show);
+      side.update(dt, errand, from, d.camera, show, !marker.arrowShown);
+    }
   });
   return marker;
 }

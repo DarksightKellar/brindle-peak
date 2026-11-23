@@ -29,6 +29,8 @@ import { KEY } from '../../core/keys';
 export const WORDS = {
   // Sled readout and result
   rings: (got: number, total: number): string => `Rings ${got} of ${total}`,
+  /** A villager's count beside the running one, so a run short of it shows while it can still be caught up. */
+  ringsPar: (who: string, count: number): string => `${who} got ${count}`,
   /**
    * Which way the next ring is: critic round 18 took 0 of 5 and 3 of 12 steering by eye, and called the
    * rings luck. No key: the director's call (round 47), the opening teaches walking and steering.
@@ -165,7 +167,7 @@ export const WORDS = {
   /** While E is held and the arc is bold: letting go now hits. */
   throwNow: 'Let go!',
   /** Pressed while the last throw is still in the air. */
-  throwWait: 'Wait for that one to land',
+  throwWait: 'Keep holding, and the next throw starts once that one lands',
   // The big cues in the middle of the view (ActivityReadout.cue): the moment, and the key.
   cueBite: `Now! Press ${KEY.interact}`,
   cueSquare: `Square! Press ${KEY.interact}`,

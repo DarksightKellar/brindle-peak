@@ -143,6 +143,8 @@ export class TargetActivity implements ActivityInstance {
   /** The last throw's outcome and when it landed (`elapsed`), for the panel and the hit ring. */
   /** `elapsed` at a press made while a throw was still in the air. */
   private waitAt = -9;
+  /** A press made while a throw was in the air, kept while F stays held. */
+  private queued = false;
   private call: { hit: boolean; at: number; pos: Vec3; side: Side; timing?: Timing } | null = null;
   /**
    * How the throw in flight was let go: whether the aim was on the target (so a miss was the strength)
@@ -198,6 +200,7 @@ export class TargetActivity implements ActivityInstance {
     this.swallowPress = true;
     this.call = null;
     this.waitAt = -9;
+    this.queued = false;
     /*
      * Open aimed near the middle of what is to be hit, but not on it: pointed straight at the bell, the
      * first press rang it and the round was over before it began. The aim starts a little way off,
@@ -261,8 +264,16 @@ export class TargetActivity implements ActivityInstance {
     if (this.draw < 0) {
       // A press while the last throw is still flying is said, not silently dropped: critic round 88 pressed
       // between throws, nothing happened, and it took the toss to be ignoring it.
-      if (pressed && this.decidedAt < 0 && this.throwsLeft > 0 && (this.shots.length > 0 || this.cooldown > 0)) this.waitAt = this.elapsed;
-      if (pressed && this.decidedAt < 0 && this.cooldown <= 0 && this.throwsLeft > 0 && this.shots.length === 0) {
+      if (pressed && this.decidedAt < 0 && this.throwsLeft > 0 && (this.shots.length > 0 || this.cooldown > 0)) {
+        this.waitAt = this.elapsed;
+        this.queued = true;
+      }
+      // That press, still held when the throw lands, starts the next draw: critic round 96 pressed and held
+      // F while one was in the air and found the hold lost.
+      if (!host.input.interactHeld) this.queued = false;
+      const go = pressed || this.queued;
+      if (go && this.decidedAt < 0 && this.cooldown <= 0 && this.throwsLeft > 0 && this.shots.length === 0) {
+        this.queued = false;
         this.draw = 0;
         this.locked = this.predict();
         this.litAt = -Infinity;
@@ -606,6 +617,11 @@ export class TargetActivity implements ActivityInstance {
 
   get inFlight(): number {
     return this.shots.length;
+  }
+
+  /** F is held on a throw being drawn. */
+  get drawing(): boolean {
+    return this.draw >= 0;
   }
 
   /**

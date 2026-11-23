@@ -246,8 +246,10 @@ export class SledActivity implements ActivityInstance {
     const bend = next !== undefined && !on && Math.sign(this.screenSide(next)) !== Math.sign(off);
     const cue = next ? `${bend ? WORDS.sledBend : WORDS.sledRing(on ? 'on' : off > 0 ? 'right' : 'left')} · ` : '';
     const counted = this.run.elapsed - this.ringAt < FLASH;
+    const par = VILLAGER_BESTS[this.def.id];
     return {
-      label: `${cue}${WORDS.rings(got, this.rings.length)}`,
+      // Ivy's or Skiff's count beside it: critic round 96 learned it had fallen short only on the result card.
+      label: `${cue}${WORDS.rings(got, this.rings.length)}${par?.count ? ` · ${WORDS.ringsPar(par.who, par.count)}` : ''}`,
       fraction: Math.min(1, this.run.distance / this.path.length),
       urgent: counted || (next !== undefined && Math.abs(off) <= SLED.ringReach * 0.6),
       cue: counted ? WORDS.sledThrough(got) : undefined,

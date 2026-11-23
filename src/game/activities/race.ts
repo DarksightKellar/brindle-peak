@@ -32,8 +32,11 @@ import { floorArrowTo, steadyRound, steadyWay, type Way } from './pointer';
 const LEFT_COURSE = 70;
 /** A gate on foot this much higher than Pip is said to be up the rock. */
 const GATE_ABOVE = 3;
-/** Past this from the next gate the line warns that the run is about to end. */
-const STRAY = 45;
+/**
+ * Past this from the next gate the line warns that the run is about to end. 30 since critic round 96 ran
+ * on past gate 3 and was called off without seeing it: just past the longest leg (24 u) and its gate.
+ */
+const STRAY = 30;
 /** A hoop counts within this many metres of its centre height (so walking under one does not). */
 const HOOP_BAND = 2.8;
 /** The hoop mesh sits this far above its marker base (world/activityMarkers.ts PROTOTYPES.hoop.lift). */
@@ -240,7 +243,8 @@ export class RaceActivity implements ActivityInstance {
     // critic round 49 read it, then "through 1 of 8 hoops" at the end. The count through says so as it
     // goes, from the first hoop on: critic round 51 could not tell from the screen how its run stood.
     const missed = this.course.look === 'hoop' && this.next > 0 ? ` · ${WORDS.hoopsThrough(this.reached)}` : '';
-    const away = Math.hypot(this.course.gates[this.next]?.x - p.x, this.course.gates[this.next]?.z - p.z);
+    // From the gate the words point at: for hoops, a missed one behind is not the one to turn back for.
+    const away = Math.hypot(g.x - p.x, g.z - p.z);
     const stray = away > STRAY ? `${WORDS.raceStray} · ` : '';
     return { label: `${stray}${lead}${missed} · ${WORDS.gateWay(Math.hypot(g.x - p.x, g.z - p.z), way, round)}${rise}`, fraction: total === 0 ? 0 : this.next / total, urgent: stray !== '' || undefined };
   }

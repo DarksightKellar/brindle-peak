@@ -88,7 +88,7 @@ html, body { margin: 0; height: 100%; background: var(--night); }
 .ui-dlg__choice { padding: 5px 12px; background: transparent; border: 1px solid var(--snow-sh); color: var(--lantern); cursor: pointer; clip-path: var(--tag); }
 .ui-dlg__choice:hover, .ui-dlg__choice.is-picked { background: rgba(255, 196, 106, 0.16); border-color: var(--lantern); }
 .ui-dlg__choice.is-sel { background: rgba(255, 196, 106, 0.22); border-color: var(--lantern); color: var(--snow-hi); } /* ↑↓ move this; unseen, the keys are guesswork */
-.ui-dlg__choices.is-arming { opacity: 0.55; } /* just appeared: E is still the reader's (dialogue.ts CHOICE_ARM) */
+.ui-dlg__choices.is-arming .ui-dlg__choice:not(.is-sel) { opacity: 0.55; } /* just appeared: E is still the reader's (dialogue.ts CHOICE_ARM); the picked one stays bright, so which is picked shows at once (critic round 96) */
 .ui-dlg__hint { position: absolute; right: 16px; bottom: 6px; padding: 0 4px; border: 1px solid var(--snow-sh); color: var(--snow-mid); font-size: 11px; }
 .ui-dlg__hint.is-choosing { display: flex; align-items: center; gap: 6px; padding: 2px 6px; border-color: var(--lantern); color: var(--snow-hi); font-size: 12px; } .ui-dlg__hint kbd { font: inherit; font-weight: 700; padding: 0 4px; background: var(--lantern); color: var(--night); }
 

@@ -82,6 +82,34 @@ describe('throw', () => {
     return { hits: game.hitCount, awards: h.awards, frames };
   }
 
+  it('F pressed and held while a throw is in the air starts the next draw when it lands (critic round 96)', () => {
+    const d = def('throw', 'pinewind-pinecone-throw', { x: -206, z: 160 });
+    const game = createTargetActivity(d);
+    const h = host({ x: d.pos.x, y: 0, z: d.pos.z });
+    game.start(h);
+    step(game, h);
+    throwHeld(game, h, 27);
+    expect(game.inFlight).toBe(1);
+    step(game, h, { interactPressed: true, interactHeld: true });
+    expect(game.drawing).toBe(false);
+    let f = 0;
+    while (!game.drawing && f++ < 300) step(game, h, { interactHeld: true });
+    expect(game.drawing).toBe(true);
+    expect(game.inFlight).toBe(0);
+  });
+
+  it('a press let go while a throw is in the air is not kept', () => {
+    const d = def('throw', 'pinewind-pinecone-throw', { x: -206, z: 160 });
+    const game = createTargetActivity(d);
+    const h = host({ x: d.pos.x, y: 0, z: d.pos.z });
+    game.start(h);
+    step(game, h);
+    throwHeld(game, h, 27);
+    step(game, h, { interactPressed: true, interactHeld: true });
+    for (let f = 0; f < 300; f++) step(game, h);
+    expect(game.drawing).toBe(false);
+  });
+
   it('the pinecone toss ends on three hits and pays once', () => {
     const r = play(def('throw', 'pinewind-pinecone-throw', { x: -206, z: 160 }), true);
     expect(r.hits).toBe(3);
