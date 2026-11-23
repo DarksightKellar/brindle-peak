@@ -61,6 +61,17 @@ describe('close in a straight line, far round by the path (critic round 90, Tuck
     expect(routeAim(end, { x: 112, z: 112 }, { x: 113, z: 115 })).toBeNull();
   });
 
+  it('leads back to the path first from off it among the cliffs (critic round 102 above the gorge)', () => {
+    // The last leg runs west to the end; Pip stands 16 u north of it, 43 u from the target, with the gorge
+    // between. Straight would be within the old 'close along the path' allowance; off the trail it is not.
+    const gorge = [{ path: [[300, -100], [200, -16], [140, -16]] as const, slantUntil: 0 }];
+    const r = routeAim(gorge, { x: 195, z: 0 }, { x: 153, z: -13 });
+    expect(r).not.toBeNull();
+    expect(r?.aim.z).toBeCloseTo(-16); // onto the trail, not across the gorge
+    // From the trail itself, the same target is pointed at straight.
+    expect(routeAim(gorge, { x: 184, z: -16 }, { x: 153, z: -13 })).toBeNull();
+  });
+
   it('points straight at a target close at hand on open ground (critic round 91 beside Bram)', () => {
     // The trail's start by the cabin: Pip a little way out along it, the woodpile just off its start.
     const open = [{ path: [[0, 0], [400, 0], [400, -100]] as const, slantUntil: 1 }];

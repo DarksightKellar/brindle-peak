@@ -52,6 +52,10 @@ export interface RouteAim {
   distance: number;
 }
 
+/** Among the cliffs, Pip this far off the path is not on the trail, and is led back to it (routeAim). */
+const ON_PATH = 8;
+/** A target this close is pointed at straight wherever Pip stands. */
+const FACE_TO_FACE = 25;
 /** A hold this far off the path is not on it. */
 const HOLD_ON = 4;
 /** A hold this far behind along the path is given up: walked past, it no longer turns the pin round. */
@@ -126,7 +130,11 @@ export function routeAim(routes: readonly GuideRoute[], from: Vec2, target: Vec2
     const walk = best + (up ? total - at : at) + Math.hypot(target.x - (up ? ex : sx), target.z - (up ? ez : sz));
     const cliffs = r.slantUntil !== undefined && at >= (bends[r.slantUntil] ?? total) - AHEAD;
     const apart = Math.abs(at - along(p, target).at);
-    if (straight <= END_REACH && (!cliffs || apart <= straight * DETOUR + 15)) continue;
+    // Among the cliffs the straight line is taken only from the trail itself: critic round 102 stood 16 u
+    // off it above the gorge under Tuck's bridge, read Tuck 43 u straight, walked the pin down into the
+    // gorge and stuck against its far wall. Close at hand (FACE_TO_FACE) or at the path's end, it still is.
+    const offCliffs = cliffs && best > ON_PATH && straight > FACE_TO_FACE && (up ? total - at : at) > AHEAD;
+    if (straight <= END_REACH && (!cliffs || apart <= straight * DETOUR + 15) && !offCliffs) continue;
     if (at < (bends[r.leaves ?? 0] ?? 0) - AHEAD) continue;
 
     // The aim waits at the next bend until Pip is nearly there: past it, a stake on the spur stood in

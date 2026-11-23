@@ -35,7 +35,8 @@ export const ROLL = {
    * at 0.24, not 0.16: critic round 24 saw "a tiny faceted shard" rather than a snowball.
    */
   start: 0.24,
-  grow: 0.08,
+  // 0.1 since critic round 102, which took 25 s over the first ball and called the whole build long.
+  grow: 0.1,
   /** Gap kept between Pip and the ball's surface. */
   gap: 0.35,
   /**
@@ -46,10 +47,11 @@ export const ROLL = {
   /**
    * Metres (rim to spot) inside which a full ball leans toward the spot while Pip pushes within `cone` of
    * it. The words name the nearest of eight key lines, up to 22 degrees off, and critic round 34 pushed a
-   * full ball along one past the ring's edge.
+   * full ball along one past the ring's edge. Wider since critic round 102 lined the ball up with the ring
+   * by walking round it, a careful job with the view swinging: now walking at the ring is enough.
    */
-  near: 4,
-  cone: Math.PI / 4,
+  near: 7,
+  cone: Math.PI / 2.5,
   /** Radians a second the ball swings round Pip when Pip turns: it goes round the outside, not through. */
   swing: 5,
 } as const;
