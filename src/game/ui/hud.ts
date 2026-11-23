@@ -346,9 +346,11 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
         const now = performance.now() < switchedUntil ? `Now on the line: ${switchedTitle}
 ` : '';
         // A word on the way (errandLine.ts) says so, so the followed errand isn't thought dropped.
+        // "here" says where it is: no way to turn after it. Critic round 113 read "— here — behind you, to your
+        // right" beside Tuck.
         const here = atHand(errandTarget);
         const said = errands?.onTheWay() ? formatNextStep(walked, here).replace(/^Next: /, 'On the way: ') : formatNextStep(walked, here);
-        const errandText = step ? `${now}${said}${errandRoute && walked?.distance !== null && !here ? `${BY_TRAIL}${errandRoute.off >= OFF_TRAIL ? BACK_ON : ''}` : ''}${offStrip(errandAim)}${hopHint(s, step)}` : '';
+        const errandText = step ? `${now}${said}${errandRoute && walked?.distance !== null && !here ? `${BY_TRAIL}${errandRoute.off >= OFF_TRAIL ? BACK_ON : ''}` : ''}${here ? '' : offStrip(errandAim)}${hopHint(s, step)}` : '';
         if (feather.line !== '') writeNext(feather.line, null);
         // Two lines at most under the compass: critic round 57 read four, "Now on the line", the errand,
         // its wrap and a nearby line. The nearby line waits while the switch is being said.
