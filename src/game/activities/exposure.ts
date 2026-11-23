@@ -11,12 +11,13 @@
 
 export const EXPOSURE = {
   /** Seconds on the curtain that fill the exposure. */
-  seconds: 2.4,
+  seconds: 2,
   /** The keys turn the view this much slower while the shutter is open: steady hands. */
   fine: 0.4,
   /** Peak drift, radians a second, sideways and up/down. */
-  driftYaw: 0.16,
-  driftPitch: 0.08,
+  // Steadier since critic round 82, which felt the frame swing off the curtain as soon as it pressed.
+  driftYaw: 0.1,
+  driftPitch: 0.05,
 } as const;
 
 function reducedMotion(): boolean {

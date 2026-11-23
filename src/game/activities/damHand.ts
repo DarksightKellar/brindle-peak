@@ -16,16 +16,19 @@ import { SWING } from './logSwing';
 
 export const DAM = {
   /** The stream's push, metres a second: `current` on average, eddying `eddy` either side. */
-  current: 0.5,
-  eddy: 0.25,
+  // Gentler since critic round 82: steering in short presses, it lost between presses what each one won.
+  current: 0.35,
+  eddy: 0.2,
   /**
    * How fast A / D moves the stone along the wall, metres a second, against or with the current. At 1.3,
    * against a strong eddy it crept back at 0.55 a second, and critic round 76 called the stone sluggish;
    * at 1.6 critic round 78 still held A a full second to bring it home.
    */
   steer: 2,
-  /** Within this many metres of its gap the stone catches there. */
-  gap: 0.3,
+  /** Within this many metres of its gap the stone catches there: half way from a post to the middle. */
+  gap: 0.45,
+  /** Metres from its gap to each of the two posts of light either side of it. */
+  post: 0.9,
   /** Furthest the stone goes off its gap: over a neighbour, in either direction. */
   reach: 1.6,
   /** Where each stone comes up: downstream, where the water has carried it. */
@@ -126,7 +129,7 @@ export class DamHand {
     const lit = this.caught ? 1 : 0.6 + 0.4 * near;
     const ends: PlacedMarker[] = [-1, 1].flatMap((end) => [0.2, 0.65, 1.1, 1.55, 2].map((up, k) => ({
       shape: 'float' as const, look: 'dot' as const, size: k === 4 ? (this.caught ? 2.8 : 2.2) : 1.2, strength: lit,
-      x: rest.x + along.x * end * (DAM.gap + 0.6), y: rest.y + up, z: rest.z + along.z * end * (DAM.gap + 0.6),
+      x: rest.x + along.x * end * DAM.post, y: rest.y + up, z: rest.z + along.z * end * DAM.post,
     })));
     // The current, in the water's own pale colour, so the push has something to see.
     const flecks: PlacedMarker[] = [0, 0.5].map((phase) => {

@@ -29,8 +29,9 @@ export const FISHING = {
    */
   window: 1.3,
   /** Shortest wait for a bite, and how much longer it can be. */
-  waitMin: 2.6,
-  waitSpread: 3.6,
+  // Critic round 82 waited about twenty seconds for a bite at the Creek Pool.
+  waitMin: 2.2,
+  waitSpread: 2.8,
   /** A nibble: how long the float twitches. */
   nibble: 0.32,
   /** Quiet beat after a spooked or lost fish before the line settles again: long enough to read why. */
