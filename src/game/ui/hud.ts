@@ -31,7 +31,7 @@ import { createNearbyNotice, NOTICE_RANGE, nearbyTodo, viewWay } from './hudNear
 import { hopBlocked, hopPlaces } from '../session/travel';
 import { ACTIVITIES } from '../../data/activities';
 import { PICKUPS } from '../../data/pickups';
-import { QUESTS } from '../../data/quests';
+import { QUESTS, RADIO_QUEST } from '../../data/quests';
 import { createFeatherNotice } from './hudFeather';
 import { KEY, TOUCH } from '../../core/keys';
 
@@ -168,9 +168,13 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
   /** After the story with an errand under way: the unmet villager the goal line names, for its own mark. */
   let helloAt: Vec2 | null = null;
 
-  // Nana's unlit posts hold the pin until Pip has passed close enough to light them (route.ts).
+  // Nana's unlit posts hold the pin until Pip has passed close enough to light them (route.ts). Not once
+  // the radio is done: the valley lights them for the walk home (session/wayHome.ts) without a mark in
+  // the save, and each one held the pin until Pip stood on it. Critic round 100 walked the compass from
+  // Edda and went back and forth by the first post below the summit, then off north of the mast.
   const trailAim = (point: Vec2) => {
-    const holds = lastState?.abilities.lantern ? POSTS.filter((l) => !lastState?.lanterns[l.id]).map((l) => l.pos) : [];
+    const valleyLit = lastState?.quests[RADIO_QUEST]?.status === 'complete';
+    const holds = lastState?.abilities.lantern && !valleyLit ? POSTS.filter((l) => !lastState?.lanterns[l.id]).map((l) => l.pos) : [];
     return guide?.routes ? routeAim(guide.routes, lastFrom, point, holds) : null;
   };
 
@@ -336,10 +340,12 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
         : [];
       // The villager the goal line says to greet, wherever they are: the same hollow mark as an errand's.
       if (helloAt && nextAllowed && !held) errandMarks.push(helloAt);
-      // The strip goes round a building in the way; the beam over the target stays where it is.
+      // The strip goes round a building in the way; the beam over the target stays where it is. On the
+      // trail the walk left is still the trail's: round a hut below the cairn the strip read "16 u" under a
+      // goal line of 1033 u (the corner's distance to the aim a little way down the trail).
       const round = heldTarget && !held ? aroundAim(buildings, lastFrom, heldTarget) : null;
       if (course) compass.update({ from: lastFrom, viewYaw, goal: course, side: null, feather: null, todo: [], errands: [] });
-      else compass.update({ from: lastFrom, viewYaw, goal: round?.aim ?? heldTarget, goalDistance: round?.distance ?? goalDistance, side, feather: feather.feather, todo, errands: errandMarks });
+      else compass.update({ from: lastFrom, viewYaw, goal: round?.aim ?? heldTarget, goalDistance: goalDistance ?? round?.distance, side, feather: feather.feather, todo, errands: errandMarks });
       for (const fn of frameListeners) fn(heldTarget, p.pos, held, side);
     },
 

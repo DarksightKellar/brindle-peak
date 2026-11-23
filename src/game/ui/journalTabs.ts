@@ -173,7 +173,12 @@ function tryRows(activities: readonly ActivityDef[], s: GameState) {
  * The page lists the nearest; one already being followed stays on it wherever it is.
  */
 export function tryIds(activities: readonly ActivityDef[], s: GameState, tracked: string | null = null): string[] {
-  const ids = tryRows(activities, s).map((e) => `try:${e.a.id}`);
+  // In the order the page shows them: the close ones (the followed one among them), then the far ones.
+  // A followed row a walk away is listed under "close by" but was reached among the far ones, so the
+  // cursor jumped about the page: critic round 100 followed the wrong row.
+  const rows = tryRows(activities, s);
+  const close = (e: (typeof rows)[number]): boolean => e.d <= TRY_NEAR || `try:${e.a.id}` === tracked;
+  const ids = [...rows.filter(close), ...rows.filter((e) => !close(e))].map((e) => `try:${e.a.id}`);
   const kept = tracked?.startsWith('try:') && activities.some((a) => `try:${a.id}` === tracked && (s.counters[`activity:${a.id}`] ?? 0) === 0);
   return kept && tracked && !ids.includes(tracked) ? [tracked, ...ids] : ids;
 }
