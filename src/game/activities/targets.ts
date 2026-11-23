@@ -52,7 +52,8 @@ export const THROW = {
    * The draw: seconds for strength to swell from a lob to a heave and back, and that range of speed as
    * a share of the throw that arrives on the target. Half way through the swell it does.
    */
-  drawPeriod: 1.8,
+  // Slower since critic rounds 83 and 84, which landed nothing: at 1.8 the bold arc came and went too fast.
+  drawPeriod: 2.3,
   drawMin: 0.75,
   drawMax: 1.25,
   /** Seconds a puff of snow (a hit or a landing) stays visible. */

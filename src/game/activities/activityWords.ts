@@ -205,5 +205,7 @@ export const HINT_FOR_ID: Readonly<Record<string, string>> = {
   'hamlet-bell-throw': `Wind blows across the square and shifts after every throw: the arrow over the bell shows it. Aim into the wind, then hold ${KEY.interact} and let go on the arc.`,
   'kettles-dam-build': `The current pushes each stone downstream. Steer it back between the two lights, where it catches in its gap, then press ${KEY.interact} to set it.`,
   'ridge-cairn': `Everyone who climbs to the mast leaves a stone here. Your four lie beside it: A / D picks one, and ${KEY.interact} sets it on top, the biggest first and the smallest last.`,
+  // Said up front that it is a long exposure: critic round 84 pressed F and only then learned to hold still.
+  'peak-aurora-photo': `Centre the lights in the frame and press ${KEY.interact}. The shutter stays open a moment: keep the star in the middle until it closes.`,
   'hamlet-snowman': `Walk to roll a ball bigger, then push it onto the lit ring. Three balls, then ${KEY.interact} for the face.`,
 };
