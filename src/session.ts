@@ -366,8 +366,9 @@ export function createSession(opts: SessionOptions): Session {
     // After the rig has placed the camera: fade whatever now stands between it and the bird.
     updateViewFade(kit.camera, player.pos);
     gems.update(dt, state, player.pos, kit.camera, !overlayOpen && !runner.isRunning());
-    // After the rig, pinned over its target's head (ui/promptAnchor.ts); hidden while an activity runs.
-    const shown = runner.isRunning() ? null : nearest;
+    // After the rig, pinned over its target's head (ui/promptAnchor.ts); hidden while an activity runs,
+    // and while F still waits after a talk (frameInput.ts `resting`): a prompt up is one a press acts on.
+    const shown = runner.isRunning() || routeInput.resting() ? null : nearest;
     ui.hud.setPrompt(shown ? shown.prompt : null, shown ? promptAt(shown) : null);
     world.update(dt, elapsed);
 

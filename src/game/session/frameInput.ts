@@ -33,7 +33,14 @@ export interface FrameInputDeps {
  * `blocked` means the player must not move, collect or interact this frame — an overlay is up, or an
  * activity that is not free-roam is running. It does not mean time stops: playtime advances either way.
  */
-export type FrameInput = (input: InputFrame, dt: number) => boolean;
+export type FrameInput = ((input: InputFrame, dt: number) => boolean) & {
+  /**
+   * True while a talk has just ended and F is still being ignored (TALK_REST / TALK_STAY): the prompt
+   * waits with it. Critic round 107 pressed F on a "talk" prompt a moment after a talk ended and got
+   * the same villager again; a prompt that is up should be one a press acts on.
+   */
+  resting(): boolean;
+};
 
 /**
  * Seconds after a conversation closes before E reaches the world again. Critic round 5 pressed E once too
@@ -68,11 +75,13 @@ export function createFrameInput(d: FrameInputDeps): FrameInput {
   /** Where Pip stood when the last talk was open. */
   let talkedAt = { x: 0, z: 0 };
 
-  return (input, dt) => {
+  let resting = false;
+  const route = (input: InputFrame, dt: number): boolean => {
     sinceTalk = ui.dialogue.isOpen() ? 0 : sinceTalk + dt;
     if (ui.dialogue.isOpen()) talkedAt = { x: d.state.player.pos.x, z: d.state.player.pos.z };
     const stepped = Math.hypot(d.state.player.pos.x - talkedAt.x, d.state.player.pos.z - talkedAt.z) >= TALK_STEP;
     const rested = sinceTalk >= (stepped ? TALK_REST : TALK_STAY);
+    resting = !ui.dialogue.isOpen() && !rested;
     const blocked = ui.dialogue.isOpen() || ui.journal.isOpen() || ui.menu.isOpen()
       || ui.ending.isOpen() || (d.runner.isRunning() && !d.runner.freeRoam());
 
@@ -119,4 +128,5 @@ export function createFrameInput(d: FrameInputDeps): FrameInput {
     ui.hud.setHeld(ui.dialogue.isOpen());
     return blocked;
   };
+  return Object.assign(route, { resting: () => resting });
 }
