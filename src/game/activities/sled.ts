@@ -41,7 +41,8 @@ export const SLED = {
   edgeDrag: 4,
   /** Speed added by a ring, and how close to its centre counts. */
   ringBoost: 2,
-  ringReach: 1.8,
+  // Kinder since critic rounds 84 and 85 rode just past rings it took for hits.
+  ringReach: 2.2,
   /** Braking after the finish, and the speed at which the run is over. */
   brake: 9,
   stopSpeed: 1.2,

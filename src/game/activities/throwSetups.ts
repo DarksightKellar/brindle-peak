@@ -47,9 +47,10 @@ export function setupFor(def: ActivityDef): ThrowSetup {
 
 export const FAN = {
   /** Swing amplitude in radians either side of the post's centre bearing. */
-  amplitude: 0.22,
+  // Narrower and slower since critic rounds 83 to 85, which hit nothing or one in a round between them.
+  amplitude: 0.15,
   /** Hit radius and half-height of a post. The drawn post is 0.3 u across and 2 u tall. */
-  radius: 0.85,
+  radius: 1.1,
   half: 1.1,
   /** Height of the hit centre above the post's foot. */
   centre: 1,
@@ -87,7 +88,7 @@ export function makeFan(def: ActivityDef, facing: number): ThrowTarget[] {
   const rng = makeRng(Math.abs(Math.round(def.pos.x * 3571 + def.pos.z * 823)) >>> 0);
   const offsets = [-0.42, 0.02, 0.44];
   const distances = [9, 12.5, 16];
-  const swings = [0.5, 0.4, 0.32];
+  const swings = [0.38, 0.3, 0.24];
   return offsets.map((offset, i) => ({
     id: i,
     angle: facing + offset + rng.range(-0.04, 0.04),
