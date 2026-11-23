@@ -39,6 +39,8 @@ export const SLED = {
   // 16 since critic round 97: at 9 the sled answered a press 8 to 10 frames late and ran on as long
   // after a release, so a ring in front was oversteered past.
   steerEase: 16,
+  /** How far the body (and so the view) turns into a full sideways drift, in radians. */
+  lean: 0.1,
   /** Extra slowing while scraping along the edge of the run. */
   edgeDrag: 4,
   /** Speed added by a ring, and how close to its centre counts. */
@@ -175,8 +177,10 @@ export class SledActivity implements ActivityInstance {
     if (this.stage !== 'run') return null;
     const p = this.position;
     const d = pathAt(this.path, this.run.distance);
-    // Lean the body into a sideways drift a little, so a steer is visible from behind.
-    const yaw = Math.atan2(d.dx, d.dz) - (this.run.drift / SLED.steer) * 0.35;
+    // Lean the body into a sideways drift a little, so a steer is visible from behind. The view turns with
+    // the body: at 0.35 rad a short tap swung the next ring from one side of the screen to the other, and
+    // critic rounds 108 and 109 weaved past rings they were steering for. The track's stakes show the drift.
+    const yaw = Math.atan2(d.dx, d.dz) - (this.run.drift / SLED.steer) * SLED.lean;
     return { ...p, yaw };
   }
 
