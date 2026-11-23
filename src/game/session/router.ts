@@ -8,6 +8,7 @@
  */
 
 import type { GameEvent, GameState } from '../../core/contracts';
+import { KEY } from '../../core/keys';
 import type { RewardTier } from '../../core/contracts';
 import type { Toasts } from '../ui/toasts';
 import type { AudioKit, SfxName } from '../audio/audio';
@@ -32,7 +33,8 @@ export interface RouterDeps {
  * Said once, on the first walk into a second place: the map can take Pip back to walked places, and
  * critic round 14 walked 730 u back to Bram asking for exactly that, never having been told.
  */
-export const HOP_TIP = 'Walked places are on the map now. M, then ↑↓ and E, to go back to one.';
+// The keys by their bindings: it said "E" after interact moved to F (critic round 79's capture).
+export const HOP_TIP = `Walked places are on the map now. ${KEY.map}, then ↑↓ and ${KEY.interact}, to go back to one.`;
 
 export function routeEvent(e: GameEvent, d: RouterDeps, s?: Readonly<GameState>): void {
   switch (e.name) {

@@ -52,8 +52,36 @@ export interface MarkerLook {
   beamAlpha: number;
   gem: string;
   glow: string;
+  /** Lay an arrow on the snow by Pip, toward a goal that is close but out of view. */
+  arrow?: boolean;
 }
-export const GOAL_LOOK: MarkerLook = { beamPx: 44, gemPx: 3.5, beamAlpha: 1, gem: PALETTE.LANTERN, glow: PALETTE.AMBER };
+export const GOAL_LOOK: MarkerLook = { beamPx: 44, gemPx: 3.5, beamAlpha: 1, gem: PALETTE.LANTERN, glow: PALETTE.AMBER, arrow: true };
+
+/**
+ * The arrow on the snow: within ARROW_FAR of the goal and outside ARROW_NEAR, while the goal lies more
+ * than ARROW_OFF radians off the way the view looks. Critic round 79 stood 9 u from Edda with "9 u,
+ * behind you, to your right" and nothing on screen, and walked round her for fifteen presses.
+ */
+const ARROW_FAR = 30;
+const ARROW_NEAR = 4;
+const ARROW_OFF = 0.6;
+/** How far out from Pip the arrow lies, and its length. */
+const ARROW_OUT = 1.7;
+
+/** A flat arrow, nose along +Z, lying in the XZ plane. */
+function floorArrow(): THREE.BufferGeometry {
+  const s = new THREE.Shape();
+  s.moveTo(0, 0.75);
+  s.lineTo(0.5, 0.1);
+  s.lineTo(0.18, 0.1);
+  s.lineTo(0.18, -0.55);
+  s.lineTo(-0.18, -0.55);
+  s.lineTo(-0.18, 0.1);
+  s.lineTo(-0.5, 0.1);
+  s.closePath();
+  // Shape space is XY; lying it down puts +Y along -Z, so turn it round to point along +Z.
+  return new THREE.ShapeGeometry(s).rotateX(-Math.PI / 2).rotateY(Math.PI);
+}
 export const SIDE_LOOK: MarkerLook = { beamPx: 24, gemPx: 2.5, beamAlpha: 0.55, gem: PALETTE.AMBER, glow: PALETTE.AMBER };
 
 const smooth = (a: number, b: number, x: number): number => {
@@ -136,14 +164,43 @@ export function createGoalMarker(sampler: TerrainSampler, look: MarkerLook = GOA
   gem.frustumCulled = false;
   group.add(beam, gem);
 
+  const arrowMat = new THREE.MeshBasicMaterial({ color: PALETTE.LANTERN, fog: false, transparent: true, side: THREE.DoubleSide });
+  const arrow = new THREE.Mesh(floorArrow(), arrowMat);
+  arrow.frustumCulled = false;
+  arrow.visible = false;
+  const arrowRoot = new THREE.Group();
+  arrowRoot.name = 'goal-arrow';
+  arrowRoot.add(arrow);
+  const look2 = new THREE.Vector3();
+
   let time = 0;
   const at = new THREE.Vector3();
   const cam = new THREE.Vector3();
 
+  const root = new THREE.Group();
+  root.add(group, arrowRoot);
+
+  /** The arrow by Pip, when the goal is close and out of view. */
+  const pointArrow = (target: Vec2 | null, from: Vec3, camera: THREE.Camera, show: boolean, near: number): void => {
+    arrow.visible = false;
+    if (!look.arrow || !target || !show || near > ARROW_FAR || near < ARROW_NEAR) return;
+    camera.getWorldDirection(look2);
+    const viewYaw = Math.atan2(look2.x, look2.z);
+    const toYaw = Math.atan2(target.x - from.x, target.z - from.z);
+    const off = Math.abs(Math.atan2(Math.sin(toYaw - viewYaw), Math.cos(toYaw - viewYaw)));
+    if (off < ARROW_OFF) return;
+    const x = from.x + Math.sin(toYaw) * ARROW_OUT, z = from.z + Math.cos(toYaw) * ARROW_OUT;
+    arrow.position.set(x, groundHeightAt(sampler, x, z) + 0.12, z);
+    arrow.rotation.set(0, toYaw, 0);
+    arrowMat.opacity = Math.min(1, (off - ARROW_OFF) / 0.3);
+    arrow.visible = true;
+  };
+
   return {
-    object: group,
+    object: root,
     update(dt, target, from, camera, show): void {
       const near = target ? Math.hypot(target.x - from.x, target.z - from.z) : 0;
+      pointArrow(target, from, camera, show, near);
       // Gone only once the E pill is up (a villager's reach is 5.5 u): critic round 51 stood a few units
       // from Hollis with neither.
       const gemFade = smooth(3.5, 5, near);

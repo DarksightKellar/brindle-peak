@@ -152,10 +152,12 @@ export class PhotoActivity implements ActivityInstance {
 
   /** True while the aim is still where the aurora's shutter opened. */
   /** The key that brings the frame back to where the shutter opened: A raises yaw, W raises pitch. */
-  private backToStar(): 'A' | 'D' | 'W' | 'S' {
+  private backToStar(): ('A' | 'D' | 'W' | 'S')[] {
     const dyaw = angleDelta(this.aimYaw, this.opened.yaw), dpitch = this.opened.pitch - this.aimPitch;
-    if (Math.abs(dyaw) >= Math.abs(dpitch)) return dyaw > 0 ? 'A' : 'D';
-    return dpitch > 0 ? 'W' : 'S';
+    const turn = dyaw > 0 ? 'A' as const : 'D' as const, tilt = dpitch > 0 ? 'W' as const : 'S' as const;
+    const both = [...(Math.abs(dyaw) >= STEADY ? [turn] : []), ...(Math.abs(dpitch) >= STEADY ? [tilt] : [])];
+    if (both.length > 0) return both;
+    return [Math.abs(dyaw) >= Math.abs(dpitch) ? turn : tilt];
   }
 
   private steady(): boolean {

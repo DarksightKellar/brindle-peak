@@ -29,6 +29,8 @@ import { floorArrowTo, steadyRound, steadyWay, type Way } from './pointer';
 
 /** Further than this from the next gate, the run has been walked away from and ends. */
 const LEFT_COURSE = 150;
+/** A gate on foot this much higher than Pip is said to be up the rock. */
+const GATE_ABOVE = 3;
 /** Past this from the next gate the line warns that the run is about to end. */
 const STRAY = 100;
 /** A hoop counts within this many metres of its centre height (so walking under one does not). */
@@ -223,7 +225,11 @@ export class RaceActivity implements ActivityInstance {
     const round = this.round = steadyRound(turn, wasBehind ? this.round : null);
     // A hoop above or below the glide says so: the round-26 critic had a distance and no height.
     const h = this.course.heights?.[aim];
-    const rise = h !== undefined && Math.abs(h - p.y) > HOOP_BAND ? ` · ${WORDS.hoopHeight(h - p.y)}` : '';
+    // On foot, a gate up a face says so: on the Chimney Scramble critic round 79 read "8 u behind you"
+    // under a ledge and could not tell the gate was above it, up the rock.
+    const up = h === undefined && this.course.look === 'arch' ? (this.ground[aim] ?? p.y) - (p.y - 0.6) : 0;
+    const rise = h !== undefined && Math.abs(h - p.y) > HOOP_BAND ? ` · ${WORDS.hoopHeight(h - p.y)}`
+      : up > GATE_ABOVE ? ` · ${WORDS.gateAbove(up)}` : '';
     const lead = aim > this.next ? WORDS.hoops(aim + 1, total) : label;
     // A hoop flown past is skipped, so "Hoop 8 of 8" could follow a walk down the slope through none:
     // critic round 49 read it, then "through 1 of 8 hoops" at the end. The count through says so as it

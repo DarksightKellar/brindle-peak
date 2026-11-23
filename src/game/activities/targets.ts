@@ -57,9 +57,15 @@ export const THROW = {
   drawMax: 1.25,
   /** Seconds a puff of snow (a hit or a landing) stays visible. */
   puff: 0.35,
-  /** Seconds "Hit!" or "Missed" stays in the panel, and a struck snowman's ring spreads. */
-  call: 1.2,
+  /**
+   * Seconds "Hit!" or "Missed" stays in the panel, and a struck snowman's ring spreads. At 1.2 critic round
+   * 79 saw "Missed, wide left. Aim a touch more right" for only a moment and could not act on it.
+   */
+  call: 2.4,
 } as const;
+
+/** Seconds a struck snowman's ring spreads (the words stay longer, THROW.call). */
+const HIT_RING = 1.2;
 
 interface Puff { pos: Vec3; age: number }
 
@@ -442,10 +448,10 @@ export class TargetActivity implements ActivityInstance {
     }
     // A struck snowman throws off a ring, the way the bell does, so a hit is seen as well as counted.
     const since = this.call ? this.elapsed - this.call.at : Infinity;
-    if (this.fan.length > 0 && this.call?.hit && since < THROW.call) {
+    if (this.fan.length > 0 && this.call?.hit && since < HIT_RING) {
       const c = this.call.pos;
       const toward = Math.atan2(this.feet.x - c.x, this.feet.z - c.z);
-      out.push({ shape: 'ring', look: 'pulse', x: c.x, y: c.y, z: c.z, yaw: toward, size: 0.6 + since * 2, strength: 1 - since / THROW.call });
+      out.push({ shape: 'ring', look: 'pulse', x: c.x, y: c.y, z: c.z, yaw: toward, size: 0.6 + since * 2, strength: 1 - since / HIT_RING });
     }
     // The aim line steps aside while a throw is in the air, so the thing in flight is the thing you see.
     // Round 8: the line was a faint blue until lined up, and lost on snow; it is amber throughout now,

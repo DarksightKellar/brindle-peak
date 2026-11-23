@@ -185,7 +185,7 @@ export function createJournal(root: HTMLElement, content: JournalContent = {}): 
   const paint = (s: GameState): void => {
     state = s;
     const m = formatJournal(s, src);
-    // The things to try come after the errands, as the page lists them: E follows either.
+    // The things to try come after the errands, as the page lists them: interact follows either.
     pickable = [...m.quests.filter((q) => q.trackable).map((q) => q.id), ...tryIds(ACTIVITIES, s, errands?.trackedId() ?? null)];
     if (cursor === null || !pickable.includes(cursor)) {
       const tracked = errands?.trackedId() ?? null;
@@ -261,7 +261,7 @@ export function createJournal(root: HTMLElement, content: JournalContent = {}): 
       if (on !== undefined) tab = on;
       cursor = null;
       // The map opens with the tracked errand's place picked, when it is one Pip can hop to: the HUD's
-      // " · M to go back" is then two keys, M and E.
+      // " · M to go back" is then two keys, M and interact.
       const errandZone = errands?.current()?.zone ?? null;
       hopAt = tab === 'Map' && travel && errandZone !== null && travel.places(s).some((p) => p.zone === errandZone) ? errandZone : null;
       paint(s);

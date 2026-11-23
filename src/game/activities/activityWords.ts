@@ -131,8 +131,9 @@ export const WORDS = {
   // The aurora's long exposure: holding the frame still; the frame has drifted off.
   exposeHold: 'Shutter open. Hold it still on the star',
   // It says which way: critic round 31 missed, saw the star drift off the frame, and found it by eye.
-  exposeDrift: (key: 'A' | 'D' | 'W' | 'S'): string =>
-    `It drifted. Ease it back ${{ A: 'to the left', D: 'to the right', W: 'up', S: 'down' }[key]}, onto the star`,
+  // Both ways when it is off both ways: critic round 79 read "to the left" with the star left and below.
+  exposeDrift: (keys: readonly ('A' | 'D' | 'W' | 'S')[]): string =>
+    `It drifted. Ease it back ${keys.map((k) => ({ A: 'to the left', D: 'to the right', W: 'up', S: 'down' }[k])).join(' and ')}, onto the star`,
   // Throw result
   // A full round says so; a short one says how close and how to go again, as the bell does. Critic round
   // 35 was left with a bare "1 of 3 hits".
@@ -166,6 +167,7 @@ export const WORDS = {
   cueSquare: `Square! Press ${KEY.interact}`,
   cueGap: `Over the gap! Press ${KEY.interact}`,
   /** A hoop well above or below the glide: flap to climb, or let the glide go a moment to sink. */
+  gateAbove: (dy: number): string => `${Math.round(dy)} u up the rock: climb to it`,
   hoopHeight: (dy: number): string => (dy > 0 ? `${Math.round(dy)} u above you: flap (${KEY.jump})` : `${Math.round(-dy)} u below you: ease off ${KEY.jump} to sink`),
   // Skate result
   skateResult: (seconds: number): string => `You went down on the ice after ${seconds.toFixed(1)}s. Get up and go again whenever you like.`,

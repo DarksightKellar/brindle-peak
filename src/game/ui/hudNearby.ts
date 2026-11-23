@@ -32,6 +32,8 @@ export function viewWay(dx: number, dz: number, viewYaw: number): string {
 export const NOTICE_RANGE = 60;
 /** How long the line stays, in ms. */
 export const NOTICE_MS = 12000;
+/** Walking toward the named thing keeps it on the line at least this much longer, in ms. */
+const HOLD_MS = 3000;
 
 /**
  * Every thing to do within NOTICE_RANGE and not yet done, nearest first, for the compass strip. The line
@@ -75,6 +77,8 @@ export function createNearbyNotice(activities: readonly ActivityDef[]): {
   const named = new Map<string, Vec2>();
   let current: Notable | null = null;
   let until = -1;
+  /** How far the named thing was last frame: walking toward it keeps it named (HOLD_MS). */
+  let lastD = Infinity;
 
   let yaw: number | undefined;
   const line = (n: Notable, from: Vec2, d: number): string => {
@@ -99,17 +103,26 @@ export function createNearbyNotice(activities: readonly ActivityDef[]): {
         const d = Math.hypot(n.pos.x - from.x, n.pos.z - from.z);
         if (d < NOTICE_RANGE && d >= 4 && d < nextD) { next = n; nextD = d; }
       }
-      if (current && nowMs < until) {
+      if (current) {
         const d = Math.hypot(current.pos.x - from.x, current.pos.z - from.z);
-        // A map hop carries Pip hundreds of units inside the line's few seconds: "nearby, 773 u".
-        // A thing come up much nearer than the one being named takes the line over.
-        if (d < 4) return '';
-        if (d <= NOTICE_RANGE && !(next && nextD < d * 0.6)) return line(current, from, d);
+        // Heading for it, it stays named however long the walk: critic round 79 at Kettle Springs watched
+        // the line move on to another thing every few seconds and lost the one it was walking to.
+        const toward = d < lastD - 0.01;
+        lastD = d;
+        if (toward && d <= NOTICE_RANGE) until = Math.max(until, nowMs + HOLD_MS);
+        if (nowMs < until) {
+          // A map hop carries Pip hundreds of units inside the line's few seconds: "nearby, 773 u".
+          // A thing come up much nearer than the one being named takes the line over, unless Pip is
+          // walking to the named one.
+          if (d < 4) return '';
+          if (d <= NOTICE_RANGE && (toward || !(next && nextD < d * 0.6))) return line(current, from, d);
+        }
       }
       current = null;
       if (!next) return '';
       named.set(next.id, next.pos);
       current = next;
+      lastD = nextD;
       until = nowMs + NOTICE_MS;
       return line(next, from, nextD);
     },
