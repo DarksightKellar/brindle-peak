@@ -116,7 +116,8 @@ export const WORDS = {
   // How much more, in units: critic round 98 read "keep rolling it bigger", rolled 70 u off and pushed it
   // all the way back. A ball is full after a few metres.
   snowRoll: (left: number): string => `Roll it about ${Math.max(1, Math.round(left))} u more to grow it, near the lit ring`,
-  snowPush: 'Big enough. Push it onto the lit ring',
+  // Where to push from: critic round 101 had the ball beside Pip and found it had to go round it.
+  snowPush: 'Big enough. Walk round so the ball is between you and the lit ring, then push it on',
   snowFace: `Press ${KEY.interact} to give it a face`,
   // Build results
   buildResult: {

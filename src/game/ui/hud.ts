@@ -266,7 +266,11 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
         const away = helloAt ? straight : goalDistance ?? straight;
         // The story's line carries the compass's own number, as the errand's line carries its own: critic
         // round 69 read 1164 u on the strip and 773 u under it and could not tell which line each was.
-        const storyAway = storyMarked && pointed ? goalDistance ?? Math.hypot(pointed.x - p.pos.x, pointed.z - p.pos.z) : null;
+        // Round a building it is the walk round, as the strip says: critic round 101 read 9 u on the line and
+        // 12 u on the strip by Nana's door.
+        const storyAway = storyMarked && pointed
+          ? goalDistance ?? aroundAim(buildings, lastFrom, pointed)?.distance ?? Math.hypot(pointed.x - p.pos.x, pointed.z - p.pos.z)
+          : null;
         const goal = unmet
           ? `${line.replace(/\.$/, '')}: ${formatDistance(away)}, ${viewWay(unmet.pos.x - p.pos.x, unmet.pos.z - p.pos.z, viewYaw)}.`
           : storyAway !== null && line !== ''
