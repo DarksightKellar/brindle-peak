@@ -30,3 +30,9 @@ export const PIP_ASKS: Readonly<Record<string, string>> = {
 
 /** For an errand without its own line. */
 export const PIP_ASK_ANY = 'i could help with that, if you like.';
+
+/**
+ * When Pip has already done the errand's first part before it was asked (the dam rebuilt before Ivy
+ * mentioned it): critic round 78 heard Ivy say the dam was whole again, then Pip offer to see to the dam.
+ */
+export const PIP_ASK_REST = "i've done that bit already. i could see to the rest.";

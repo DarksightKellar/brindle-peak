@@ -114,7 +114,7 @@ interface Prototype {
 }
 
 /** How strongly a marker drawn through the scenery shows: there, but plainly behind something. */
-const THROUGH_OPACITY = 0.35;
+const THROUGH_OPACITY = 0.45;
 
 const PROTOTYPES: Readonly<Record<MarkerShape | TransientLook, Prototype>> = {
   ring: { geometry: new THREE.TorusGeometry(1.1, 0.16, 6, 12), color: PALETTE.LANTERN, lift: 1.6 },

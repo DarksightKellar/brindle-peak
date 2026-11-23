@@ -97,7 +97,13 @@ export function createPresentation(uiRoot: HTMLElement, audio: AudioKit, heightA
     // slant on the open run to the ridge foot, and closely past it, where the trail winds between cliffs.
     // And the same trail as far as Tuck's bridge: critic round 57 followed the errand's pin from below and
     // walked into the gorge under the bridge.
-    routes: [{ path: WAY_UP, slantUntil: TURN }, { path: WAY_UP.slice(0, 14), slantUntil: TURN }],
+    // And from the mast back down to Tuck: critic round 78 followed the rope errand's pin straight off the
+    // summit onto the steep face, ran out of breath climbing it, and never reached the bridge.
+    routes: [
+      { path: WAY_UP, slantUntil: TURN },
+      { path: WAY_UP.slice(0, 14), slantUntil: TURN },
+      { path: WAY_UP.slice(13).reverse(), slantUntil: 0 },
+    ],
   };
 
   const hud = createHud(uiRoot, guide);

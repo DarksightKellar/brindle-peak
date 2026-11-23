@@ -76,6 +76,9 @@ export interface SledOptions {
   length?: number;
 }
 
+/** Seconds a counted ring flashes, and its word stays in the middle of the view. */
+const FLASH = 0.8;
+
 export class SledActivity implements ActivityInstance {
   readonly def: ActivityDef;
   private readonly length: number | undefined;
@@ -84,6 +87,8 @@ export class SledActivity implements ActivityInstance {
   private run: SledRun = { speed: 0, distance: 0, lateral: 0, drift: 0, elapsed: 0 };
   private terrain: TerrainSampler | null = null;
   private rings: { at: number; side: number; got: boolean }[] = [];
+  /** Run clock when the last ring counted, for its flash; -9 before any. */
+  private ringAt = -9;
   /** Run clock when the finish was crossed, or -1 before. The score is this, not the coast after it. */
   private finishedAt = -1;
   private stage: 'run' | 'done' | 'aborted' = 'run';
@@ -103,6 +108,7 @@ export class SledActivity implements ActivityInstance {
     const n = this.course.rings.length;
     this.rings = this.course.rings.map((side, i) => ({ at: ringDistance(i, n, this.path.length), side, got: false }));
     this.run = { speed: SLED.launch, distance: 0, lateral: 0, drift: 0, elapsed: 0 };
+    this.ringAt = -9;
     const best = host.state.sledBests[this.def.id];
     this.bestBefore = typeof best === 'number' ? best : null;
     this.finishedAt = -1;
@@ -131,6 +137,7 @@ export class SledActivity implements ActivityInstance {
     for (const r of this.rings) {
       if (!r.got && before < r.at && this.run.distance >= r.at && Math.abs(this.run.lateral - r.side) <= SLED.ringReach) {
         r.got = true;
+        this.ringAt = this.run.elapsed;
         this.run.speed = Math.min(SLED.maxSpeed, this.run.speed + SLED.ringBoost);
       }
     }
@@ -211,6 +218,15 @@ export class SledActivity implements ActivityInstance {
       if (shown === 0) out.push({ shape: 'ring', look: 'arch', x: at.x, y: at.y, z: at.z, yaw: Math.atan2(rd.dx, rd.dz), strength: 1, through: true });
       shown++;
     }
+    // A ring that counted swells and fades where it stood, and the count says so in the middle of the
+    // view: critic round 78 rode past rings it thought it had and could not tell which had counted.
+    const since = this.run.elapsed - this.ringAt;
+    const last = since < FLASH ? [...this.rings].reverse().find((r) => r.got) : undefined;
+    if (last) {
+      const at = this.pointAt(last.at, last.side);
+      const rd = pathAt(this.path, last.at);
+      out.push({ shape: 'ring', look: 'arch', x: at.x, y: at.y, z: at.z, yaw: Math.atan2(rd.dx, rd.dz), size: 1 + since * 1.6, strength: 1 - since / FLASH, through: true });
+    }
     if (this.finishedAt < 0) {
       const end = this.pointAt(this.path.length, 0);
       out.push({ shape: 'ring', look: 'beam', x: end.x, y: end.y, z: end.z, yaw: 0, size: 1 });
@@ -224,10 +240,12 @@ export class SledActivity implements ActivityInstance {
     // + lateral is the rider's right, where D steers.
     const off = next ? next.side - this.run.lateral : 0;
     const cue = next ? `${WORDS.sledRing(Math.abs(off) <= SLED.ringReach * 0.6 ? 'on' : off > 0 ? 'right' : 'left')} · ` : '';
+    const counted = this.run.elapsed - this.ringAt < FLASH;
     return {
       label: `${cue}${WORDS.rings(got, this.rings.length)}`,
       fraction: Math.min(1, this.run.distance / this.path.length),
-      urgent: next !== undefined && Math.abs(off) <= SLED.ringReach * 0.6,
+      urgent: counted || (next !== undefined && Math.abs(off) <= SLED.ringReach * 0.6),
+      cue: counted ? WORDS.sledThrough(got) : undefined,
     };
   }
 

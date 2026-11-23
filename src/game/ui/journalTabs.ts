@@ -135,7 +135,9 @@ export function questsHTML(
     // it alone" twice and still could not tell what E would do. Critic round 48 then read "the compass
     // points there" and watched the big diamond stay on the story: during the story a followed errand
     // gets the small one, after it the big one.
-    ? '<p class="ui-journal__meta">↑↓ choose · E follows it: its step goes under the goal, with its own diamond on the compass · E again lets it go</p>'
+    // The key by its binding: the line said "E" after interact moved to F, and critic round 78 pressed E
+    // (which looks round) on the page and saw nothing happen.
+    ? `<p class="ui-journal__meta">↑↓ choose · ${KEY.interact} follows it: its step goes under the goal, with its own diamond on the compass · ${KEY.interact} again lets it go</p>`
     : '';
   return `${hint}<ul class="ui-quests">${rows.join('')}</ul>`;
 }
@@ -197,7 +199,7 @@ export function tryHTML(activities: readonly ActivityDef[], s: GameState, tracke
   if (near.length > 0) html += `<h3 class="ui-try__head">Things to try close by</h3><ul class="ui-tries">${list(near)}</ul>`;
   if (far.length > 0) html += `<h3 class="ui-try__head">Things to try, a walk away</h3><ul class="ui-tries">${list(far)}</ul>`;
   // Followed like an errand: critic round 77 read "High Tarn, 36 u west" here and had nothing to follow it by.
-  if (rows.length > 0) html += '<p class="ui-journal__meta">E on one of these follows it, as it does an errand</p>';
+  if (rows.length > 0) html += `<p class="ui-journal__meta">↑↓ to one of these and ${KEY.interact} follows it, as it does an errand</p>`;
   return html;
 }
 

@@ -54,9 +54,13 @@ function tryOf(id: string, s: GameState): (typeof ACTIVITIES)[number] | null {
 }
 /** The followed errand is this far off or more before a word on the way may stand in for it. */
 const FAR_OFF = 300;
-/** A talk this close takes the line as a word on the way; it keeps it until Pip is WORD_KEEP away. */
-const WORD_NEAR = 40;
-const WORD_KEEP = 60;
+/**
+ * A talk this close takes the line as a word on the way; it keeps it until Pip is WORD_KEEP away. At 40 u
+ * the line kept changing on a walk through a village: critic round 78 walked to Ivy and read Orla's and
+ * Jory's names in turn. Now only a villager Pip is all but beside stands in.
+ */
+const WORD_NEAR = 20;
+const WORD_KEEP = 30;
 
 export interface ErrandLine {
   /** The step to print, or null for no line. Moves the tracking on; call once a frame. */

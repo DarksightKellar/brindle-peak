@@ -37,6 +37,8 @@ export const WORDS = {
    * misses it; keeping to the run's side takes it.
    */
   sledRing: (way: 'left' | 'right' | 'on'): string => (way === 'on' ? 'On line for the ring' : `Keep ${way} for the ring`),
+  /** A ring just counted, in the middle of the view. */
+  sledThrough: (got: number): string => `Ring ${got}!`,
   // "Your fastest yet" only beats an earlier run (critic round 8 was praised for a first run with one
   // ring), and a run that missed most rings says where they are instead.
   sledResult: (seconds: number, got: number, total: number, best: boolean, par = ''): string =>

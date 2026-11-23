@@ -16,9 +16,9 @@ import type { DialogueFlow, PendingOffer } from './dialogueFlow';
 import type { Mechanics } from './mechanics';
 import { NPCS } from '../../data/npcs';
 import { PICKUPS } from '../../data/pickups';
-import { PIP_ASK_ANY, PIP_ASKS } from '../../data/pipAsks';
+import { PIP_ASK_ANY, PIP_ASK_REST, PIP_ASKS } from '../../data/pipAsks';
 import { SPECIES_SIZE } from '../world/npcSpecies';
-import { allSatisfied } from '../../core/progress/conditions';
+import { allSatisfied, evaluate } from '../../core/progress/conditions';
 
 /** What the counter says when Pip cannot pay. */
 const WORDS_SHOP = {
@@ -91,7 +91,8 @@ function offerFor(d: InteractVerbDeps, id: string, npc: string): PendingOffer | 
   const state = d.state;
   return {
     title: offered.title,
-    ask: PIP_ASKS[id] ?? PIP_ASK_ANY,
+    // An activity Pip has already done for the first part is not offered again in Pip's own words.
+    ask: offered.steps[0]?.when.kind === 'activity' && evaluate(offered.steps[0].when, state) ? PIP_ASK_REST : PIP_ASKS[id] ?? PIP_ASK_ANY,
     accept: () => d.mech.accept(id),
     // A "not now" is kept in the save: critic round 34 declined Bram's rope and had nothing to find it by.
     decline: () => {

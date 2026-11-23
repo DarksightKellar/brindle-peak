@@ -39,8 +39,9 @@ export function floatMarkers(s: FloatScene): PlacedMarker[] {
   if (s.showFloat) {
     // Half under the surface at rest (the float mesh stands 0.3 above its base); gone under at a bite.
     const y = f.y - 0.35 + s.dip;
-    out.push({ shape: 'float', x: f.x, y, z: f.z, size: 1.2, color: PALETTE.SNOW_HI });
-    out.push({ shape: 'float', x: f.x, y: y + 0.22, z: f.z, size: 0.75, color: PALETTE.PIP_SCARF });
+    // Half again as big as it was: critic round 78 saw the float as a small dot past the stool.
+    out.push({ shape: 'float', x: f.x, y, z: f.z, size: 1.8, color: PALETTE.SNOW_HI });
+    out.push({ shape: 'float', x: f.x, y: y + 0.33, z: f.z, size: 1.12, color: PALETTE.PIP_SCARF });
     const tip = rodTip(s.stand, f);
     for (let k = 1; k <= 5; k++) {
       const t = k / 6;

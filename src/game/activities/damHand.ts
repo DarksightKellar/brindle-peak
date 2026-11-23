@@ -20,9 +20,10 @@ export const DAM = {
   eddy: 0.25,
   /**
    * How fast A / D moves the stone along the wall, metres a second, against or with the current. At 1.3,
-   * against a strong eddy it crept back at 0.55 a second, and critic round 76 called the stone sluggish.
+   * against a strong eddy it crept back at 0.55 a second, and critic round 76 called the stone sluggish;
+   * at 1.6 critic round 78 still held A a full second to bring it home.
    */
-  steer: 1.6,
+  steer: 2,
   /** Within this many metres of its gap the stone catches there. */
   gap: 0.3,
   /** Furthest the stone goes off its gap: over a neighbour, in either direction. */
