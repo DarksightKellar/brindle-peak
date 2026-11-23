@@ -41,7 +41,8 @@ const POSTS = PICKUPS.filter((p) => p.kind === 'lantern');
 export interface Hud {
   update(s: GameState, p: PlayerState): void;
   /** `at`: the target's spot on screen in CSS pixels, or null to sit under Pip. */
-  setPrompt(text: string | null, at?: { x: number; y: number } | null): void;
+  /** `reach`: where the thing the prompt acts on stands, so a goal at it can say "here" rather than a few units. */
+  setPrompt(text: string | null, at?: { x: number; y: number } | null, reach?: Vec2 | null): void;
   /** True while an E pill is on screen: tutorial tips step aside for it. */
   promptShowing(): boolean;
   /**
@@ -110,6 +111,8 @@ const SWITCH_SHOW = 5000;
  * nothing saying either was the way round.
  */
 const BY_TRAIL = ' by the trail';
+/** In place of a distance when the prompt up acts on the line's own target. */
+const HERE = 'here';
 
 export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
   const layer = document.createElement('div');
@@ -147,6 +150,13 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
   let nextAllowed = true;
   let held = false;
   let promptUp = false;
+  let promptReach: Vec2 | null = null;
+  /**
+   * The prompt up acts on this point: the line says "here", not a distance. Critic round 110 stood at Bram's
+   * pile with the STACK prompt up and read "7 u" on the goal, measured round the woodstore to the pile's middle.
+   */
+  const atHand = (target: Vec2 | null): boolean =>
+    promptUp && promptReach !== null && target !== null && Math.hypot(target.x - promptReach.x, target.z - promptReach.z) < 1;
   /** What the HUD last pointed at, kept while held. */
   let heldTarget: Vec2 | null = null;
   /** A running activity's own point (its next gate), which the strip shows instead of the goal. */
@@ -280,7 +290,7 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
         const goal = unmet
           ? `${line.replace(/\.$/, '')}: ${formatDistance(away)}, ${viewWay(unmet.pos.x - p.pos.x, unmet.pos.z - p.pos.z, viewYaw)}.`
           : storyAway !== null && line !== ''
-            ? `${line.replace(/\.$/, '')} — ${formatDistance(storyAway)}${goalDistance !== undefined ? BY_TRAIL : ''}`
+            ? `${line.replace(/\.$/, '')} — ${atHand(pointed) ? HERE : `${formatDistance(storyAway)}${goalDistance !== undefined ? BY_TRAIL : ''}`}`
             : line;
         if (goal !== lastGoal) {
           lastGoal = goal;
@@ -327,8 +337,9 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
         const now = performance.now() < switchedUntil ? `Now on the line: ${switchedTitle}
 ` : '';
         // A word on the way (errandLine.ts) says so, so the followed errand isn't thought dropped.
-        const said = errands?.onTheWay() ? formatNextStep(walked).replace(/^Next: /, 'On the way: ') : formatNextStep(walked);
-        const errandText = step ? `${now}${said}${errandRoute && walked?.distance !== null ? BY_TRAIL : ''}${offStrip(errandAim)}${hopHint(s, step)}` : '';
+        const here = atHand(errandTarget);
+        const said = errands?.onTheWay() ? formatNextStep(walked, here).replace(/^Next: /, 'On the way: ') : formatNextStep(walked, here);
+        const errandText = step ? `${now}${said}${errandRoute && walked?.distance !== null && !here ? BY_TRAIL : ''}${offStrip(errandAim)}${hopHint(s, step)}` : '';
         if (feather.line !== '') writeNext(feather.line, null);
         // Two lines at most under the compass: critic round 57 read four, "Now on the line", the errand,
         // its wrap and a nearby line. The nearby line waits while the switch is being said.
@@ -355,7 +366,7 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
       // goal line of 1033 u (the corner's distance to the aim a little way down the trail).
       const round = heldTarget && !held ? aroundAim(buildings, lastFrom, heldTarget) : null;
       if (course) compass.update({ from: lastFrom, viewYaw, goal: course, side: null, feather: null, todo: [], errands: [] });
-      else compass.update({ from: lastFrom, viewYaw, goal: round?.aim ?? heldTarget, goalDistance: goalDistance ?? round?.distance, side, feather: feather.feather, todo, errands: errandMarks });
+      else compass.update({ from: lastFrom, viewYaw, goal: round?.aim ?? heldTarget, goalDistance: goalDistance ?? round?.distance, here: !held && atHand(pointed), side, feather: feather.feather, todo, errands: errandMarks });
       for (const fn of frameListeners) fn(heldTarget, p.pos, held, side);
     },
 
@@ -363,8 +374,9 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
       frameListeners.push(fn);
     },
 
-    setPrompt(text: string | null, at: { x: number; y: number } | null = null): void {
+    setPrompt(text: string | null, at: { x: number; y: number } | null = null, reach: Vec2 | null = null): void {
       promptUp = text !== null && text.trim() !== '';
+      promptReach = promptUp ? reach : null;
       if (!promptUp || text === null) {
         prompt.hidden = true;
         return;

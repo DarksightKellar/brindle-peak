@@ -253,9 +253,10 @@ const clause = (text: string): string => text.replace(/\.\s*$/, '');
  * HUD now hangs the errand's own mark on the compass strip, which says where relative to the view.
  * `bearing` still decides whether there is anywhere to point at all (null when standing on it).
  */
-export function formatNextStep(step: GuideStep | null): string {
+/** `here`: the prompt up acts on the step's target, so the line says so in place of a distance. */
+export function formatNextStep(step: GuideStep | null, here = false): string {
   if (!step) return '';
-  const where = step.bearing !== null && step.distance !== null ? ` — ${formatDistance(step.distance)}` : '';
+  const where = here && step.target ? ' — here' : step.bearing !== null && step.distance !== null ? ` — ${formatDistance(step.distance)}` : '';
   if (step.kind === 'explore') return `Unexplored: ${step.stepText}${where}`;
   // A step with a target loses its full stop before the em dash; a step without one keeps its
   // authored sentence intact.

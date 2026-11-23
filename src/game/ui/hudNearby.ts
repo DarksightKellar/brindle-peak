@@ -104,6 +104,10 @@ export function createNearbyNotice(activities: readonly ActivityDef[]): {
         const d = Math.hypot(n.pos.x - from.x, n.pos.z - from.z);
         if (d < NOTICE_RANGE && d >= 4 && d < nextD) { next = n; nextD = d; }
       }
+      // A thing done (an errand finished, an activity played) is no longer named, whatever its seconds left:
+      // critic round 110 finished Ilsa's bundle and read "Errand nearby: The Bundle, 6 u" straight after.
+      const still = current?.id;
+      if (current && ![...things, ...extra].some((n) => n.id === still)) current = null;
       if (current) {
         const d = Math.hypot(current.pos.x - from.x, current.pos.z - from.z);
         // Heading for it, it stays named however long the walk: critic round 79 at Kettle Springs watched
