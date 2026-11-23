@@ -229,7 +229,11 @@ export class RaceActivity implements ActivityInstance {
     // On foot, a gate up a face says so: on the Chimney Scramble critic round 79 read "8 u behind you"
     // under a ledge and could not tell the gate was above it, up the rock.
     const up = h === undefined && this.course.look === 'arch' ? (this.ground[aim] ?? p.y) - (p.y - 0.6) : 0;
-    const rise = h !== undefined && Math.abs(h - p.y) > HOOP_BAND ? ` · ${WORDS.hoopHeight(h - p.y)}`
+    // On the snow, "4 u below you: ease off Space to sink" is no use: critic round 94 landed short on the
+    // summit slope with the next hoop downhill (higher on the screen) and read it as wrong.
+    const onSnow = p.y - 0.6 - this.groundAt(p.x, p.z) < 0.3;
+    const rise = h !== undefined && onSnow ? ` · ${WORDS.hoopFromSnow}`
+      : h !== undefined && Math.abs(h - p.y) > HOOP_BAND ? ` · ${WORDS.hoopHeight(h - p.y)}`
       : up > GATE_ABOVE ? ` · ${WORDS.gateAbove(up)}` : '';
     const lead = aim > this.next ? WORDS.hoops(aim + 1, total) : label;
     // A hoop flown past is skipped, so "Hoop 8 of 8" could follow a walk down the slope through none:

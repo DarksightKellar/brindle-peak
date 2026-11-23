@@ -172,6 +172,7 @@ export const WORDS = {
   cueGap: `Over the gap! Press ${KEY.interact}`,
   /** A hoop well above or below the glide: flap to climb, or let the glide go a moment to sink. */
   gateAbove: (dy: number): string => `${Math.round(dy)} u up the rock: climb to it`,
+  hoopFromSnow: `On the snow: run at it, jump and hold ${KEY.jump} to glide`,
   hoopHeight: (dy: number): string => (dy > 0 ? `${Math.round(dy)} u above you: flap (${KEY.jump})` : `${Math.round(-dy)} u below you: ease off ${KEY.jump} to sink`),
   // Skate result
   skateResult: (seconds: number): string => `You went down on the ice after ${seconds.toFixed(1)}s. Get up and go again whenever you like.`,

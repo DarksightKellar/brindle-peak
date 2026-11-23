@@ -55,6 +55,12 @@ describe('close in a straight line, far round by the path (critic round 90, Tuck
     expect(routeAim(u, { x: 10, z: 95 }, end)).toBeNull();
   });
 
+  it('points straight at a target beside the path end, among the cliffs (critic round 94 beside Edda)', () => {
+    // The trail ends at the mast; Edda stands 18 u past it, and Pip a few steps from her.
+    const end = [{ path: [[0, 0], [100, 0], [100, 100]] as const, slantUntil: 0 }];
+    expect(routeAim(end, { x: 112, z: 112 }, { x: 113, z: 115 })).toBeNull();
+  });
+
   it('points straight at a target close at hand on open ground (critic round 91 beside Bram)', () => {
     // The trail's start by the cabin: Pip a little way out along it, the woodpile just off its start.
     const open = [{ path: [[0, 0], [400, 0], [400, -100]] as const, slantUntil: 1 }];

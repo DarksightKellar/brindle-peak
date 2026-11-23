@@ -120,9 +120,13 @@ export function routeAim(routes: readonly GuideRoute[], from: Vec2, target: Vec2
     // 43 u away straight up it, while the trail round by the spur to his bridge is some 250 u. On open
     // ground the straight line is walkable: critic round 91, beside Bram's woodpile, was sent the long
     // way back to the trail's start, and read the distance rising as it walked up to the pile.
+    // How far apart along the path Pip and the target are, not the walk to the path's end and back: by
+    // that, critic round 94 stood beside Edda, 18 u from the trail's end at the mast, and read "32 u by
+    // the trail".
     const walk = best + (up ? total - at : at) + Math.hypot(target.x - (up ? ex : sx), target.z - (up ? ez : sz));
     const cliffs = r.slantUntil !== undefined && at >= (bends[r.slantUntil] ?? total) - AHEAD;
-    if (straight <= END_REACH && (!cliffs || walk <= straight * DETOUR + 15)) continue;
+    const apart = Math.abs(at - along(p, target).at);
+    if (straight <= END_REACH && (!cliffs || apart <= straight * DETOUR + 15)) continue;
     if (at < (bends[r.leaves ?? 0] ?? 0) - AHEAD) continue;
 
     // The aim waits at the next bend until Pip is nearly there: past it, a stake on the spur stood in
