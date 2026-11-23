@@ -73,8 +73,10 @@ export const BUILD_SITES: Readonly<Record<string, BuildSite>> = {
   // Pip stands at the wall's downstream end on the dry side, so the side shot (build.ts focus) looks
   // square at the wall. Critic round 55 pressed Build from the far side of the post and saw only snow.
   'kettles-dam-build': { kind: 'dam', at: DAM_AT, facing: DAM_DIR, stand: { x: 3.4, z: 1.0, lookX: 0, lookZ: 0 } },
-  // Off the trail on the saddle, a step beyond its post, its front to the post.
-  'ridge-cairn': { kind: 'cairn', at: CAIRN_AT, facing: toward(CAIRN_AT, { x: 226, z: -245.5 }) },
+  // Off the trail on the saddle, a step beyond its post, its front to the post. Pip builds from the post, so
+  // a start pressed from among Pip's own four stones (critic round 114, which saw them all hidden behind Pip
+  // and never placed one) is played from where they lie in view.
+  'ridge-cairn': { kind: 'cairn', at: CAIRN_AT, facing: toward(CAIRN_AT, { x: 226, z: -245.5 }), stand: { x: 0, z: Math.hypot(229.5 - 226, -242.5 + 245.5), lookX: 0, lookZ: 0 } },
 };
 
 const NOUN: Readonly<Record<BuildKind, string>> = { woodpile: 'Logs', snowman: 'Snowman, part', dam: 'Dam, part', cairn: 'Stones' };

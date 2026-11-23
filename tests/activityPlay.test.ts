@@ -95,6 +95,15 @@ describe('race', () => {
     expect(h.awards[0].score).toBeCloseTo(race.seconds, 6);
   });
 
+  it('does not warn of wandering off at the start of a leg longer than the warning distance (critic round 114)', () => {
+    const real = ACTIVITIES.find((a) => a.id === 'ridge-chimney-race')!;
+    const race = createRaceActivity(real);
+    const h = host({ x: real.pos.x - 1, y: 0, z: real.pos.z + 1 });
+    race.start(h);
+    step(race, h, {});
+    expect(race.progress()?.label).not.toContain('wandering');
+  });
+
   it('standing at the post gains nothing however long you hold forward', () => {
     const d = def('race', 'ridge-chimney-race', { x: 232, z: -206 });
     const race = createRaceActivity(d);

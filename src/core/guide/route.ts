@@ -58,6 +58,8 @@ export interface RouteAim {
 const ON_PATH = 8;
 /** A target this close is pointed at straight wherever Pip stands. */
 const FACE_TO_FACE = 25;
+/** A target this much nearer another route's path than this one's is not this route's to lead to. */
+const OTHER_STRETCH = 20;
 /** A hold this far off the path is not on it. */
 const HOLD_ON = 4;
 /** A hold this far behind along the path is given up: walked past, it no longer turns the pin round. */
@@ -91,9 +93,15 @@ function along(p: GuideRoute['path'], pt: Vec2): { at: number; off: number } {
  * half of them without lighting one; the walk home goes by the lit posts, and came down half dark.
  */
 export function routeAim(routes: readonly GuideRoute[], from: Vec2, target: Vec2, holds: readonly Vec2[] = []): RouteAim | null {
-  for (const r of routes) {
+  // A route leads to what stands at its end, not to something beside another stretch of the trail: the
+  // Chimney Scramble's post (round 111) stood 55 u past the end of the way to Tuck's bridge, 11 u off the
+  // trail beyond it, and critic round 114 at the chimney's foot read 164 u, back to the bridge and out again.
+  const offs = routes.map((r) => (r.path.length < 2 ? Infinity : along(r.path, target).off));
+  const nearest = Math.min(...offs);
+  for (const [ri, r] of routes.entries()) {
     const p = r.path;
     if (p.length < 2) continue;
+    if (offs[ri] > nearest + OTHER_STRETCH) continue;
     const [sx, sz] = p[0];
     const [ex, ez] = p[p.length - 1];
     const up = Math.hypot(target.x - ex, target.z - ez) <= END_REACH;
@@ -129,28 +137,35 @@ export function routeAim(routes: readonly GuideRoute[], from: Vec2, target: Vec2
     // How far apart along the path Pip and the target are, not the walk to the path's end and back: by
     // that, critic round 94 stood beside Edda, 18 u from the trail's end at the mast, and read "32 u by
     // the trail".
-    const walk = best + (up ? total - at : at) + Math.hypot(target.x - (up ? ex : sx), target.z - (up ? ez : sz));
+    // Where the target stands along the path: at its end for one past it (Edda beyond the mast), short of the
+    // end for one beside it. The walk is measured to there, not to the end and back: the Chimney Scramble's
+    // post stands beside the trail 55 u short of the bridge, and critic round 114 read 164 u for a 40 u walk.
+    const stop = along(p, target);
+    // The way to it along the path: toward the path's end, or back along it when Pip has walked past it (west of
+    // Tuck's gorge, the chimney's post is back over the bridge).
+    const fwd = stop.at >= at;
+    const walk = best + Math.abs(stop.at - at) + stop.off;
     const cliffs = r.slantUntil !== undefined && at >= (bends[r.slantUntil] ?? total) - AHEAD;
-    const apart = Math.abs(at - along(p, target).at);
+    const apart = Math.abs(at - stop.at);
     // Among the cliffs the straight line is taken only from the trail itself: critic round 102 stood 16 u
     // off it above the gorge under Tuck's bridge, read Tuck 43 u straight, walked the pin down into the
     // gorge and stuck against its far wall. Close at hand (FACE_TO_FACE) or at the path's end, it still is.
-    const offCliffs = cliffs && best > ON_PATH && straight > FACE_TO_FACE && (up ? total - at : at) > AHEAD;
+    const offCliffs = cliffs && best > ON_PATH && straight > FACE_TO_FACE && Math.abs(stop.at - at) > AHEAD;
     if (straight <= END_REACH && (!cliffs || apart <= straight * DETOUR + 15) && !offCliffs) continue;
     if (at < (bends[r.leaves ?? 0] ?? 0) - AHEAD) continue;
 
     // The aim waits at the next bend until Pip is nearly there: past it, a stake on the spur stood in
     // the corner it cut, and Pip pushed at it.
-    const bend = up ? bends.find((b) => b > at + AT_BEND) ?? total : [...bends].reverse().find((b) => b < at - AT_BEND) ?? 0;
+    const bend = fwd ? bends.find((b) => b > at + AT_BEND) ?? total : [...bends].reverse().find((b) => b < at - AT_BEND) ?? 0;
     // Off the path, the aim is further along it, so the way back meets it at a slant, not square on.
     const open = r.slantUntil === undefined || at < (bends[r.slantUntil] ?? total);
     const ahead = open ? Math.max(AHEAD, best * SLANT) : AHEAD;
     // Within EASE of a bend the aim starts round it, twice as fast as Pip closes on it, so the pin swings
     // through the turn instead of holding on the corner and then flipping to "behind you": at the
     // hairpin at the ridge foot it went from ahead to behind in one stride.
-    const ease = (b: number): number => (up ? b + EASE_RATE * Math.max(0, at - (b - EASE)) : b - EASE_RATE * Math.max(0, b + EASE - at));
-    const round = up ? (bend < total ? ease(bend) : bend) : bend > 0 ? ease(bend) : bend;
-    const goal = up ? Math.min(at + ahead, round) : Math.max(at - ahead, round);
+    const ease = (b: number): number => (fwd ? b + EASE_RATE * Math.max(0, at - (b - EASE)) : b - EASE_RATE * Math.max(0, b + EASE - at));
+    const round = fwd ? (bend < total ? ease(bend) : bend) : bend > 0 ? ease(bend) : bend;
+    const goal = fwd ? Math.min(at + ahead, round) : Math.max(at - ahead, round);
     const distance = walk;
     // The first hold from a little behind Pip up to the aim: the aim waits on the path beside it until Pip
     // is there. Beside it, not at it: on the spur a post stands on the steep side of the trail, and an aim
@@ -160,13 +175,13 @@ export function routeAim(routes: readonly GuideRoute[], from: Vec2, target: Vec2
     for (const h of holds) {
       const o = along(p, h);
       if (o.off > HOLD_ON || (Math.abs(o.at - at) <= HOLD_REACH && best <= HOLD_REACH)) continue;
-      const due = up ? o.at > at - HOLD_BACK && o.at <= goal : o.at < at + HOLD_BACK && o.at >= goal;
-      if (due && (!held || (up ? o.at < aimAt : o.at > aimAt))) {
+      const due = fwd ? o.at > at - HOLD_BACK && o.at <= goal : o.at < at + HOLD_BACK && o.at >= goal;
+      if (due && (!held || (fwd ? o.at < aimAt : o.at > aimAt))) {
         aimAt = o.at;
         held = true;
       }
     }
-    if (!held && (up ? goal >= total : goal <= 0)) return { aim: target, distance, off: best };
+    if (!held && (fwd ? goal >= stop.at : goal <= stop.at)) return { aim: target, distance, off: best };
     let s = 0;
     for (let i = 0; i < lengths.length; i++) {
       if (aimAt <= s + lengths[i] || i === lengths.length - 1) {

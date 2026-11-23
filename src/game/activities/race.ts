@@ -37,6 +37,8 @@ const GATE_ABOVE = 3;
  * on past gate 3 and was called off without seeing it: just past the longest leg (24 u) and its gate.
  */
 const STRAY = 30;
+/** On a leg longer than STRAY, the warning waits until Pip is this much further off than the leg's start. */
+const STRAY_PAST_LEG = 6;
 /** A hoop counts within this many metres of its centre height (so walking under one does not). */
 // 3.3 since critic round 108, which glided through three of the Thermal Descent's eight and sank under the
 // fourth: rounds 103 to 108 never finished it. A glide a little low still counts.
@@ -247,7 +249,11 @@ export class RaceActivity implements ActivityInstance {
     const missed = this.course.look === 'hoop' && this.next > 0 ? ` · ${WORDS.hoopsThrough(this.reached)}` : '';
     // From the gate the words point at: for hoops, a missed one behind is not the one to turn back for.
     const away = Math.hypot(g.x - p.x, g.z - p.z);
-    const stray = away > STRAY ? `${WORDS.raceStray} · ` : '';
+    // Never on a leg's own length: critic round 114 read the warning at 0 s on the Chimney Scramble, whose
+    // post stands 30 u from gate 1 (round 111).
+    const from = aim > 0 ? this.course.gates[aim - 1] : this.def.pos;
+    const leg = from ? Math.hypot(g.x - from.x, g.z - from.z) : 0;
+    const stray = away > Math.max(STRAY, leg + STRAY_PAST_LEG) ? `${WORDS.raceStray} · ` : '';
     return { label: `${stray}${lead}${missed} · ${WORDS.gateWay(Math.hypot(g.x - p.x, g.z - p.z), way, round)}${rise}`, fraction: total === 0 ? 0 : this.next / total, urgent: stray !== '' || undefined };
   }
 
