@@ -128,6 +128,8 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
   const stamina = createHudStamina(layer);
   const compass = createHudCompass(layer);
   const featherNotice = createFeatherNotice();
+  /** What was being followed last frame; undefined before the first. */
+  let lastFollowed: string | null | undefined;
   const nearbyNotice = guide ? createNearbyNotice(ACTIVITIES) : null;
 
   const goalEl = layer.querySelector('.ui-hud__goal') as HTMLElement;
@@ -252,6 +254,10 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
       stamina.update(s, p);
       lastState = s;
       lastFrom = { x: p.pos.x, z: p.pos.z };
+      // A new pick to follow takes the line from the feather's one-time words (hudFeather.ts `quiet`).
+      const followed = errands?.trackedId() ?? null;
+      if (followed !== null && followed !== lastFollowed && lastFollowed !== undefined) featherNotice.quiet();
+      lastFollowed = followed;
       const feather = featherNotice.update(s, lastFrom, performance.now(), viewYaw);
       if (feather.started) stamina.showFeathers(6000);
 

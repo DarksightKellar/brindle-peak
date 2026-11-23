@@ -47,10 +47,12 @@ export function setupFor(def: ActivityDef): ThrowSetup {
 
 export const FAN = {
   /** Swing amplitude in radians either side of the post's centre bearing. */
-  // Narrower and slower since critic rounds 83 to 85, which hit nothing or one in a round between them.
-  amplitude: 0.15,
+  // Narrower and slower since critic rounds 83 to 85, which hit nothing or one in a round between them,
+  // and again since rounds 101 to 103: one in three, one in three, none in six.
+  amplitude: 0.1,
   /** Hit radius and half-height of a post. The drawn post is 0.3 u across and 2 u tall. */
-  radius: 1.1,
+  // 1.35 since critic round 103: a throw that clips the snowman's shoulder knocks it.
+  radius: 1.35,
   half: 1.1,
   /** Height of the hit centre above the post's foot. */
   centre: 1,

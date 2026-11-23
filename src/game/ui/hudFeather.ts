@@ -33,10 +33,18 @@ export interface FeatherNotice {
   started: boolean;
 }
 
-export function createFeatherNotice(): { update(s: GameState, from: Vec2, nowMs: number, viewYaw?: number): FeatherNotice } {
+export function createFeatherNotice(): { update(s: GameState, from: Vec2, nowMs: number, viewYaw?: number): FeatherNotice; quiet(): void } {
   let lineUntil = -1;
 
   return {
+    /**
+     * Ends the line now, for good (the glyph on the strip stays): the player has just picked something to
+     * follow, and its line belongs under the goal. Critic round 103 followed the Bell Ring in the journal,
+     * still read the feather line, and took the follow to have done nothing.
+     */
+    quiet(): void {
+      lineUntil = 0;
+    },
     update(s, from, nowMs, viewYaw): FeatherNotice {
       if (s.feathers > 0) return { feather: null, line: '', started: false };
       let best: Vec2 | null = null;

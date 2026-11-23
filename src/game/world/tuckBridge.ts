@@ -207,6 +207,18 @@ export function buildTuckBridge(valley: TerrainSampler): TuckBridge {
     }
   }
 
+  // And across both ends: the lips ran head to foot with the ends open, and critic round 103, coming down
+  // from the mast, walked in at the head, slid to the floor under the bridge, and could only climb out up
+  // the head, out of breath. A snowbank across each end closes the V as the sides are closed.
+  for (const end of [z0, z1]) {
+    lipColliders.push({ kind: 'segment', ax: gx - LIP, az: end, bx: gx + LIP, bz: end, r: 0.12, top: LIP_TOP, guide: true });
+    const steps = Math.round((2 * LIP) / 2.2);
+    for (let i = 0; i <= steps; i++) {
+      const px = gx - LIP + (2 * LIP * i) / steps;
+      b.add(GEO.ico, propMatrix(px, at(px, end) + 0.05, end, 1.2, 0.5, 1.7, i * 0.9 + 0.3), 'SNOW_LT', 'SNOW_HI', 0.2);
+    }
+  }
+
   const mesh = b.finish('tuck-bridge');
   mesh.userData.noCollide = true;
   const group = new THREE.Group();
