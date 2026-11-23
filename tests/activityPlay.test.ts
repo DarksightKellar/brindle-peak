@@ -136,6 +136,28 @@ describe('race', () => {
 // ---------------------------------------------------------------------------
 
 describe('build', () => {
+  it('the cairn wants the biggest stone first: the one first in view will not sit (critic round 75)', () => {
+    const b = createBuildActivity(def('build', 'ridge-cairn', { x: 226, z: -245.5 }));
+    const h = host({ x: 226, y: 0, z: -245.5 });
+    b.start(h);
+    step(b, h);
+    step(b, h, { interactPressed: true });
+    expect(b.placed).toBe(0);
+    expect(b.progress()?.label).toMatch(/won't sit there yet/);
+    // Try every stone in the row, each way, until all four are on.
+    for (let round = 0; round < 12 && b.placed < 4; round++) {
+      for (const dir of [1, -1]) {
+        for (let k = 0; k < 4 && b.placed < 4; k++) {
+          step(b, h, { interactPressed: true });
+          step(b, h, { moveX: dir });
+          step(b, h);
+        }
+      }
+    }
+    expect(b.placed).toBe(4);
+    expect(b.pressCount).toBeGreaterThan(4);
+  });
+
   it('settles a piece from above onto its resting place', () => {
     expect(settleAt(0).drop).toBeCloseTo(BUILD.drop, 6);
     expect(settleAt(BUILD.settle).drop).toBeCloseTo(0, 6);

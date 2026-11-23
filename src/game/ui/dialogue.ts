@@ -167,9 +167,18 @@ export function createDialogue(root: HTMLElement): DialogueView {
     },
 
     selectChoice(delta: number): boolean {
-      if (!node || !atLastLine() || !tw.complete) return false;
+      if (!node || !atLastLine()) return false;
       const count = node.choices?.length ?? 0;
       if (count === 0) return false;
+      // An arrow while the last line is still typing finishes it and moves the pick. It used to be
+      // dropped, and critic round 75 pressed down for "not now." a moment early, then F, and took the
+      // errand it meant to turn down.
+      if (!tw.complete) {
+        tw.skip();
+        voiced = lineText().split(/\s+/).filter((w) => w !== '').length;
+        paint();
+        renderChoices();
+      }
       selected = (selected + delta + count) % count;
       const buttons = choiceEl.querySelectorAll('.ui-dlg__choice');
       buttons.forEach((b, i) => b.classList.toggle('is-sel', i === selected));

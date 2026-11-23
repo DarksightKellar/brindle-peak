@@ -94,6 +94,8 @@ export const WORDS = {
   stoneSteer: (key: 'A' | 'D' | 'W' | 'S'): string =>
     `The current has it. Bring it back over the gap, ${{ A: 'to your left', D: 'to your right', W: 'away from you', S: 'toward you' }[key]}`,
   stoneHold: 'The current has it. Steer it back over the gap',
+  cairnPick: 'The biggest stone still on the ground goes on next',
+  cairnWrong: "That one won't sit there yet. A bigger one has to go under it",
   stoneOff: `Not over the gap. Hold it there first, then press ${KEY.interact}`,
   stoneMash: 'Easy: one press, once it sits over the gap',
   /** Pressed again straight after a press: the woodpile and the dam both take one press per swing. */
@@ -111,6 +113,11 @@ export const WORDS = {
   } as Record<string, string>,
   // Fishing result; the fish name is the journal's own
   fishResult: (name: string): string => `You landed ${article(name)}.`,
+  // Why a fish got away, said while the line settles (critic round 75 pressed eight times and never
+  // learned whether it was early or late).
+  fishNibble: 'Only a nibble. Wait for the float to go right under.',
+  fishEarly: 'Too soon, that was only a nibble. Wait for the float to go right under.',
+  fishLate: 'Too slow, it slipped off. Press the moment the float goes under.',
   // Hollis's errand: the line snags under the split pine's roots and comes up with the mitten.
   mittenResult: "The line snagged on the roots and came up with Hollis's mitten, soaked through.",
   // Photo result; `what` comes from photoSubjects.ts
@@ -188,6 +195,6 @@ export const HINT_FOR_ID: Readonly<Record<string, string>> = {
   'hearth-kindling': `Each log swings over the pile. Press ${KEY.interact} when it hangs square.`,
   'hamlet-bell-throw': `Wind blows across the square and shifts after every throw: the arrow over the bell shows it. Aim into the wind, then hold ${KEY.interact} and let go on the arc.`,
   'kettles-dam-build': `The current pushes each stone off its gap. Hold it there with the move keys, then press ${KEY.interact} to set it.`,
-  'ridge-cairn': `Everyone who climbs to the mast leaves a stone here. Press ${KEY.interact} to set each of yours on top, the biggest first and the smallest last.`,
+  'ridge-cairn': `Everyone who climbs to the mast leaves a stone here. Your four lie beside it: A / D picks one, and ${KEY.interact} sets it on top, the biggest first and the smallest last.`,
   'hamlet-snowman': `Walk to roll a ball bigger, then push it onto the lit ring. Three balls, then ${KEY.interact} for the face.`,
 };

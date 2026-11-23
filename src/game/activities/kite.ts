@@ -63,10 +63,15 @@ export const KITE = {
   climb: 2.2,
   sink: 0.8,
   sinkAbove: 1.1,
-  /** Sideways speed at full A / D, in fractions of the span per second. */
-  steer: 0.9,
-  /** How fast the wind slides a kite outside the lift further away from it, in the same fraction. */
-  slide: 0.35,
+  /**
+   * Sideways speed at full A / D, in fractions of the span per second, and how fast the wind slides a
+   * kite outside the lift further from it. Critic round 75 lost the lift and never caught it again: the
+   * column wandered at up to 0.52 a second, so a kite steering at 0.9 against a 0.35 slide gained almost
+   * nothing on it. Now the column is slower, the steering quicker and the slide gentler, so a kite that
+   * slips out is back in within a second of pressing the way the arrow points.
+   */
+  steer: 1.25,
+  slide: 0.2,
   /** Half-width of the lifting column, in the same fraction. */
   lane: 0.4,
   /**
@@ -80,10 +85,10 @@ export const KITE = {
   settle: 6,
 } as const;
 
-/** Where the lift is at time `t`: a slow wander across the sky, -1..1 of the span, calm at first. */
+/** Where the lift is at time `t`: a slow wander across the sky, -1..1 of the span, calm at first. At most about 0.36 a second. */
 export function liftAt(t: number): number {
   const calm = Math.min(1, 0.1 + t / KITE.settle);
-  return clamp(-0.2 + calm * (0.6 * Math.sin(t * 0.42) + 0.26 * Math.sin(t * 1.05 + 1)), -0.9, 0.9);
+  return clamp(-0.2 + calm * (0.6 * Math.sin(t * 0.3) + 0.26 * Math.sin(t * 0.7 + 1)), -0.9, 0.9);
 }
 
 /** Rising snowflakes drawn inside the lane, and the wind lines on each of its two rails. */

@@ -7,8 +7,10 @@
  * puts Pip there.
  *
  * Only ground already walked: the first time anywhere is on foot, and the climb to the mast is made
- * once in full before the peak is on the list. Not on the way home after the radio call either: the
- * lit posts coming down to Nana are the ending, and a hop past them would skip it.
+ * once in full before the peak is on the list. On the way home after the radio call, not from the
+ * peak itself: the posts light one by one down the mountain as Pip steps off the top (wayHome.ts), and
+ * that is the ending. Once Pip is down off the peak the map opens again. It used to stay shut all the
+ * way to Nana's door, and critic round 75 called that 1,170 u walk the longest dead stretch in the game.
  *
  * Each place lands Pip on open ground beside something to do or someone to see, facing into it.
  */
@@ -46,9 +48,9 @@ export function hopPlaces(s: GameState): ZoneId[] {
 
 /** Why a hop cannot be made right now, in the player's words, or null when it can. */
 export function hopBlocked(s: GameState, busy: boolean): string | null {
-  if (s.quests[HOME_WALK]?.status === 'active') {
+  if (s.quests[HOME_WALK]?.status === 'active' && s.zone === 'peak') {
     // Says when it lifts: critic round 46 carried errands home under it and couldn't tell it would.
-    return "Not tonight. Walk home past the lit posts: Nana is watching them for you. The map opens again once you're home.";
+    return "Not from up here. Walk down off the peak past the lit posts first: Nana is watching them come on for you. Then the map can take you home.";
   }
   if (busy) return 'Finish what you are doing first.';
   return null;

@@ -69,6 +69,19 @@ export class BuildActivity implements ActivityInstance {
   private camYaw = 0;
   /** Angle off square each log was pressed at; it settles from there to square. */
   private pressAngle: number[] = [];
+  /**
+   * The cairn: Pip's four stones lie in a row beside it, out of order, and Pip picks which goes on next.
+   * Critic round 75 read "the biggest first and the smallest last" and found every press of F simply set
+   * the next stone: no choice, four presses. Now a stone smaller than one still on the ground won't sit,
+   * and drops back into the row.
+   */
+  private readonly isCairn: boolean;
+  /** Which step each slot in the row holds, along the site; -1 once it is on the cairn. */
+  private slots: number[] = [];
+  private pick = 0;
+  private lastPush = 0;
+  /** `elapsed` when a stone was tried out of turn, for its hop and the line that says why. */
+  private wrongAt = -9;
 
   constructor(def: ActivityDef) {
     this.def = def;
@@ -76,6 +89,7 @@ export class BuildActivity implements ActivityInstance {
     this.steps = stepsFor(this.site);
     this.aligned = this.site.kind === 'woodpile' || this.site.kind === 'dam';
     this.isDam = this.site.kind === 'dam';
+    this.isCairn = this.site.kind === 'cairn';
   }
 
   start(host: ActivityHost): void {
@@ -89,6 +103,11 @@ export class BuildActivity implements ActivityInstance {
     this.pressAngle = [];
     this.hand.reset(0);
     this.stone.reset(0);
+    // Mixed up, and the stone under Pip's eye to begin with is not the biggest.
+    this.slots = this.isCairn ? CAIRN_ROW.filter((i) => i < this.steps.length) : [];
+    this.pick = 0;
+    this.lastPush = 0;
+    this.wrongAt = -9;
     this.outcome = null;
     this.paid = false;
     this.phase = 'build';
@@ -115,6 +134,8 @@ export class BuildActivity implements ActivityInstance {
         const k = this.steerFor(this.camYaw);
         const push = host.input.moveX * k.d + host.input.moveZ * k.w;
         if (this.stone.update(this.elapsed, step, pressed, push)) this.lay(0);
+      } else if (this.isCairn) {
+        this.choose(this.alongRow(host.input.moveX, host.input.moveZ), pressed);
       } else {
         const laid = this.aligned ? this.hand.update(this.elapsed, this.layer(), pressed) : pressed ? 0 : null;
         if (laid !== null) this.lay(laid);
@@ -143,6 +164,38 @@ export class BuildActivity implements ActivityInstance {
     if (Math.abs(k.d) >= 0.5) return want * k.d > 0 ? 'D' : 'A';
     if (Math.abs(k.w) >= 0.5) return want * k.w > 0 ? 'W' : 'S';
     return null;
+  }
+
+  /**
+   * How far a camera-relative push runs along the cairn's row of stones (the site's local z), so the key
+   * toward a stone on screen moves the pick to it (core/player/move.ts has the yaw convention).
+   */
+  private alongRow(moveX: number, moveZ: number): number {
+    const cy = this.camYaw, f = this.site.facing;
+    const wx = moveX * Math.cos(cy) + moveZ * Math.sin(cy);
+    const wz = -moveX * Math.sin(cy) + moveZ * Math.cos(cy);
+    return -(wx * Math.sin(f) + wz * Math.cos(f));
+  }
+
+  /** The cairn: a push moves the pick along the row, a press tries the picked stone on top. */
+  private choose(push: number, pressed: boolean): void {
+    const dir = Math.abs(push) > 0.5 && Math.abs(this.lastPush) <= 0.5 ? Math.sign(push) : 0;
+    this.lastPush = push;
+    if (dir !== 0) {
+      for (let i = this.pick + dir; i >= 0 && i < this.slots.length; i += dir) {
+        if (this.slots[i] >= 0) { this.pick = i; break; }
+      }
+    }
+    if (!pressed) return;
+    if (this.slots[this.pick] !== this.stage) {
+      this.wrongAt = this.elapsed;
+      return;
+    }
+    this.slots[this.pick] = -1;
+    this.wrongAt = -9;
+    this.lay(0);
+    const left = this.slots.map((v, i) => (v >= 0 ? i : -1)).filter((i) => i >= 0);
+    if (left.length > 0) this.pick = left.reduce((a, b) => (Math.abs(b - this.pick) < Math.abs(a - this.pick) ? b : a));
   }
 
   /** The swinging log drops into its notch at `angle` off square and the next one comes up. */
@@ -190,13 +243,29 @@ export class BuildActivity implements ActivityInstance {
         out.push(...this.hand.markers(this.elapsed, this.layer(), rest, place));
       }
     }
+    // The cairn's stones still on the ground, in their row, the picked one marked; tried out of turn, it
+    // hops up and drops back.
+    if (this.isCairn && this.phase === 'build') {
+      this.slots.forEach((stepIndex, i) => {
+        if (stepIndex < 0) return;
+        const size = this.steps[stepIndex][0].size ?? 0.4;
+        const since = this.elapsed - this.wrongAt;
+        const hop = i === this.pick && since < 0.5 ? 0.5 * Math.sin((since / 0.5) * Math.PI) : 0;
+        const at = placePiece(this.site, this.ground, { look: 'stone', x: CAIRN_ROW_X, y: -0.05 + hop, z: cairnRowZ(i), size, yaw: i * 1.3 }, this.def.id);
+        out.push(at);
+        if (i === this.pick) {
+          const bob = 0.12 * Math.sin(this.elapsed * 4);
+          out.push({ shape: 'float', look: 'dot', x: at.x, y: at.y + size * 1.1 + 0.6 + bob, z: at.z, size: 1.6, strength: 1 });
+        }
+      });
+    }
     // Whatever is still waiting to be built from (Bram's crooked heap) shrinks as the build grows.
     for (const p of heapLeft(this.site, this.stage + (hanging ? 1 : 0))) out.push(placePiece(this.site, this.ground, p, this.def.id));
     // Nothing standing at all: say so explicitly, which clears a pile left from an earlier run.
     if (out.length === 0) out.push({ shape: 'lump', look: 'empty', keep: this.def.id, x: 0, y: 0, z: 0 });
     // A small bobbing light over where the next piece lands, so the first press has a referent.
     const next = this.steps[this.stage]?.[0];
-    if (next && this.phase === 'build' && !this.aligned) {
+    if (next && this.phase === 'build' && !this.aligned && !this.isCairn) {
       const at = placePiece(this.site, this.ground, next, this.def.id);
       const bob = 0.12 * Math.sin(this.elapsed * 4);
       out.push({ shape: 'float', look: 'dot', x: at.x, y: at.y + 1.1 + bob, z: at.z, size: 1.6, strength: 1 });
@@ -230,6 +299,10 @@ export class BuildActivity implements ActivityInstance {
     const count = `${nounFor(this.site)} ${placed} / ${total}`;
     if (this.isDam) {
       return { label: `${this.stoneWords()} · ${count}`, fraction: placed / total, urgent: this.squareNow, cue: this.squareNow ? WORDS.cueGap : undefined };
+    }
+    if (this.isCairn) {
+      const wrong = this.elapsed - this.wrongAt < 2.5;
+      return { label: `${wrong ? WORDS.cairnWrong : WORDS.cairnPick} · ${count}`, fraction: placed / total };
     }
     const miss = this.aligned ? this.hand.miss(this.elapsed) : null;
     // The moment is said for every log. Round 16 said it for the first only, and critic round 16 read
@@ -297,6 +370,12 @@ export class BuildActivity implements ActivityInstance {
   get pressCount(): number { return this.presses; }
   get buildSite(): BuildSite { return this.site; }
 }
+
+/** The cairn's stones in their row, by step (0 is the biggest): mixed, so the first one looked at is not it. */
+const CAIRN_ROW: readonly number[] = [2, 0, 3, 1];
+/** Where each slot of the row lies, in the site's own frame: across the side shot, between the cairn and Pip. */
+const cairnRowZ = (i: number): number => 0.9 + i * 0.85;
+const CAIRN_ROW_X = 1.3;
 
 export function createBuildActivity(def: ActivityDef): BuildActivity {
   return new BuildActivity(def);

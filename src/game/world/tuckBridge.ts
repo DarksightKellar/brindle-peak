@@ -28,6 +28,8 @@ import type { Collider } from '../../core/player/collide';
 import { deckY, GULLY_LINE, TUCK_BRIDGE as B } from '../../core/terrain/carving';
 import { groundOnly } from '../../core/terrain/heightfield';
 import { GEO, GeoBuilder, propMatrix, type Triple } from './geoBuilder';
+import { haloSprite } from './halo';
+import { PALETTE } from '../../core/palette';
 
 const PLANK_PITCH = 0.42;
 /** Hand ropes run this far either side of the centre line; the planks are a little narrower. */
@@ -46,8 +48,14 @@ const FENCE_REACH = 16;
  */
 const FUNNEL_OUT = 6;
 const FUNNEL_ALONG = 14;
-/** A walking bird is held back; a bird this far above the ground is over it. */
-const LIP_TOP = 0.9;
+/**
+ * A walking or hopping bird is held back; a bird this far above the ground is over it. It was 0.9, so a
+ * hop cleared it: critic round 75 jumped the fence beside Tuck, dropped into the gully and couldn't
+ * climb out. A jump tops out under 2 u; only a bird already flying over the gully passes.
+ */
+const LIP_TOP = 3.2;
+/** Tuck keeps a lamp on each bridge post, so the crossing reads as the way on from along the shelf. */
+const LAMP_UP = 1.78;
 
 export interface TuckBridge {
   group: THREE.Group;
@@ -120,12 +128,14 @@ export function buildTuckBridge(valley: TerrainSampler): TuckBridge {
 
   // Anchor posts, lashed, snow-capped, each held back by a stay to a stake in the snow.
   const posts: { x: number; z: number }[] = [];
+  const lamps: THREE.Vector3[] = [];
   for (const [end, out] of [[0, -1], [1, 1]] as const) {
     const ex = xAt(end) + out * 0.45;
     for (const side of [-1, 1]) {
       const pz = zc + side * POST_OUT;
       const y = at(ex, pz);
       posts.push({ x: ex, z: pz });
+      lamps.push(new THREE.Vector3(ex, y + LAMP_UP, pz));
       b.cyl(ex, y - 0.3, pz, 0.15, 1.85, 'WOOD_DK');
       b.box(ex, y + 1.5, pz, 0.36, 0.08, 0.36, 'WOOD_DK', 'SNOW_HI');
       for (const dy of [1.05, 1.22]) b.box(ex, y + dy, pz, 0.34, 0.07, 0.34, 'BRUSH');
@@ -207,6 +217,24 @@ export function buildTuckBridge(valley: TerrainSampler): TuckBridge {
   for (const m of [oldRope, newRope]) m.userData.noCollide = true;
   newRope.visible = false;
   group.add(oldRope, newRope);
+
+  // A lit lamp on every post: the planks and ropes are a few dark pixels from along the shelf, and
+  // critic round 75 stood beside Tuck without seeing that the bridge was the way on.
+  const glass = new THREE.MeshBasicMaterial({ color: new THREE.Color(PALETTE.LANTERN) });
+  const lampBox = new GeoBuilder();
+  for (const l of lamps) {
+    lampBox.box(l.x, l.y - 0.2, l.z, 0.3, 0.06, 0.3, 'ROCK_DK');
+    lampBox.box(l.x, l.y + 0.2, l.z, 0.34, 0.08, 0.34, 'ROCK_DK', 'SNOW_HI');
+    const g = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.32, 0.22), glass);
+    g.position.copy(l);
+    g.userData.noCollide = true;
+    const halo = haloSprite(PALETTE.LANTERN, 2.4, 0.5);
+    halo.position.copy(l);
+    group.add(g, halo);
+  }
+  const housing = lampBox.finish('tuck-bridge-lamps');
+  housing.userData.noCollide = true;
+  group.add(housing);
 
   // Hand ropes: a funnel in from each pair of posts to the rail line, then straight across.
   const colliders: Collider[] = [];

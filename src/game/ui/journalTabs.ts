@@ -139,16 +139,18 @@ export function questsHTML(
 
 /** How many of the nearest untried activities the Quests page lists. */
 const TRY_ROWS = 6;
-/** Within this, an activity counts as nearby. */
-const TRY_NEAR = 250;
-/** With nothing nearby, how many of the nearest are listed anyway. */
-const TRY_FAR_ROWS = 3;
+/**
+ * Within this, an activity is "close by": a short walk, under a minute. It was 250, and critic round 75
+ * read things 140 to 240 u off as nearby; on foot they are not.
+ */
+const TRY_NEAR = 80;
 
 /**
  * Things to try: the nearest activities not yet done, with how far and which way. Critic round 9
  * found the kite, the sled, the skating and the toss only as a line that flashed by, or not at all;
  * the map drew their marks, but nothing said which were near. The page now does. Each says what Pip
  * does there: critic round 48 could not plan from "Boathouse Hill" or "Ice Hole" until 15 u away.
+ * The close ones and the ones a walk away are listed under their own headings.
  */
 export function tryHTML(activities: readonly ActivityDef[], s: GameState): string {
   const from = s.player.pos;
@@ -156,19 +158,19 @@ export function tryHTML(activities: readonly ActivityDef[], s: GameState): strin
     .filter((a) => (s.counters[`activity:${a.id}`] ?? 0) === 0)
     .map((a) => ({ a, dx: a.pos.x - from.x, dz: a.pos.z - from.z }))
     .map((e) => ({ ...e, d: Math.hypot(e.dx, e.dz) }))
-    .sort((x, y) => x.d - y.d);
-  // "Nearby" means near: critic round 24 read the Otter Slide, 418 u off, under that heading. With
-  // nothing near, the few nearest are listed under a heading that says they are a walk away.
+    .sort((x, y) => x.d - y.d)
+    .slice(0, TRY_ROWS);
+  const list = (part: typeof rows): string => part.map((e) => {
+    const where = e.d < 4 ? 'here' : `${formatDistance(e.d)} ${compassWord(e.dx, e.dz)}`;
+    const what = e.a.what ? `<span class="ui-try__what">${esc(e.a.what)}</span>` : '';
+    return `<li class="ui-try"><span class="ui-try__name">${esc(e.a.name)}${what}</span><span class="ui-quest__where">${esc(where)}</span></li>`;
+  }).join('');
   const near = rows.filter((e) => e.d <= TRY_NEAR);
-  const shown = (near.length > 0 ? near.slice(0, TRY_ROWS) : rows.slice(0, TRY_FAR_ROWS))
-    .map((e) => {
-      const where = e.d < 4 ? 'here' : `${formatDistance(e.d)} ${compassWord(e.dx, e.dz)}`;
-      const what = e.a.what ? `<span class="ui-try__what">${esc(e.a.what)}</span>` : '';
-      return `<li class="ui-try"><span class="ui-try__name">${esc(e.a.name)}${what}</span><span class="ui-quest__where">${esc(where)}</span></li>`;
-    });
-  if (shown.length === 0) return '';
-  const head = near.length > 0 ? 'Things to try nearby' : 'Things still to try, a walk away';
-  return `<h3 class="ui-try__head">${head}</h3><ul class="ui-tries">${shown.join('')}</ul>`;
+  const far = rows.filter((e) => e.d > TRY_NEAR);
+  let html = '';
+  if (near.length > 0) html += `<h3 class="ui-try__head">Things to try close by</h3><ul class="ui-tries">${list(near)}</ul>`;
+  if (far.length > 0) html += `<h3 class="ui-try__head">Things to try, a walk away</h3><ul class="ui-tries">${list(far)}</ul>`;
+  return html;
 }
 
 export function fishHTML(m: JournalModel, s: GameState, fish: readonly FishDef[] | undefined): string {

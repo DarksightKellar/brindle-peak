@@ -33,8 +33,8 @@ export const FISHING = {
   waitSpread: 3.6,
   /** A nibble: how long the float twitches. */
   nibble: 0.32,
-  /** Quiet beat after a spooked or lost fish before the line settles again. */
-  pause: 1.3,
+  /** Quiet beat after a spooked or lost fish before the line settles again: long enough to read why. */
+  pause: 2.2,
   /** How long the catch is held up before the activity closes. */
   reel: 2.6,
 } as const;
@@ -106,6 +106,8 @@ export class FishingActivity implements ActivityInstance {
   private since = 0;
   private casts = 0;
   private misses = 0;
+  /** Why the last fish got away, for the line while it settles. */
+  private lost: 'early' | 'late' = 'late';
   private caught: FishDef | null = null;
   private outcome: ActivityResult | null = null;
   private paid = false;
@@ -157,7 +159,8 @@ export class FishingActivity implements ActivityInstance {
     this.since = this.total;
   }
 
-  private lose(): void {
+  private lose(why: 'early' | 'late'): void {
+    this.lost = why;
     this.misses++;
     this.pauseLeft = FISHING.pause;
     this.enter('spooked');
@@ -212,10 +215,10 @@ export class FishingActivity implements ActivityInstance {
     if (this.stage === 'wait' && this.total >= this.biteAt) this.enter('bite');
     if (pressed) {
       if (this.stage === 'bite' && resolveCatch(this.biteAt, this.total, FISHING.window)) this.land(host);
-      else this.lose();
+      else this.lose(this.stage === 'bite' ? 'late' : 'early');
       return;
     }
-    if (this.stage === 'bite' && this.total > this.biteAt + FISHING.window) this.lose();
+    if (this.stage === 'bite' && this.total > this.biteAt + FISHING.window) this.lose('late');
   }
 
   /** How far the float is pulled down right now, in metres (negative is under). */
@@ -245,8 +248,10 @@ export class FishingActivity implements ActivityInstance {
   progress(): ActivityReadout | null {
     if (this.stage === 'bite') return { label: `NOW — press ${KEY.interact}`, fraction: null, urgent: true, cue: WORDS.cueBite };
     if (this.stage === 'reel' && this.caught) return { label: this.caught.name, fraction: 1, urgent: true };
-    const state = this.stage === 'spooked' ? 'Let it settle' : 'Waiting for a bite';
-    return { label: `${state} · cast ${this.casts}`, fraction: null };
+    if (this.stage === 'spooked') return { label: this.lost === 'early' ? WORDS.fishEarly : WORDS.fishLate, fraction: null };
+    const t = this.total;
+    if (this.nibbles.some((at) => t >= at && t < at + FISHING.nibble + 0.6)) return { label: WORDS.fishNibble, fraction: null };
+    return { label: `Waiting for a bite · cast ${this.casts}`, fraction: null };
   }
 
   isComplete(): boolean {

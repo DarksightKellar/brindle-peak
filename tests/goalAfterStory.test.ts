@@ -52,9 +52,11 @@ describe('the goal after the story', () => {
     expect(unmetAfterStory(s, { x: 210, z: 0 }, guide)?.id).toBe('fen');
     // Orla is far nearer, but not at hand: walking between zones, the line keeps one name (critic round 42).
     expect(unmetAfterStory(s, { x: 240, z: 0 }, guide)?.id).toBe('fen');
-    // Even beside Orla, the line keeps Fen until Fen is met (critic round 54).
-    expect(unmetAfterStory(s, { x: 299, z: 0 }, guide)?.id).toBe('fen');
-    s.talked.fen = true;
+    // Beside Orla with Fen far off (arrived by the map), the line names Orla (critic round 75 was sent
+    // 499 u back to Pinewind from the hamlet), and keeps her, even walking back toward Fen.
     expect(unmetAfterStory(s, { x: 299, z: 0 }, guide)?.id).toBe('orla');
+    expect(unmetAfterStory(s, { x: 210, z: 0 }, guide)?.id).toBe('orla');
+    s.talked.orla = true;
+    expect(unmetAfterStory(s, { x: 299, z: 0 }, guide)?.id).toBe('fen');
   });
 });

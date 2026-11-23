@@ -41,7 +41,13 @@ export function goalTarget(s: GameState, from: Vec2, content: GuideContent): Vec
  * five names on one walk; at 40 u critic round 49 read a new name in every zone, and at 15 u critic
  * round 54 still saw it go round the hamlet's unmet villagers and could not commit to one.
  */
-const SWITCH_BESIDE = 0;
+/**
+ * The one exception: the named villager is far off and an unmet one is right here. Critic round 75 took the
+ * map to the hamlet and was still sent 499 u back to Pinewind while unmet villagers stood beside it.
+ * Walking never trips it (the named one only gets nearer); arriving somewhere by the map does.
+ */
+const KEPT_FAR = 150;
+const SWITCH_BESIDE = 60;
 /** The last villager named for each run's state. The only memory here; it changes which, never whether. */
 const named = new WeakMap<GameState, string>();
 
@@ -55,7 +61,7 @@ export function unmetAfterStory(s: GameState, from: Vec2, content: GuideContent)
     if (s.talked[n.id] !== true && (best === null || away(n) < away(best))) best = n;
   }
   const kept = content.npcs.find((n) => n.id === named.get(s) && s.talked[n.id] !== true);
-  if (kept && best && !(away(best) <= SWITCH_BESIDE && away(kept) > SWITCH_BESIDE)) best = kept;
+  if (kept && best && !(away(best) <= SWITCH_BESIDE && away(kept) > KEPT_FAR)) best = kept;
   if (best) named.set(s, best.id);
   return best;
 }
