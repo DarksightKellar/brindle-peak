@@ -259,7 +259,7 @@ export class SnowmanActivity implements ActivityInstance {
     const round = this.round = steadyRound(turn, wasBehind ? this.round : null);
     // Said right up to the ring: critic round 35 pushed a full ball beside it for minutes with no key named.
     const where = ` · ${WORDS.gateWay(Math.max(1, far), way, round)}`;
-    return { label: `${full ? WORDS.snowPush : WORDS.snowRoll}${where} · ${count}`, fraction: (this.stage + grown) / total, urgent: full };
+    return { label: `${full ? WORDS.snowPush : WORDS.snowRoll((target - b.r) / ROLL.grow)}${where} · ${count}`, fraction: (this.stage + grown) / total, urgent: full };
   }
 
   /** The face goes on framed from the side, as the other builds are; rolling keeps the chase view. */

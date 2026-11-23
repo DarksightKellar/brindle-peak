@@ -74,6 +74,12 @@ export interface ActivityRunner {
   breathFree(): boolean;
   /** Abandon the live activity (the player pressed cancel, or the session is shutting down). */
   cancel(): void;
+  /**
+   * The run to start again from where Pip stands, or null: a skating lap that ended in a fall, while its
+   * card is up. Critic round 98 went down out on the ice and found F did nothing until it walked back to
+   * the post.
+   */
+  again(): ActivityDef | null;
   /** Close the result card if it is up; true when it was. Escape uses it before the pause menu. */
   dismissResult(): boolean;
   /** A point the live activity wants framed with Pip (activities/hooks.ts `focus`), or null. */
@@ -91,6 +97,8 @@ export function createActivityRunner(d: ActivityRunnerDeps): ActivityRunner {
   let resultLeft = 0;
   /** Where the last run ended, and Pip's live position (the host's), for RESULT_WALKED. */
   let endedAt: { x: number; z: number } | null = null;
+  /** The run that just ended, if it can be gone again in place (`again`). */
+  let fell: ActivityDef | null = null;
   let body: { x: number; z: number } | null = null;
   /** No run of this activity has finished before: this one's result pays ACTIVITY_BELLS (progress.ts). */
   let firstRun = false;
@@ -118,6 +126,7 @@ export function createActivityRunner(d: ActivityRunnerDeps): ActivityRunner {
     active = null;
     // Each summary says nothing unless it has something to say: a race walked away from does.
     const said = extras(a).summary?.() ?? null;
+    fell = a.def.kind === 'skate' && a.result() !== null ? a.def : null;
     const line = said && firstRun && a.result() !== null ? `${said} · ${WORDS.firstBells(ACTIVITY_BELLS)}` : said;
     if (line) {
       d.ui.activity.showResult(line);
@@ -205,6 +214,7 @@ export function createActivityRunner(d: ActivityRunnerDeps): ActivityRunner {
       d.ui.activity.hide();
       return true;
     },
+    again: () => (active || resultLeft <= 0 ? null : fell),
     cancel(): void {
       if (!active) return;
       const a = active;

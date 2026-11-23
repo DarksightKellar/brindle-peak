@@ -31,7 +31,7 @@ export interface DialogueView {
   advance(): DialogueNode | 'close';
   /** Reveal text by `dt` seconds of game time. */
   update(dt: number): void;
-  /** Move the highlighted choice by `delta`, wrapping. Returns false when no choices are on screen. */
+  /** Move the highlighted choice by `delta`, stopping at the first and last. Returns false when no choices are on screen. */
   selectChoice(delta: number): boolean;
 }
 
@@ -179,7 +179,9 @@ export function createDialogue(root: HTMLElement): DialogueView {
         paint();
         renderChoices();
       }
-      selected = (selected + delta + count) % count;
+      // Stops at the ends, no wrap: critic round 98 pressed Down twice meaning "not now" and came back round
+      // to "i'll do it.", taking an errand it did not want.
+      selected = Math.max(0, Math.min(count - 1, selected + delta));
       const buttons = choiceEl.querySelectorAll('.ui-dlg__choice');
       buttons.forEach((b, i) => b.classList.toggle('is-sel', i === selected));
       return true;

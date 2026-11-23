@@ -64,6 +64,8 @@ export const THROW = {
    * 2.4 critic round 95 still found it gone too fast. It goes anyway the moment the next throw leaves.
    */
   call: 4,
+  /** Seconds "Hit!" stays before the aim words come back. */
+  hitCall: 1.5,
 } as const;
 
 /** Seconds a struck snowman's ring spreads (the words stay longer, THROW.call). */
@@ -508,7 +510,9 @@ export class TargetActivity implements ActivityInstance {
 
   progress(): ActivityReadout | null {
     const need = this.setup.need;
-    const fresh = this.call !== null && this.elapsed - this.call.at < THROW.call;
+    // A hit says so briefly: the next aim words wait while it shows, and critic round 98 found a slow
+    // minute in three hits at THROW.call each. A miss keeps its advice up the full time.
+    const fresh = this.call !== null && this.elapsed - this.call.at < (this.call.hit ? THROW.hitCall : THROW.call);
     const said = fresh && this.call ? `${this.call.hit ? WORDS.throwHit : WORDS.throwWide(this.call.side, this.call.timing)} · ` : '';
     // While the aim line is up, it says which way to turn, then that it will hit: critic round 13 could
     // not see the line "turn bold" and threw blind.

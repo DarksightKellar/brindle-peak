@@ -109,7 +109,9 @@ export const WORDS = {
   /** Pressed again straight after a press: the woodpile and the dam both take one press per swing. */
   buildMash: 'Easy: one press per swing. Watch for the lights',
   // Snowman, rolled: the ball is growing; it is big enough to push onto the spot; the face goes on with E.
-  snowRoll: 'Keep rolling it bigger. It goes on the lit ring',
+  // How much more, in units: critic round 98 read "keep rolling it bigger", rolled 70 u off and pushed it
+  // all the way back. A ball is full after a few metres.
+  snowRoll: (left: number): string => `Roll it about ${Math.max(1, Math.round(left))} u more to grow it, near the lit ring`,
   snowPush: 'Big enough. Push it onto the lit ring',
   snowFace: `Press ${KEY.interact} to give it a face`,
   // Build results
@@ -177,7 +179,7 @@ export const WORDS = {
   hoopFromSnow: `On the snow: run at it, jump and hold ${KEY.jump} to glide`,
   hoopHeight: (dy: number): string => (dy > 0 ? `${Math.round(dy)} u above you: flap (${KEY.jump})` : `${Math.round(-dy)} u below you: ease off ${KEY.jump} to sink`),
   // Skate result
-  skateResult: (seconds: number): string => `You went down on the ice after ${seconds.toFixed(1)}s. Get up and go again whenever you like.`,
+  skateResult: (seconds: number): string => `You went down on the ice after ${seconds.toFixed(1)}s. Press F to get up and go round again from here.`,
   skateLap: 'You got all the way round the Reach without falling once.',
   // The way Pip is tipping; righting it is the player's to do (no key named, the director's call, round 47).
   skateTip: (side: 'left' | 'right'): string => `Tipping ${side}`,

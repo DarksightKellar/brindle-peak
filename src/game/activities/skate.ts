@@ -23,18 +23,23 @@ export const SKATE = {
    * The ice breathes: a slow, wide wander big enough to need a correction about once a
    * second. Tuned so holding a single direction cannot pin the meter — you must alternate.
    */
-  wobble: 1.6,
+  wobble: 2.7,
   wobbleRate: 0.7,
   /** Positive feedback: leaning costs more than it gives. */
-  lean: 0.6,
-  /** How hard a left/right press pushes the meter. */
-  inputForce: 2.4,
+  lean: 1,
+  /**
+   * How hard a left/right press pushes the meter. Since critic round 98 every force here is scaled by 6 / 3.6 to
+   * match the stronger damping, and the press by a little more: at the old values the lean took about a
+   * second to answer and ran on after the key came up, so each correction overshot into the other side.
+   * Now it turns sooner, leans faster and stops sooner when let go; the ice tips you just as it did.
+   */
+  inputForce: 6,
   /**
    * Critic round 17 fell in at 11 s, reacting to every cue. With 1.6 a player holding the named key a
    * third of a second late overshot into the other edge; at 3.6 one up to two thirds of a second late
    * crosses, while one held key or no input still tips over within three seconds.
    */
-  damping: 3.6,
+  damping: 6,
   /** |balance| beyond this counts as off centre. */
   offCentre: 0.72,
   /** Seconds off centre before the run ends. */

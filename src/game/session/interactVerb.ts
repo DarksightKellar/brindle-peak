@@ -106,7 +106,12 @@ function offerFor(d: InteractVerbDeps, id: string, npc: string): PendingOffer | 
 export function interact(d: InteractVerbDeps): void {
   if (d.flow.isOpen()) return;
   const target = d.interactions.update(d.player.pos);
-  if (!target) return;
+  if (!target) {
+    // Down on the ice, F goes round again from here (activityRunner.ts `again`); the lap carries Pip.
+    const again = d.runner.again();
+    if (again) d.runner.start(again);
+    return;
+  }
 
   if (target.kind === 'npc') {
     noteWalkOff(d.state, d.player.pos);
