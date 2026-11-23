@@ -46,3 +46,32 @@ describe('pressing on past the last line', () => {
     expect(r.reached()).toBe(1);
   });
 });
+
+describe('closing the journal (critic round 115 found itself talking to Wren)', () => {
+  it('keeps an F that lands with the closing key out of the world, and lets the next one through', () => {
+    const state = createGameState({ x: 0, y: 0, z: 0 }, 6);
+    let open = true;
+    let reached = 0;
+    const ui = {
+      dialogue: { isOpen: () => false, selectChoice: () => undefined },
+      journal: { isOpen: () => open, activate: () => undefined, select: () => false, scroll: () => undefined, turnPage: () => undefined },
+      menu: { isOpen: () => false },
+      ending: { isOpen: () => false, dismissable: () => false, hide: () => undefined },
+      hud: { setHeld: () => undefined },
+    };
+    const route = createFrameInput({
+      ui: ui as never,
+      flow: { advance: () => undefined, close: () => undefined } as never,
+      runner: { isRunning: () => false, freeRoam: () => true } as never,
+      interact: () => { reached++; },
+      state,
+    });
+    const frame = (press = false): void => { route({ ...emptyInput(0), interactPressed: press }, 1 / 60); };
+    frame();
+    open = false; // Tab closed it between frames, with F down in the same gap
+    frame(true);
+    expect(reached).toBe(0);
+    frame(true);
+    expect(reached).toBe(1);
+  });
+});

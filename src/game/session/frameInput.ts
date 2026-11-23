@@ -76,7 +76,14 @@ export function createFrameInput(d: FrameInputDeps): FrameInput {
   let talkedAt = { x: 0, z: 0 };
 
   let resting = false;
+  /** The journal or pause menu was open last frame. */
+  let wasCovered = false;
   const route = (input: InputFrame, dt: number): boolean => {
+    // A panel's keys come between frames: an F and the Tab that closed the journal landing in one frame
+    // reached the world, and critic round 115 found itself talking to Wren. That F was meant for the page.
+    const covered = ui.journal.isOpen() || ui.menu.isOpen();
+    if (wasCovered && !covered) input = { ...input, interactPressed: false };
+    wasCovered = covered;
     sinceTalk = ui.dialogue.isOpen() ? 0 : sinceTalk + dt;
     if (ui.dialogue.isOpen()) talkedAt = { x: d.state.player.pos.x, z: d.state.player.pos.z };
     const stepped = Math.hypot(d.state.player.pos.x - talkedAt.x, d.state.player.pos.z - talkedAt.z) >= TALK_STEP;

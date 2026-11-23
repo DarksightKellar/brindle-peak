@@ -94,7 +94,8 @@
 .ui-hud__compass-pt.is-north { color: var(--lantern); }
 .ui-hud__compass-ahead { position: absolute; left: 50%; top: 0; margin-left: -4px; width: 0; height: 0; border: 4px solid transparent; border-top: 4px solid var(--snow-hi); border-bottom: 0; }
 .ui-hud__compass-mark { position: absolute; z-index: 1; top: 3px; width: 11px; height: 11px; margin-left: -6px; transform: rotate(45deg); background: var(--lantern); border: 1px solid #7E5334; }
-.ui-hud__compass-mark.is-behind { background: var(--panel); border: 2px solid var(--lantern); }
+/* Behind, the goal's diamond stays filled, as the goal line's own mark is: hollow, pinned at the edge, critic
+   round 115 took it for an errand's mark and could not tell which diamond was the goal. The chevrons say behind. */
 .ui-hud__compass-dist { position: absolute; left: calc(100% + 5px); top: 0; line-height: 16px; border: 1px solid var(--snow-sh); font-size: 11px; color: var(--snow-hi); font-variant-numeric: tabular-nums; white-space: nowrap; padding: 0 5px; background: var(--panel); }
 /* The tracked errand: smaller and a shade duller than the goal, hanging under the strip's lower edge so
    the two never sit on top of each other. The next-step line starts with the same mark. */
