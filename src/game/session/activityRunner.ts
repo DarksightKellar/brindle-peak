@@ -53,6 +53,12 @@ const OPENING_TURN = 0.7;
 /** Seconds the result stays in the panel after a finish (Esc sends it away sooner). 3.2 was gone before
  * critic round 5 looked down at it, and 5 before critic rounds 20 and 21 did (skating, the deer run). */
 const RESULT_HOLD = 10;
+/**
+ * Walked this far from where it ended, after RESULT_SEEN seconds, the result goes: critic round 97 walked
+ * a long way off from the Otter Slide with its card still up over the corner of the screen.
+ */
+const RESULT_WALKED = 12;
+const RESULT_SEEN = 3;
 
 export interface ActivityRunner {
   start(def: ActivityDef): void;
@@ -83,6 +89,9 @@ export function createActivityRunner(d: ActivityRunnerDeps): ActivityRunner {
   let openingYaw: number | null = null;
   let openingLeft = 0;
   let resultLeft = 0;
+  /** Where the last run ended, and Pip's live position (the host's), for RESULT_WALKED. */
+  let endedAt: { x: number; z: number } | null = null;
+  let body: { x: number; z: number } | null = null;
   /** No run of this activity has finished before: this one's result pays ACTIVITY_BELLS (progress.ts). */
   let firstRun = false;
   let running: readonly Collider[] = [];
@@ -159,6 +168,8 @@ export function createActivityRunner(d: ActivityRunnerDeps): ActivityRunner {
       if (!active) {
         if (resultLeft > 0) {
           resultLeft -= dt;
+          const walked = endedAt && body ? Math.hypot(body.x - endedAt.x, body.z - endedAt.z) : 0;
+          if (walked > RESULT_WALKED && resultLeft < RESULT_HOLD - RESULT_SEEN) resultLeft = 0;
           if (resultLeft <= 0) d.ui.activity.hide();
         }
         return false;
@@ -177,6 +188,8 @@ export function createActivityRunner(d: ActivityRunnerDeps): ActivityRunner {
       d.ui.activity.update(a.progress?.() ?? null, seconds);
       d.markers.sync(a.markers?.() ?? []);
       if (a.isComplete() || input.cancelPressed) {
+        body = host.playerPos;
+        endedAt = { x: host.playerPos.x, z: host.playerPos.z };
         if (input.cancelPressed) a.abort();
         finish(a);
       }

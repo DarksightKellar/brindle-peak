@@ -36,7 +36,9 @@ export const SLED = {
   maxSpeed: 14,
   /** Sideways speed at full A / D, and how quickly the sled answers. */
   steer: 7.5,
-  steerEase: 9,
+  // 16 since critic round 97: at 9 the sled answered a press 8 to 10 frames late and ran on as long
+  // after a release, so a ring in front was oversteered past.
+  steerEase: 16,
   /** Extra slowing while scraping along the edge of the run. */
   edgeDrag: 4,
   /** Speed added by a ring, and how close to its centre counts. */
