@@ -31,7 +31,9 @@ export interface GuideRoute {
 /** A target this close to a path's end is what the path leads to: the mast, Edda, and the aurora 50 u past them. */
 const END_REACH = 60;
 /** Further than this from the path, Pip is off finding their own way, and the goal points straight. */
-const NEAR = 60;
+// 120 since critic round 87: 70 u off the trail below Windscar, the goal pointed straight up the face and
+// it stalled there. From this far the way back onto the trail is still the walkable one.
+const NEAR = 120;
 /** How far along the path the pin aims. Further cut the corners of the spur onto ground too steep to walk. */
 const AHEAD = 14;
 /** This close to a bend, the aim moves on round it. */

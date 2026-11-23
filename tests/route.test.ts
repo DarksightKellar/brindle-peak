@@ -34,7 +34,7 @@ describe('a goal along a route (critic round 17, the pin through the north face)
   });
 
   it('leaves the goal straight when Pip is far off the path, or the target is elsewhere', () => {
-    expect(routeAim(routes, { x: 50, z: 200 }, top)).toBeNull();
+    expect(routeAim(routes, { x: -50, z: 250 }, top)).toBeNull();
     expect(routeAim(routes, { x: 90, z: 5 }, { x: 300, z: 300 })).toBeNull();
   });
 });

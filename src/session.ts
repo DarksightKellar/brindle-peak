@@ -240,6 +240,8 @@ export function createSession(opts: SessionOptions): Session {
     // Press routing lives in frameInput.ts: the order (ending, menu/journal, dialogue, world) is the
     // part that breaks when it is edited in the middle of a 115-line function.
     const blocked = routeInput(input, dt);
+    // A print still up goes when the journal or the menu opens: critic round 87 read the Quests page under it.
+    if (ui.journal.isOpen() || ui.menu.isOpen()) polaroid.dismiss();
 
     // Any move or jump gets Pip up off the bench; until then Pip stays put on it.
     if (seated && !blocked && (Math.hypot(input.moveX, input.moveZ) > 0.2 || input.jumpPressed)) seated = null;
