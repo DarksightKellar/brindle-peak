@@ -131,7 +131,8 @@ describe('throw', () => {
     const h = host({ x: d.pos.x, y: 0, z: d.pos.z });
     game.start(h);
     step(game, h);
-    const ringed = (): boolean => game.markers().some((m) => (m as { look?: string }).look === 'halo');
+    // Lined up is the full ring; a fainter one marks the snowman the aim words turn toward (round 95).
+    const ringed = (): boolean => game.markers().some((m) => (m as { look?: string; strength?: number }).look === 'halo' && (m as { strength?: number }).strength === 1);
     let thrown = 0;
     let dir = 1;
     for (let f = 0; f < 6000 && !game.isComplete() && thrown < 3; f++) {
