@@ -74,11 +74,14 @@ export const RACE_COURSES: Readonly<Record<string, RaceCourse>> = {
 
   // Down the west foot of the chimney to the rope on its tall south-west side, then up it: a gate on
   // each ledge and the last on top. Every wall goes on one bar of breath without a feather.
+  // The post, the first gate and the second stand in a line, down off the bank onto the flat. Gate 1 stood
+  // 3 u up the bank north-east of the post, so the run turned straight back past the start: critic round 111
+  // read "Gate 2 of 6, behind you, to your left" after gate 1 and gave up on the course.
   'ridge-chimney-race': {
     look: 'arch',
     radius: GATE_RADIUS,
     gates: [
-      { x: 222, z: -220 },
+      { x: 218, z: -238 },
       { x: 226, z: -244 },
       { x: 238, z: -252 },
       { x: 245.7, z: -244.3 },

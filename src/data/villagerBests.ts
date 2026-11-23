@@ -24,7 +24,8 @@ export interface VillagerBest {
 
 export const VILLAGER_BESTS: Readonly<Record<string, VillagerBest>> = {
   'pinewind-deer-run': { who: 'Ilsa', seconds: 15 },
-  'ridge-chimney-race': { who: 'Sable', seconds: 26 },
+  // 25 since critic round 111's course fix: as long as before, but downhill and one way, with no 3 u climb.
+  'ridge-chimney-race': { who: 'Sable', seconds: 25 },
   'peak-thermal-flight': { who: 'Edda', count: 8, noun: 'hoops' },
   'reach-sled-hill': { who: 'Skiff', count: 5, noun: 'rings' },
   'kettles-otter-slide': { who: 'Ivy', count: 10, noun: 'rings' },

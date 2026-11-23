@@ -56,9 +56,10 @@ export const ACTIVITIES: readonly ActivityDef[] = [
   // "Run", not "Light": on the walk home Nana asks for the posts to be lit, and critic round 33 pressed E
   // on this one's "Light" and was put in a timed race.
   { id: 'ridge-lantern-ascent', name: 'Lantern Ascent', kind: 'race', zone: 'ridge', pos: { x: 168, z: -140 }, radius: 3.6, prompt: 'Run', what: 'run the lantern posts uphill' },
-  // On the flat at the chimney's foot, by its first gate: it stood up the face, and critic round 82 clung there
-  // out of breath before the race had begun.
-  { id: 'ridge-chimney-race', name: 'Chimney Scramble', kind: 'race', zone: 'ridge', pos: { x: 209, z: -230 }, radius: 3.4, prompt: 'Climb', what: 'race up the chimney' },
+  // Off the face: it stood up it, and critic round 82 clung there out of breath before the race had begun. On the
+  // gentle bank west of the chimney's foot since critic round 111, in line with the first two gates, so the run
+  // goes one way (raceCourses.ts).
+  { id: 'ridge-chimney-race', name: 'Chimney Scramble', kind: 'race', zone: 'ridge', pos: { x: 194, z: -220 }, radius: 3.4, prompt: 'Climb', what: 'race up the chimney' },
   // On the open saddle just past its lantern post, where the last climb to the mast begins and critic
   // round 72 found "mostly empty snow": every climber leaves a stone (activities/buildSites.ts).
   { id: 'ridge-cairn', name: "Climbers' Cairn", kind: 'build', zone: 'ridge', pos: { x: 226, z: -245.5 }, radius: 3.2, prompt: 'Add', what: "add your stones to the climbers' cairn" },
