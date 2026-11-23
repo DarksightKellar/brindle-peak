@@ -232,6 +232,8 @@ export function createSession(opts: SessionOptions): Session {
   // Nana's lantern lights Pip and the snow round it after dark (render/pipGlow.ts).
   const glow = createPipGlow(kit.scene);
 
+  // An activity or a conversation under way last frame, to see one begin.
+  let wasBusy = false;
   const update = (raw: number, input: InputFrame): void => {
     const dt = Math.min(raw, MAX_STEP_DT * 4);
     elapsed += dt;
@@ -241,7 +243,11 @@ export function createSession(opts: SessionOptions): Session {
     // part that breaks when it is edited in the middle of a 115-line function.
     const blocked = routeInput(input, dt);
     // A print still up goes when the journal or the menu opens: critic round 87 read the Quests page under it.
-    if (ui.journal.isOpen() || ui.menu.isOpen()) polaroid.dismiss();
+    // So does one still up when the next activity starts or someone starts talking: critic round 89 had the
+    // steam print over the Otter Slide's start and over Ivy's first lines.
+    const busyNow = runner.isRunning() || flow.isOpen();
+    if (ui.journal.isOpen() || ui.menu.isOpen() || (busyNow && !wasBusy)) polaroid.dismiss();
+    wasBusy = busyNow;
 
     // Any move or jump gets Pip up off the bench; until then Pip stays put on it.
     if (seated && !blocked && (Math.hypot(input.moveX, input.moveZ) > 0.2 || input.jumpPressed)) seated = null;

@@ -475,6 +475,26 @@ describe('skate', () => {
     expect(skate.crossedPond).toBe(true);
   });
 
+  it('a key held well past steady still finishes the lap (critic round 89 found taps better than holds)', () => {
+    // A player who leans against each named tip and keeps the key down a long second and a half.
+    const skate = createSkateActivity(defOf('skate'));
+    const host = makeHost();
+    begin(skate, host);
+    let held = 0;
+    let holdFor = 0;
+    let guard = 0;
+    while (!skate.isComplete() && guard++ < 2000) {
+      const label = (skate.progress()?.label ?? '').replace(/^Whoa[^·]*· /, '');
+      if (holdFor <= 0) {
+        held = label.startsWith('Tipping right') ? -1 : label.startsWith('Tipping left') ? 1 : 0;
+        holdFor = held === 0 ? 0 : 90;
+      }
+      holdFor--;
+      step(skate, host, { moveX: held });
+    }
+    expect(skate.crossedPond).toBe(true);
+  });
+
   it('says which way it tips every time, and says it large before a fall (critic round 34)', () => {
     const skate = createSkateActivity(defOf('skate'));
     const host = makeHost();

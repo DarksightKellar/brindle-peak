@@ -45,7 +45,7 @@ const HINTS: Readonly<Record<ActivityKind, string>> = {
   // The race is the one activity that leaves the controls with the player; the next gate is the bright one.
   // Shift too: a race spends no breath, and critic round 37 ran every race at a walk.
   race: `Run for the bright gate. Hold ${KEY.sprint} to sprint, and a race spends no breath.`,
-  skate: `Skate a lap. Tipping one way? Hold the other, ${KEY.left} or ${KEY.right}, till it steadies.`,
+  skate: `Skate a lap. Tipping one way? Lean the other, ${KEY.left} or ${KEY.right}, and let go when it says steady.`,
   sled: `${KEY.steer} steer down the hill.`,
 };
 
