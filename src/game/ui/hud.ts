@@ -115,7 +115,9 @@ const BY_TRAIL = ' by the trail';
  * Said after BY_TRAIL when Pip is OFF_TRAIL or more off it. Critic rounds 108 and 112 walked off the trail,
  * watched the number climb as the pin led them back, and found nothing saying they had left it.
  */
-const BACK_ON = ", once you're back on it";
+// And how far off the trail is: critic round 117 read "once you're back on it" 60 u off and could not tell
+// whether the trail was near or which number to watch.
+const backOn = (off: number): string => `, once you're back on it, ${formatDistance(off)} away`;
 const OFF_TRAIL = 15;
 /** In place of a distance when the prompt up acts on the line's own target. */
 const HERE = 'here';
@@ -299,7 +301,7 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
         const goal = unmet
           ? `${line.replace(/\.$/, '')}: ${formatDistance(away)}, ${viewWay(unmet.pos.x - p.pos.x, unmet.pos.z - p.pos.z, viewYaw)}.`
           : storyAway !== null && line !== ''
-            ? `${line.replace(/\.$/, '')} — ${atHand(pointed) ? HERE : `${formatDistance(storyAway)}${goalDistance !== undefined ? `${BY_TRAIL}${goalOff >= OFF_TRAIL ? BACK_ON : ''}` : ''}`}`
+            ? `${line.replace(/\.$/, '')} — ${atHand(pointed) ? HERE : `${formatDistance(storyAway)}${goalDistance !== undefined ? `${BY_TRAIL}${goalOff >= OFF_TRAIL ? backOn(goalOff) : ''}` : ''}`}`
             : line;
         if (goal !== lastGoal) {
           lastGoal = goal;
@@ -350,7 +352,7 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
         // right" beside Tuck.
         const here = atHand(errandTarget);
         const said = errands?.onTheWay() ? formatNextStep(walked, here).replace(/^Next: /, 'On the way: ') : formatNextStep(walked, here);
-        const errandText = step ? `${now}${said}${errandRoute && walked?.distance !== null && !here ? `${BY_TRAIL}${errandRoute.off >= OFF_TRAIL ? BACK_ON : ''}` : ''}${here ? '' : offStrip(errandAim)}${hopHint(s, step)}` : '';
+        const errandText = step ? `${now}${said}${errandRoute && walked?.distance !== null && !here ? `${BY_TRAIL}${errandRoute.off >= OFF_TRAIL ? backOn(errandRoute.off) : ''}` : ''}${here ? '' : offStrip(errandAim)}${hopHint(s, step)}` : '';
         if (feather.line !== '') writeNext(feather.line, null);
         // Two lines at most under the compass: critic round 57 read four, "Now on the line", the errand,
         // its wrap and a nearby line. The nearby line waits while the switch is being said.
