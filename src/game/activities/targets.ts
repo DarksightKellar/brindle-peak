@@ -60,9 +60,10 @@ export const THROW = {
   puff: 0.35,
   /**
    * Seconds "Hit!" or "Missed" stays in the panel, and a struck snowman's ring spreads. At 1.2 critic round
-   * 79 saw "Missed, wide left. Aim a touch more right" for only a moment and could not act on it.
+   * 79 saw "Missed, wide left. Aim a touch more right" for only a moment and could not act on it, and at
+   * 2.4 critic round 95 still found it gone too fast. It goes anyway the moment the next throw leaves.
    */
-  call: 2.4,
+  call: 4,
 } as const;
 
 /** Seconds a struck snowman's ring spreads (the words stay longer, THROW.call). */
@@ -481,6 +482,10 @@ export class TargetActivity implements ActivityInstance {
       }
       const t = on >= 0 && this.fan.length > 0 ? targets[on] : null;
       if (t) out.push({ shape: 'ring', look: 'halo', x: t.pos.x, y: this.groundAt(t.pos.x, t.pos.z), z: t.pos.z, size: 0.9, strength: 1 });
+      // Not lined up yet: the snowman the aim words turn toward gets a fainter ring. Critic round 95 could not
+      // tell which of the three swaying snowmen "Aim left" meant.
+      const near = !t && this.fan.length > 0 ? this.nearestToAim() : null;
+      if (near) out.push({ shape: 'ring', look: 'halo', x: near.pos.x, y: this.groundAt(near.pos.x, near.pos.z), z: near.pos.z, size: 0.8, strength: 0.45 });
     }
     for (const s of this.shots) out.push({ shape: 'float', look: this.setup.missile, x: s.pos.x, y: s.pos.y, z: s.pos.z, yaw: s.age * 9, size: 1 });
     for (const p of this.puffs) {

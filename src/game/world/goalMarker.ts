@@ -30,8 +30,13 @@ import { groundHeightAt } from './groundHeight';
 
 export interface GoalMarker {
   object: THREE.Object3D;
-  /** `show` false hides it (a conversation, a panel or an activity owns the screen). */
-  update(dt: number, target: Vec2 | null, from: Vec3, camera: THREE.Camera, show: boolean): void;
+  /**
+   * `show` false hides it (a conversation, a panel or an activity owns the screen). `arrowOk` false keeps
+   * its arrow off the snow while the other marker's arrow is down.
+   */
+  update(dt: number, target: Vec2 | null, from: Vec3, camera: THREE.Camera, show: boolean, arrowOk?: boolean): void;
+  /** True while its arrow lies on the snow this frame. */
+  readonly arrowShown: boolean;
 }
 
 /** Internal render height in pixels (ART_BIBLE §1). */
@@ -62,7 +67,8 @@ export const GOAL_LOOK: MarkerLook = { beamPx: 44, gemPx: 3.5, beamAlpha: 1, gem
  * than ARROW_OFF radians off the way the view looks. Critic round 79 stood 9 u from Edda with "9 u,
  * behind you, to your right" and nothing on screen, and walked round her for fifteen presses.
  */
-const ARROW_FAR = 30;
+// 45 since critic round 95, which circled goals 35 u off, out of view, for many presses.
+const ARROW_FAR = 45;
 const ARROW_NEAR = 4;
 const ARROW_OFF = 0.6;
 /** How far out from Pip the arrow lies, and its length. */
@@ -84,7 +90,9 @@ function floorArrow(): THREE.BufferGeometry {
   // Shape space is XY; lying it down puts +Y along -Z, so turn it round to point along +Z.
   return new THREE.ShapeGeometry(s).rotateX(-Math.PI / 2).rotateY(Math.PI);
 }
-export const SIDE_LOOK: MarkerLook = { beamPx: 24, gemPx: 2.5, beamAlpha: 0.55, gem: PALETTE.AMBER, glow: PALETTE.AMBER };
+// The errand's arrow too, in its own amber, when the goal's is not down: critic round 95 walked round
+// Corm, the dam and Ivy, all errands on the line, for "35 u, behind you" with no arrow on the snow.
+export const SIDE_LOOK: MarkerLook = { beamPx: 24, gemPx: 2.5, beamAlpha: 0.55, gem: PALETTE.AMBER, glow: PALETTE.AMBER, arrow: true };
 
 const smooth = (a: number, b: number, x: number): number => {
   const t = Math.max(0, Math.min(1, (x - a) / (b - a)));
@@ -139,7 +147,7 @@ export function mountGoalMarker(d: GoalMarkerDeps): GoalMarker {
     last = now;
     const show = !held && !d.busy();
     marker.update(dt, target, from, d.camera, show);
-    side.update(dt, errand, from, d.camera, show);
+    side.update(dt, errand, from, d.camera, show, !marker.arrowShown);
   });
   return marker;
 }
@@ -166,7 +174,7 @@ export function createGoalMarker(sampler: TerrainSampler, look: MarkerLook = GOA
   gem.frustumCulled = false;
   group.add(beam, gem);
 
-  const arrowMat = new THREE.MeshBasicMaterial({ color: PALETTE.LANTERN, fog: false, transparent: true, side: THREE.DoubleSide });
+  const arrowMat = new THREE.MeshBasicMaterial({ color: look.gem, fog: false, transparent: true, side: THREE.DoubleSide });
   const arrow = new THREE.Mesh(floorArrow(), arrowMat);
   arrow.frustumCulled = false;
   arrow.visible = false;
@@ -202,9 +210,12 @@ export function createGoalMarker(sampler: TerrainSampler, look: MarkerLook = GOA
 
   return {
     object: root,
-    update(dt, target, from, camera, show): void {
+    get arrowShown(): boolean {
+      return arrow.visible;
+    },
+    update(dt, target, from, camera, show, arrowOk = true): void {
       const near = target ? Math.hypot(target.x - from.x, target.z - from.z) : 0;
-      pointArrow(target, from, camera, show, near);
+      pointArrow(target, from, camera, show && arrowOk, near);
       // Gone only once the E pill is up (a villager's reach is 5.5 u): critic round 51 stood a few units
       // from Hollis with neither.
       const gemFade = smooth(3.5, 5, near);

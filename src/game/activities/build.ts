@@ -265,6 +265,8 @@ export class BuildActivity implements ActivityInstance {
         if (i === this.pick) {
           const bob = 0.12 * Math.sin(this.elapsed * 4);
           out.push({ shape: 'float', look: 'dot', x: at.x, y: at.y + size * 1.1 + 0.6 + bob, z: at.z, size: 1.6, strength: 1 });
+          // And a ring on the snow round it: critic round 91 could not see the dot past Pip.
+          out.push({ shape: 'ring', look: 'halo', x: at.x, y: at.y + 0.05, z: at.z, size: size * 1.6 + 0.3, strength: 1 });
         }
       });
     }
