@@ -15,6 +15,7 @@ import { esc } from './html';
 import { icon } from './icons';
 import { KEY } from '../../core/keys';
 import { CREDITS, LICENCES } from '../../data/credits';
+import { activityOffered } from '../activities/offered';
 
 /** `value` and `note` replace the plain count when a stat has two numbers to tell apart (the bells). */
 const statHTML = (label: string, r: JournalModel['feathers'], value = esc(r.text), note = ''): string =>
@@ -160,7 +161,7 @@ const TRY_NEAR = 80;
 function tryRows(activities: readonly ActivityDef[], s: GameState) {
   const from = s.player.pos;
   return activities
-    .filter((a) => (s.counters[`activity:${a.id}`] ?? 0) === 0)
+    .filter((a) => (s.counters[`activity:${a.id}`] ?? 0) === 0 && activityOffered(a, s))
     .map((a) => ({ a, dx: a.pos.x - from.x, dz: a.pos.z - from.z }))
     .map((e) => ({ ...e, d: Math.hypot(e.dx, e.dz) }))
     .sort((x, y) => x.d - y.d)

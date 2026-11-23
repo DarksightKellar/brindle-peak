@@ -12,6 +12,7 @@
 import type { ActivityDef, GameState, Vec2 } from '../../core/contracts';
 import { compassWord, formatDistance } from '../../core/guide/compass';
 import { bearing } from './hudCompass';
+import { activityOffered } from '../activities/offered';
 
 /** Within this of straight ahead, a thing is "ahead", radians. */
 const AHEAD = 0.35;
@@ -49,7 +50,7 @@ export const TODO_RANGE = 100;
 
 export function nearbyTodo(activities: readonly ActivityDef[], s: GameState, from: Vec2): Vec2[] {
   return activities
-    .filter((a) => (s.counters[`activity:${a.id}`] ?? 0) === 0)
+    .filter((a) => (s.counters[`activity:${a.id}`] ?? 0) === 0 && activityOffered(a, s))
     .map((a) => ({ a, d: Math.hypot(a.pos.x - from.x, a.pos.z - from.z) }))
     .filter((e) => e.d < TODO_RANGE && e.d > 3)
     .sort((x, y) => x.d - y.d)
@@ -91,7 +92,7 @@ export function createNearbyNotice(activities: readonly ActivityDef[]): {
       yaw = viewYaw;
       for (const [id, at] of named) if (Math.hypot(at.x - from.x, at.z - from.z) > FORGET_RANGE) named.delete(id);
       const things: Notable[] = activities
-        .filter((a) => (s.counters[`activity:${a.id}`] ?? 0) === 0)
+        .filter((a) => (s.counters[`activity:${a.id}`] ?? 0) === 0 && activityOffered(a, s))
         // Says what Pip would do there: critic round 25 read "Snowman nearby" and looked for a snowman.
         .map((a) => ({ id: `activity:${a.id}`, label: a.what ? `${a.name} nearby: ${a.what}` : `${a.name} nearby`, pos: a.pos }));
       // The nearest thing not yet named, not the first in the list: on the saddle the line named the

@@ -23,7 +23,7 @@ const ARROW_UP = 2.3;
 const ARROW_MAX_ROLL = 2.4;
 /** The floor arrow's middle sits this far out from Pip, clear of the body when the way is ahead, and
  * nudges this much further on each beat. */
-const FLOOR_OUT = 2.4;
+const FLOOR_OUT = 2.8;
 const FLOOR_NUDGE = 0.25;
 /** Half the floor arrow's length at size 1, for laying it along a slope. */
 const FLOOR_HALF = 0.9;
@@ -36,7 +36,9 @@ export function floorArrowTo(from: Vec3, target: Vec2, groundAt: (x: number, z: 
   if (far < 3) return [];
   const yaw = Math.atan2(dx, dz);
   const sx = Math.sin(yaw), sz = Math.cos(yaw);
-  const size = 0.6 + 0.35 * Math.min(1, (far - 3) / 6);
+  // As big as the goal's arrow (goalMarker.ts): critic round 83 overran the Deer Trail's gate 4, off the
+  // side of the view, and never saw the arrow to it.
+  const size = 0.8 + 0.6 * Math.min(1, (far - 3) / 6);
   const out = FLOOR_OUT + FLOOR_NUDGE * Math.max(0, Math.sin(now * 4));
   const x = from.x + sx * out, z = from.z + sz * out;
   const flying = from.y - groundAt(from.x, from.z) > FLOOR_AIRBORNE;
