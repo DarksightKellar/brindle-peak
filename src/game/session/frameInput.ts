@@ -43,9 +43,11 @@ export type FrameInput = (input: InputFrame, dt: number) => boolean;
 export const TALK_REST = 1;
 /**
  * Standing where the talk ended, E waits this long instead. Critic round 14 still reopened Bram, Jory and
- * Edda by pressing on past the last line; a step away (TALK_STEP) shows the talk is over sooner.
+ * Edda by pressing on past the last line; a step away (TALK_STEP) shows the talk is over sooner. 4 since
+ * critic round 105, which pressed F about two seconds after Nana, Bram, Hollis, Tuck and Edda each
+ * finished and heard "still here?" from all five.
  */
-export const TALK_STAY = 2.5;
+export const TALK_STAY = 4;
 export const TALK_STEP = 0.75;
 
 /** The way a key moves the highlighted choice: up is -1 (the one before), down or right is +1. */
