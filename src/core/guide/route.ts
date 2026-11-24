@@ -52,6 +52,8 @@ export interface RouteAim {
   distance: number;
   /** How far Pip stands off the path. */
   off: number;
+  /** Pip's nearest point on the path, for saying which way the trail lies; absent when there is none. */
+  near?: Vec2;
 }
 
 /** Among the cliffs, Pip this far off the path is not on the trail, and is led back to it (routeAim). */
@@ -113,6 +115,7 @@ export function routeAim(routes: readonly GuideRoute[], from: Vec2, target: Vec2
     const lengths: number[] = [];
     let total = 0;
     let best = Infinity, at = 0;
+    let near: Vec2 = { x: from.x, z: from.z };
     for (let i = 0; i < p.length - 1; i++) {
       const [ax, az] = p[i];
       const [bx, bz] = p[i + 1];
@@ -122,6 +125,7 @@ export function routeAim(routes: readonly GuideRoute[], from: Vec2, target: Vec2
       if (d < best) {
         best = d;
         at = total + len * t;
+        near = { x: ax + dx * t, z: az + dz * t };
       }
       lengths.push(len);
       total += len;
@@ -181,14 +185,14 @@ export function routeAim(routes: readonly GuideRoute[], from: Vec2, target: Vec2
         held = true;
       }
     }
-    if (!held && (fwd ? goal >= stop.at : goal <= stop.at)) return { aim: target, distance, off: best };
+    if (!held && (fwd ? goal >= stop.at : goal <= stop.at)) return { aim: target, distance, off: best, near };
     let s = 0;
     for (let i = 0; i < lengths.length; i++) {
       if (aimAt <= s + lengths[i] || i === lengths.length - 1) {
         const t = lengths[i] > 0 ? (aimAt - s) / lengths[i] : 0;
         const [ax, az] = p[i];
         const [bx, bz] = p[i + 1];
-        return { aim: { x: ax + (bx - ax) * t, z: az + (bz - az) * t }, distance, off: best };
+        return { aim: { x: ax + (bx - ax) * t, z: az + (bz - az) * t }, distance, off: best, near };
       }
       s += lengths[i];
     }
