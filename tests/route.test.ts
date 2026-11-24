@@ -21,12 +21,6 @@ describe('a goal along a route (critic round 17, the pin through the north face)
     expect(routeAim(routes, { x: 50, z: -30 }, top)?.off).toBeCloseTo(30);
   });
 
-  it("gives the path's nearest point to Pip, for saying which way the trail lies (critic round 119)", () => {
-    const near = routeAim(routes, { x: 50, z: -30 }, top)?.near;
-    expect(near?.x).toBeCloseTo(50);
-    expect(near?.z).toBeCloseTo(0);
-  });
-
   it('measures to a target beside the path short of its end, not to the end and back (critic round 114)', () => {
     const long = [{ path: [[0, 0], [200, 0], [200, 40]] as const }];
     const r = routeAim(long, { x: 100, z: -30 }, { x: 170, z: 8 });
