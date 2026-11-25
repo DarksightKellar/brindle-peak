@@ -35,7 +35,11 @@ export interface GoalMarker {
    * `show` false hides it (a conversation, a panel or an activity owns the screen). `arrowOk` false keeps
    * its arrow off the snow while the other marker's arrow is down.
    */
-  update(dt: number, target: Vec2 | null, from: Vec3, camera: THREE.Camera, show: boolean, arrowOk?: boolean): void;
+  /**
+   * `anyFar`: lay the arrow however far off the target is. Off the trail the target is the way back onto it,
+   * and critic rounds 122 and 123 drifted 30 to 50 u off with no arrow, which showed only within ARROW_FAR.
+   */
+  update(dt: number, target: Vec2 | null, from: Vec3, camera: THREE.Camera, show: boolean, arrowOk?: boolean, anyFar?: boolean): void;
   /** True while its arrow lies on the snow this frame. */
   readonly arrowShown: boolean;
 }
@@ -128,7 +132,7 @@ export interface GoalMarkerDeps {
   scene: THREE.Object3D;
   sampler: TerrainSampler;
   camera: THREE.Camera;
-  hud: { onFrame(fn: (target: Vec2 | null, from: Vec3, held: boolean, side: Vec2 | null) => void): void };
+  hud: { onFrame(fn: (target: Vec2 | null, from: Vec3, held: boolean, side: Vec2 | null, offTrail: boolean) => void): void };
   /** True while something else owns the screen (an activity): the marker steps aside. */
   busy(): boolean;
 }
@@ -142,7 +146,7 @@ export function mountGoalMarker(d: GoalMarkerDeps): GoalMarker {
   const side = createGoalMarker(d.sampler, SIDE_LOOK);
   d.scene.add(marker.object, side.object);
   let last = performance.now();
-  d.hud.onFrame((target, from, held, errand) => {
+  d.hud.onFrame((target, from, held, errand, offTrail) => {
     const now = performance.now();
     const dt = Math.min(0.1, (now - last) / 1000);
     last = now;
@@ -152,9 +156,9 @@ export function mountGoalMarker(d: GoalMarkerDeps): GoalMarker {
     const far = (p: Vec2 | null): number => (p ? Math.hypot(p.x - from.x, p.z - from.z) : Infinity);
     if (far(errand) < far(target)) {
       side.update(dt, errand, from, d.camera, show);
-      marker.update(dt, target, from, d.camera, show, !side.arrowShown);
+      marker.update(dt, target, from, d.camera, show, !side.arrowShown, offTrail);
     } else {
-      marker.update(dt, target, from, d.camera, show);
+      marker.update(dt, target, from, d.camera, show, true, offTrail);
       side.update(dt, errand, from, d.camera, show, !marker.arrowShown);
     }
   });
@@ -200,9 +204,9 @@ export function createGoalMarker(sampler: TerrainSampler, look: MarkerLook = GOA
   root.add(group, arrowRoot);
 
   /** The arrow by Pip, when the goal is close and out of view. */
-  const pointArrow = (target: Vec2 | null, from: Vec3, camera: THREE.Camera, show: boolean, near: number): void => {
+  const pointArrow = (target: Vec2 | null, from: Vec3, camera: THREE.Camera, show: boolean, near: number, anyFar: boolean): void => {
     arrow.visible = false;
-    if (!look.arrow || !target || !show || near > ARROW_FAR || near < ARROW_NEAR) return;
+    if (!look.arrow || !target || !show || (near > ARROW_FAR && !anyFar) || near < ARROW_NEAR) return;
     camera.getWorldDirection(look2);
     const viewYaw = Math.atan2(look2.x, look2.z);
     const toYaw = Math.atan2(target.x - from.x, target.z - from.z);
@@ -222,9 +226,9 @@ export function createGoalMarker(sampler: TerrainSampler, look: MarkerLook = GOA
     get arrowShown(): boolean {
       return arrow.visible;
     },
-    update(dt, target, from, camera, show, arrowOk = true): void {
+    update(dt, target, from, camera, show, arrowOk = true, anyFar = false): void {
       const near = target ? Math.hypot(target.x - from.x, target.z - from.z) : 0;
-      pointArrow(target, from, camera, show && arrowOk, near);
+      pointArrow(target, from, camera, show && arrowOk, near, anyFar);
       // Gone only once the E pill is up (a villager's reach is 5.5 u): critic round 51 stood a few units
       // from Hollis with neither.
       const gemFade = smooth(3.5, 5, near);

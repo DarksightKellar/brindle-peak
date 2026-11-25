@@ -71,9 +71,10 @@ export interface Hud {
   /**
    * Called at the end of every `update` with what the HUD points at, where from, whether it is held, and
    * the tracked errand's point when it is not the goal: the world markers (world/goalMarker.ts) draw the
-   * same points, so they can never disagree with the strip.
+   * same points, so they can never disagree with the strip. `offTrail`: Pip is off the trail the goal follows,
+   * and the target is the way back onto it (the chip says "N u to the trail").
    */
-  onFrame(fn: (target: Vec2 | null, from: Vec3, held: boolean, side: Vec2 | null) => void): void;
+  onFrame(fn: (target: Vec2 | null, from: Vec3, held: boolean, side: Vec2 | null, offTrail: boolean) => void): void;
   /** Flash the stamina bar: the receipt for a lesson that cost breath. */
   pulseStamina(): void;
   destroy(): void;
@@ -186,7 +187,7 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
   let lastState: GameState | null = null;
   let lastFrom: Vec2 = { x: 0, z: 0 };
   const errands = guide ? errandLineFor(guide) : null;
-  const frameListeners: ((target: Vec2 | null, from: Vec3, held: boolean, side: Vec2 | null) => void)[] = [];
+  const frameListeners: ((target: Vec2 | null, from: Vec3, held: boolean, side: Vec2 | null, offTrail: boolean) => void)[] = [];
 
   /** The walk left to the goal when it follows a route rather than the straight line (route.ts). */
   let goalDistance: number | undefined;
@@ -374,8 +375,11 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
         const said = errands?.onTheWay()
           ? formatNextStep(walked, here).replace(/^Next: /, 'On the way: ')
           : following ? formatNextStep(walked, here).replace(/^Next: /, 'Following: ') : formatNextStep(walked, here);
-        // As the goal, its way back to the trail is on the chip; the line says it only when it is the second mark.
-        const backTo = errandRoute && errandRoute.off >= OFF_TRAIL && errandTarget !== pointed ? backOn(errandRoute.off) : '';
+        // As the goal, its way back to the trail is on the chip; the line says it only when it is the second mark,
+        // and not when the chip already says the same trail: critic round 123 read "929 u by the trail, once you're
+        // back on it, 15 u away · ahead" under a chip of "15 u to the trail · ahead", one fact on two lines.
+        const sameTrail = goalDistance !== undefined && goalOff >= OFF_TRAIL && Math.abs((errandRoute?.off ?? 0) - goalOff) < 1;
+        const backTo = errandRoute && errandRoute.off >= OFF_TRAIL && errandTarget !== pointed && !sameTrail ? backOn(errandRoute.off) : '';
         const errandText = step ? `${now}${said}${errandRoute && walked?.distance !== null && !here ? `${BY_TRAIL}${backTo}` : ''}${here ? '' : errandWay(errandAim)}${hopHint(s, step)}` : '';
         if (feather.line !== '') writeNext(feather.line, null);
         // Two lines at most under the compass: critic round 57 read four, "Now on the line", the errand,
@@ -407,7 +411,8 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
         const toTrail = goalDistance !== undefined && goalOff >= OFF_TRAIL ? goalOff : undefined;
         compass.update({ from: lastFrom, viewYaw, goal: round?.aim ?? heldTarget, goalDistance: goalDistance ?? round?.distance, here: !held && atHand(pointed), toTrail, side, feather: feather.feather, todo, errands: errandMarks });
       }
-      for (const fn of frameListeners) fn(heldTarget, p.pos, held, side);
+      const offTrail = !course && goalDistance !== undefined && goalOff >= OFF_TRAIL;
+      for (const fn of frameListeners) fn(heldTarget, p.pos, held, side, offTrail);
     },
 
     onFrame(fn): void {
