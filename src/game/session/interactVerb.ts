@@ -19,11 +19,14 @@ import { PICKUPS } from '../../data/pickups';
 import { PIP_ASK_ANY, PIP_ASK_REST, PIP_ASKS } from '../../data/pipAsks';
 import { SPECIES_SIZE } from '../world/npcSpecies';
 import { allSatisfied, evaluate } from '../../core/progress/conditions';
+import { KEY } from '../../core/keys';
 
 /** What the counter says when Pip cannot pay. */
 const WORDS_SHOP = {
   short: (price: number, have: number): string =>
     `One of Gus's feathers: ${price} bells. You have ${have}. Bells come from errands, games and the snow`,
+  ask: (price: number, have: number): string =>
+    `One of Gus's feathers is ${price} bells, and you have ${have}. Press ${KEY.interact} again to buy it`,
 };
 
 /**
@@ -32,6 +35,12 @@ const WORDS_SHOP = {
  */
 const BUY_REST_MS = 3000;
 const boughtAt = new WeakMap<GameState, number>();
+/**
+ * A first press at the counter asks; a second within this long (ms) buys. Gus stands beside his stand, and
+ * critic round 131 pressed F to talk to him and paid 40 bells for a feather it hadn't meant to buy.
+ */
+const BUY_ASK_MS = 5000;
+const askedAt = new WeakMap<GameState, { id: string; at: number }>();
 
 /**
  * The villager Pip last said "not now" to, and where Pip stood. Until Pip has walked this far from there,
@@ -94,7 +103,12 @@ function offerFor(d: InteractVerbDeps, id: string, npc: string): PendingOffer | 
     story: offered.main === true,
     // An activity Pip has already done for the first part is not offered again in Pip's own words.
     ask: offered.steps[0]?.when.kind === 'activity' && evaluate(offered.steps[0].when, state) ? PIP_ASK_REST : PIP_ASKS[id] ?? PIP_ASK_ANY,
-    accept: () => d.mech.accept(id),
+    // Taken on, the "not now" is over: critic round 131 said yes to Sable after a no, came back with the
+    // readings, and heard "It'll keep" three times over the goal's "Give Sable your readings — here".
+    accept: () => {
+      declinedAt.delete(state);
+      d.mech.accept(id);
+    },
     // A "not now" is kept in the save: critic round 34 declined Bram's rope and had nothing to find it by.
     decline: () => {
       state.flags[`declined:${id}`] = true;
@@ -117,15 +131,19 @@ export function interact(d: InteractVerbDeps): void {
   if (target.kind === 'npc') {
     noteWalkOff(d.state, d.player.pos);
     const turned = declinedAt.get(d.state);
-    if (turned && turned.npc === target.id) {
+    // A word first, then Pip's answer again: critic round 77 read "talk to Bram again to take it on",
+    // asked straight away, and heard only "It'll keep" however often it asked.
+    const kept = turned && turned.npc === target.id
+      ? QUESTS.find((q) => q.giver === target.id && d.state.flags[`declined:${q.id}`] === true
+        && d.state.quests[q.id] === undefined && allSatisfied(q.requires, d.state))
+      : undefined;
+    if (kept) {
       standClear(d.player, target.id);
-      // A word first, then Pip's answer again: critic round 77 read "talk to Bram again to take it on",
-      // asked straight away, and heard only "It'll keep" however often it asked.
-      const kept = QUESTS.find((q) => q.giver === target.id && d.state.flags[`declined:${q.id}`] === true
-        && d.state.quests[q.id] === undefined && allSatisfied(q.requires, d.state));
-      d.flow.remind(target.id, kept ? offerFor(d, kept.id, target.id) : undefined);
+      d.flow.remind(target.id, offerFor(d, kept.id, target.id));
       return;
     }
+    // Nothing left turned down with them: the talk goes on as any other.
+    if (turned && turned.npc === target.id) declinedAt.delete(d.state);
     // The talk is counted first and the node chosen from what it changed (core/progress/conversation),
     // so a report-back conversation speaks the payoff instead of replaying the request.
     const talk = d.mech.talk(target.id);
@@ -156,6 +174,13 @@ export function interact(d: InteractVerbDeps): void {
     const now = performance.now();
     if (now - (boughtAt.get(d.state) ?? -Infinity) < BUY_REST_MS) return;
     if (d.state.bells >= p.price) {
+      const asked = askedAt.get(d.state);
+      if (!asked || asked.id !== p.id || now - asked.at > BUY_ASK_MS) {
+        askedAt.set(d.state, { id: p.id, at: now });
+        d.bus.emit('toast', { text: WORDS_SHOP.ask(p.price, d.state.bells), icon: 'feather', tier: 'discovery' });
+        return;
+      }
+      askedAt.delete(d.state);
       d.mech.collect(p.id, p.kind, p.price);
       boughtAt.set(d.state, now);
     } else d.bus.emit('toast', { text: WORDS_SHOP.short(p.price, d.state.bells), icon: 'feather', tier: 'discovery' });
