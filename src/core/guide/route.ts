@@ -98,7 +98,11 @@ export function routeAim(routes: readonly GuideRoute[], from: Vec2, target: Vec2
   // trail beyond it, and critic round 114 at the chimney's foot read 164 u, back to the bridge and out again.
   const offs = routes.map((r) => (r.path.length < 2 ? Infinity : along(r.path, target).off));
   const nearest = Math.min(...offs);
-  for (const [ri, r] of routes.entries()) {
+  // Two routes can lead to the same target: the way up as far as Tuck's bridge, and the way back down to it
+  // from the mast. The one Pip stands nearest leads. Critic round 121, 19 u above the trail past the bridge,
+  // was led 78 u back to the lower trail's end instead, and read two "back on it" distances at one spot.
+  let found: RouteAim | null = null;
+  routes: for (const [ri, r] of routes.entries()) {
     const p = r.path;
     if (p.length < 2) continue;
     if (offs[ri] > nearest + OTHER_STRETCH) continue;
@@ -181,19 +185,24 @@ export function routeAim(routes: readonly GuideRoute[], from: Vec2, target: Vec2
         held = true;
       }
     }
-    if (!held && (fwd ? goal >= stop.at : goal <= stop.at)) return { aim: target, distance, off: best };
+    if (found && found.off <= best) continue;
+    if (!held && (fwd ? goal >= stop.at : goal <= stop.at)) {
+      found = { aim: target, distance, off: best };
+      continue;
+    }
     let s = 0;
     for (let i = 0; i < lengths.length; i++) {
       if (aimAt <= s + lengths[i] || i === lengths.length - 1) {
         const t = lengths[i] > 0 ? (aimAt - s) / lengths[i] : 0;
         const [ax, az] = p[i];
         const [bx, bz] = p[i + 1];
-        return { aim: { x: ax + (bx - ax) * t, z: az + (bz - az) * t }, distance, off: best };
+        found = { aim: { x: ax + (bx - ax) * t, z: az + (bz - az) * t }, distance, off: best };
+        continue routes;
       }
       s += lengths[i];
     }
   }
-  return null;
+  return found;
 }
 
 /** A building's footprint as the colliders store it (core/player/collide.ts 'box'). */

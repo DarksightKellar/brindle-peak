@@ -122,6 +122,9 @@ const BY_TRAIL = ' by the trail';
 // chimney, read "behind you, to your right" on the line while the strip led ahead.
 const backOn = (off: number): string => `, once you're back on it, ${formatDistance(off)} away`;
 const OFF_TRAIL = 15;
+/** The strip's thresholds for its words (hudCompass.ts SIDE_SAY, BEHIND_GIVE), for the errand's line. */
+const SIDE_SAY = 0.8;
+const WAY_GIVE = 0.2;
 /** In place of a distance when the prompt up acts on the line's own target. */
 const HERE = 'here';
 
@@ -226,27 +229,35 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
     return routed?.aim ?? point;
   };
 
-  /**
-   * Where the errand lies when its mark is off the compass strip. Critic round 11 saw the errand's
-   * diamond pinned to the strip's edge, read no way to turn, and walked away from it. The goal's own
-   * distance says "behind you"; the errand's line now says the same. No key named: the director's call
-   * (round 47), the opening teaches walking.
-   */
   /** What the goal points at before any route bends it: the errand's own place when it is the goal. */
   let pointed: Vec2 | null = null;
   /** The goal line's own place is the compass's big diamond. */
   let storyMarked = false;
+  /**
+   * Which way the errand's mark lies, by the strip's own rule (hudCompass.ts): "ahead" while it is near the
+   * view's middle, "on your left/right" further round, "behind you, to your left/right" off the strip, each
+   * with a little give so a mark near the edge does not flick between them. Critic round 11 saw the mark
+   * pinned to the strip's edge and walked away from it; critic round 121 read "Next: … 30 u" with no word at
+   * all and asked for one always. No key named: the director's call (round 47), the opening teaches walking.
+   */
   let offSide = 0;
-  const offStrip = (at: Vec2 | null): string => {
+  let wayBand = 0;
+  const errandWay = (at: Vec2 | null): string => {
     if (!at) return '';
     const rel = bearing(at.x - lastFrom.x, at.z - lastFrom.z, viewYaw);
-    // The strip's own rule (hudCompass.ts): off its half of the horizon is "behind you", and which way
-    // round (critic round 47). Nearly straight behind, the side said last is kept, so it doesn't flicker.
-    if (Math.abs(rel) <= Math.PI / 2) {
+    const off = Math.abs(rel);
+    const band = off > Math.PI / 2 + (wayBand === 2 ? -WAY_GIVE : WAY_GIVE) ? 2 : off > SIDE_SAY + (wayBand >= 1 ? -WAY_GIVE / 2 : WAY_GIVE / 2) ? 1 : 0;
+    wayBand = band;
+    if (band === 0) {
       offSide = 0;
-      return '';
+      return ' · ahead';
     }
-    if (offSide === 0 || Math.abs(rel) < (Math.PI * 5) / 6) offSide = Math.sign(rel) || 1;
+    if (band === 1) {
+      offSide = 0;
+      return ` · on your ${rel > 0 ? 'right' : 'left'}`;
+    }
+    // Nearly straight behind, the side said last is kept, so it doesn't flicker (critic round 47).
+    if (offSide === 0 || off < (Math.PI * 5) / 6) offSide = Math.sign(rel) || 1;
     return ` · behind you, to your ${offSide > 0 ? 'right' : 'left'}`;
   };
 
@@ -355,7 +366,7 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
         // right" beside Tuck.
         const here = atHand(errandTarget);
         const said = errands?.onTheWay() ? formatNextStep(walked, here).replace(/^Next: /, 'On the way: ') : formatNextStep(walked, here);
-        const errandText = step ? `${now}${said}${errandRoute && walked?.distance !== null && !here ? `${BY_TRAIL}${errandRoute.off >= OFF_TRAIL ? backOn(errandRoute.off) : ''}` : ''}${here ? '' : offStrip(errandAim)}${hopHint(s, step)}` : '';
+        const errandText = step ? `${now}${said}${errandRoute && walked?.distance !== null && !here ? `${BY_TRAIL}${errandRoute.off >= OFF_TRAIL ? backOn(errandRoute.off) : ''}` : ''}${here ? '' : errandWay(errandAim)}${hopHint(s, step)}` : '';
         if (feather.line !== '') writeNext(feather.line, null);
         // Two lines at most under the compass: critic round 57 read four, "Now on the line", the errand,
         // its wrap and a nearby line. The nearby line waits while the switch is being said.
@@ -382,7 +393,10 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
       // goal line of 1033 u (the corner's distance to the aim a little way down the trail).
       const round = heldTarget && !held ? aroundAim(buildings, lastFrom, heldTarget) : null;
       if (course) compass.update({ from: lastFrom, viewYaw, goal: course, side: null, feather: null, todo: [], errands: [] });
-      else compass.update({ from: lastFrom, viewYaw, goal: round?.aim ?? heldTarget, goalDistance: goalDistance ?? round?.distance, here: !held && atHand(pointed), side, feather: feather.feather, todo, errands: errandMarks });
+      else {
+        const toTrail = goalDistance !== undefined && goalOff >= OFF_TRAIL ? goalOff : undefined;
+        compass.update({ from: lastFrom, viewYaw, goal: round?.aim ?? heldTarget, goalDistance: goalDistance ?? round?.distance, here: !held && atHand(pointed), toTrail, side, feather: feather.feather, todo, errands: errandMarks });
+      }
       for (const fn of frameListeners) fn(heldTarget, p.pos, held, side);
     },
 

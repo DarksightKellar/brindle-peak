@@ -31,6 +31,13 @@ export interface CompassView {
   goalDistance?: number;
   /** The prompt up acts on the goal: the strip says "here", as the goal line does (hud.ts `atHand`). */
   here?: boolean;
+  /**
+   * Pip is this far off the trail the goal follows: the chip says how far the trail is instead of the goal,
+   * since the diamond and its word lead back to the trail first. Critic round 121, off the trail, read the
+   * goal's number and a word on the chip and the trail's number on the line, and could not tell which number
+   * the word belonged to.
+   */
+  toTrail?: number;
   /** The tracked errand's step, when it is not the goal: a smaller, dimmer diamond under the strip. */
   side: Point | null;
   /** A feather worth noticing: a feather glyph on the strip. */
@@ -210,7 +217,11 @@ export function createHudCompass(layer: HTMLElement): HudCompass {
       const round = way > 0 ? 'right' : 'left';
       saidSide = !saidBehind && Math.abs(rel) > SIDE_SAY + (saidSide ? -BEHIND_GIVE / 2 : BEHIND_GIVE / 2);
       const said = saidBehind ? ` · behind you, to your ${round}` : saidSide ? ` · on your ${rel > 0 ? 'right' : 'left'}` : '';
-      const text = v.here ? 'here' : `${Math.round(v.goalDistance ?? Math.hypot(v.goal.x - v.from.x, v.goal.z - v.from.z))} u${said}`;
+      const text = v.here
+        ? 'here'
+        : v.toTrail !== undefined
+          ? `${Math.round(v.toTrail)} u to the trail${said}`
+          : `${Math.round(v.goalDistance ?? Math.hypot(v.goal.x - v.from.x, v.goal.z - v.from.z))} u${said}`;
       if (text !== lastDist) {
         lastDist = text;
         dist.textContent = text;

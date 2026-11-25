@@ -141,6 +141,16 @@ describe('drifted off the path (critic round 48 walked beside the trail and pass
   });
 });
 
+describe('two ways to one place (critic round 121 above Tuck\'s bridge)', () => {
+  it('follows the way Pip stands nearest, not the first one listed', () => {
+    // Both end at the target: one from the west, one coming down to it from the east.
+    const both = [{ path: [[0, 0], [100, 0]] as const }, { path: [[300, 0], [200, 50], [100, 0]] as const }];
+    const r = routeAim(both, { x: 180, z: 45 }, { x: 100, z: 5 });
+    expect(r?.off).toBeLessThan(10);
+    expect(r?.aim.x).toBeGreaterThan(100); // along the eastern way, not straight across to the western one
+  });
+});
+
 describe('no slant among the cliffs (critic round 49 was led into the chimney face)', () => {
   it('aims close along the path past slantUntil', () => {
     const path = [[0, 0], [100, 0], [400, 0]] as const;

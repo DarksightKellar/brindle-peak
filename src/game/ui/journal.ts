@@ -102,7 +102,7 @@ function tabHTML(
         ? mapHTML(s, content.map, content.mapDecor?.(), hop)
         : '<p class="ui-empty">No map to draw: the valley content is not loaded.</p>';
     case 'Quests':
-      return questsHTML(m, tracked, cursor, content.map ? errandWhere(s, content.map) : undefined) + tryHTML(ACTIVITIES, s, tracked, cursor);
+      return questsHTML(m, tracked, cursor, content.map ? errandWhere(s, content.map) : undefined, tryHTML(ACTIVITIES, s, tracked, cursor));
     case 'Fish':
       return fishHTML(m, s, content.fish);
     case 'Achievements':

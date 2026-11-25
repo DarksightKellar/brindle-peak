@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { createGameState } from '../src/core/contracts';
 import { ACTIVITIES } from '../src/data/activities';
-import { tryHTML, tryIds } from '../src/game/ui/journalTabs';
+import { QUESTS } from '../src/data/quests';
+import { formatJournal } from '../src/game/ui/journalModel';
+import { questsHTML, tryHTML, tryIds } from '../src/game/ui/journalTabs';
 
 describe('a followed thing to try a long way off (critic round 116 read it under "close by", 870 u away)', () => {
   const s = createGameState({ x: -206, y: 0, z: 150 }, 6); // beside the Pinecone Toss in Pinewind
@@ -25,5 +27,21 @@ describe('a followed thing to try a long way off (critic round 116 read it under
 
   it('has no Following heading when nothing to try is followed', () => {
     expect(tryHTML(ACTIVITIES, s, null)).not.toContain('>Following<');
+  });
+});
+
+describe('finished errands at the foot of the Quests page (critic round 121)', () => {
+  it('lists the open ones, then the things to try, then what is done', () => {
+    const s = createGameState({ x: -206, y: 0, z: 150 }, 6);
+    s.quests['the-line'] = { status: 'complete', step: 4 };
+    s.quests['the-climb'] = { status: 'active', step: 0, base: 0 };
+    const html = questsHTML(formatJournal(s, { quests: QUESTS }), null, null, undefined, tryHTML(ACTIVITIES, s));
+    const open = html.indexOf('data-quest="the-climb"');
+    const tries = html.indexOf('Things to try');
+    const done = html.indexOf('>Done<');
+    expect(open).toBeGreaterThanOrEqual(0);
+    expect(tries).toBeGreaterThan(open);
+    expect(done).toBeGreaterThan(tries);
+    expect(html.indexOf('data-quest="the-line"')).toBeGreaterThan(done);
   });
 });

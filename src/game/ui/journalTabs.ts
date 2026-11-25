@@ -86,9 +86,10 @@ export function questsHTML(
   tracked: string | null = null,
   cursor: string | null = null,
   where?: (id: string) => { text: string; d: number } | null,
+  between = '',
 ): string {
   if (m.quests.length === 0) {
-    return '<p class="ui-empty">No quests yet. Someone by a warm window is waiting.</p>';
+    return `<p class="ui-empty">No quests yet. Someone by a warm window is waiting.</p>${between}`;
   }
   // Each errand that can be followed says how far its next place is, and the nearest says so.
   const far = new Map<string, { text: string; d: number }>();
@@ -101,7 +102,7 @@ export function questsHTML(
   }
   let nearest: string | null = null;
   for (const [id, at] of far) if (nearest === null || at.d < (far.get(nearest)?.d ?? Infinity)) nearest = id;
-  const rows = m.quests.map((q) => {
+  const rows = m.quests.map((q): string => {
     const tick = q.status === 'complete' ? '✓ ' : '';
     const line =
       q.status === 'complete'
@@ -122,14 +123,14 @@ export function questsHTML(
       // read "Errands for villagers 1 of 18" on the end card as a mismatch.
       : q.main && q.status === 'complete' ? 'story, done' : q.status;
     const pick = q.trackable ? ` is-pickable${q.id === cursor ? ' is-cursor' : ''}${on ? ' is-tracked' : ''}` : '';
-    return (
+    const html =
       `<li class="ui-quest is-${q.status}${pick}" data-quest="${esc(q.id)}"><div class="ui-quest__row"><span class="ui-quest__title">${tick}${esc(q.title)}</span>` +
       `<span class="ui-quest__status">${status}</span></div>` +
       (far.has(q.id)
         ? `<p class="ui-quest__where">${esc(far.get(q.id)?.text ?? '')}${q.id === nearest && far.size > 1 ? ' · nearest' : ''}</p>`
         : '') +
-      `<p class="ui-quest__step${cls}">${esc(line)}</p></li>`
-    );
+      `<p class="ui-quest__step${cls}">${esc(line)}</p></li>`;
+    return html;
   });
   const hint = m.quests.some((q) => q.trackable)
     // Critic round 41 read the old "E puts an errand on the line under the goal, or on the story, follows
@@ -140,7 +141,18 @@ export function questsHTML(
     // (which looks round) on the page and saw nothing happen.
     ? `<p class="ui-journal__meta">↑↓ choose · ${KEY.interact} follows it: its step goes under the goal, with its own diamond on the compass · ${KEY.interact} again lets it go</p>`
     : '';
-  return `${hint}<ul class="ui-quests">${rows.join('')}</ul>`;
+  // `between` (the things to try) goes after the errands under way or on offer, and before the ones still
+  // waiting and the finished ones. Critic round 121 found the things to try sinking under a growing list of
+  // those, a long way down the page.
+  const listed = (...status: readonly string[]): string => rows.filter((_, i) => status.includes(m.quests[i].status)).join('');
+  const open = listed('active', 'available');
+  const waiting = listed('locked');
+  const done = listed('complete');
+  return (
+    `${hint}${open !== '' ? `<ul class="ui-quests">${open}</ul>` : ''}${between}` +
+    (waiting !== '' ? `<h3 class="ui-try__head">Waiting</h3><ul class="ui-quests">${waiting}</ul>` : '') +
+    (done !== '' ? `<h3 class="ui-try__head">Done</h3><ul class="ui-quests">${done}</ul>` : '')
+  );
 }
 
 /** How many of the nearest untried activities the Quests page lists. */
