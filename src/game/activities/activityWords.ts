@@ -160,6 +160,9 @@ export const WORDS = {
   bellSilent: `The bell never rang. Press ${KEY.interact} at the snowballs for another go.`,
   // Called for a moment as each throw lands.
   throwHit: 'Hit!',
+  // With snowmen still standing, it says the aim line has moved on: critic round 136 hit one, then read "Aim
+  // left" and took it for the same snowman, re-aimed from scratch.
+  throwHitNext: 'Hit! The aim line moves on to the next snowman',
   // Says which way the arc was going as well: critic round 25 read "Fell short: let go sooner" as
   // backwards, not seeing that the arc had already shrunk back past the target.
   throwWide: (side: 'left' | 'right' | 'short' | 'long' | null, timing?: 'early' | 'late'): string =>

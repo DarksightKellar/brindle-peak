@@ -68,6 +68,8 @@ export const THROW = {
   call: 4,
   /** Seconds "Hit!" stays before the aim words come back. */
   hitCall: 1.5,
+  /** Long enough to read that the aim line has moved on to the next snowman. */
+  hitNextCall: 2.4,
 } as const;
 
 /** Seconds a struck snowman's ring spreads (the words stay longer, THROW.call). */
@@ -519,8 +521,9 @@ export class TargetActivity implements ActivityInstance {
     const need = this.setup.need;
     // A hit says so briefly: the next aim words wait while it shows, and critic round 98 found a slow
     // minute in three hits at THROW.call each. A miss keeps its advice up the full time.
-    const fresh = this.call !== null && this.elapsed - this.call.at < (this.call.hit ? THROW.hitCall : THROW.call);
-    const said = fresh && this.call ? `${this.call.hit ? WORDS.throwHit : WORDS.throwWide(this.call.side, this.call.timing)} · ` : '';
+    const more = this.hits < need && this.setup.kind === 'fan';
+    const fresh = this.call !== null && this.elapsed - this.call.at < (this.call.hit ? (more ? THROW.hitNextCall : THROW.hitCall) : THROW.call);
+    const said = fresh && this.call ? `${this.call.hit ? (more ? WORDS.throwHitNext : WORDS.throwHit) : WORDS.throwWide(this.call.side, this.call.timing)} · ` : '';
     // While the aim line is up, it says which way to turn, then that it will hit: critic round 13 could
     // not see the line "turn bold" and threw blind.
     const aiming = this.stage === 'throwing' && this.decidedAt < 0 && this.throwsLeft > 0 && this.shots.length === 0;

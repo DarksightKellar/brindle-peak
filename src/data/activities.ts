@@ -59,7 +59,8 @@ export const ACTIVITIES: readonly ActivityDef[] = [
   // Off the face: it stood up it, and critic round 82 clung there out of breath before the race had begun. On the
   // gentle bank west of the chimney's foot since critic round 111, in line with the first two gates, so the run
   // goes one way (raceCourses.ts).
-  { id: 'ridge-chimney-race', name: 'Chimney Scramble', kind: 'race', zone: 'ridge', pos: { x: 194, z: -220 }, radius: 3.4, prompt: 'Climb', what: 'race up the chimney' },
+  // Its words say it goes up the rock: critic round 136 ran past gate 4, 11 u up the face, expecting a run.
+  { id: 'ridge-chimney-race', name: 'Chimney Scramble', kind: 'race', zone: 'ridge', pos: { x: 194, z: -220 }, radius: 3.4, prompt: 'Climb', what: 'race up the chimney, ledge by ledge up its rock face' },
   // On the open saddle just past its lantern post, where the last climb to the mast begins and critic
   // round 72 found "mostly empty snow": every climber leaves a stone (activities/buildSites.ts).
   { id: 'ridge-cairn', name: "Climbers' Cairn", kind: 'build', zone: 'ridge', pos: { x: 226, z: -245.5 }, radius: 3.2, prompt: 'Add', what: "add your stones to the climbers' cairn" },
