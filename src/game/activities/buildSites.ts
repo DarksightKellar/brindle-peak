@@ -147,13 +147,14 @@ const CAIRN_BASE: readonly Piece[] = [
   // A second course, so from the trail it already reads as a cairn and not a heap of rocks.
   { look: 'stone', x: 0.04, y: 0.72, z: 0, size: 0.7, yaw: 1.1 },
 ];
-// Each about a quarter smaller than the one under it: at a fifth apart (0.56 to 0.30) critic round 128 saw four
-// orange stones of a size in the row and could pick the biggest only by the words.
+// Each a third smaller than the one under it: at a fifth apart (0.56 to 0.30) critic round 128 saw four
+// orange stones of a size in the row and could pick the biggest only by the words; at a quarter (0.64 to 0.24)
+// critic round 133 still could not tell the biggest from the next.
 const CAIRN: readonly Piece[][] = [
-  [{ look: 'stone-laid', x: -0.03, y: 1.36, z: 0.02, size: 0.64, yaw: 2.4 }],
-  [{ look: 'stone-laid', x: 0.02, y: 1.95, z: -0.02, size: 0.48, yaw: 0.2 }],
-  [{ look: 'stone-laid', x: 0, y: 2.39, z: 0.01, size: 0.35, yaw: 1.7 }],
-  [{ look: 'stone-laid', x: 0.01, y: 2.71, z: 0, size: 0.24, yaw: 0.6 }],
+  [{ look: 'stone-laid', x: -0.03, y: 1.36, z: 0.02, size: 0.72, yaw: 2.4 }],
+  [{ look: 'stone-laid', x: 0.02, y: 2.02, z: -0.02, size: 0.48, yaw: 0.2 }],
+  [{ look: 'stone-laid', x: 0, y: 2.46, z: 0.01, size: 0.32, yaw: 1.7 }],
+  [{ look: 'stone-laid', x: 0.01, y: 2.75, z: 0, size: 0.2, yaw: 0.6 }],
 ];
 
 /**

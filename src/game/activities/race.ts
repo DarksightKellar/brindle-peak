@@ -239,7 +239,7 @@ export class RaceActivity implements ActivityInstance {
     // On the snow, "4 u below you: ease off Space to sink" is no use: critic round 94 landed short on the
     // summit slope with the next hoop downhill (higher on the screen) and read it as wrong.
     const onSnow = p.y - 0.6 - this.groundAt(p.x, p.z) < 0.3;
-    const rise = h !== undefined && onSnow ? ` · ${WORDS.hoopFromSnow(h - 0.6 - this.groundAt(g.x, g.z))}`
+    const rise = h !== undefined && onSnow ? ` · ${WORDS.hoopFromSnow(h - HOOP_BAND - 0.6 - this.groundAt(g.x, g.z), h - 0.6 - this.groundAt(g.x, g.z))}`
       : h !== undefined && Math.abs(h - p.y) > HOOP_BAND ? ` · ${WORDS.hoopHeight(h - p.y)}`
       : up > GATE_ABOVE ? ` · ${WORDS.gateAbove(up)}` : '';
     const lead = aim > this.next ? WORDS.hoops(aim + 1, total) : label;

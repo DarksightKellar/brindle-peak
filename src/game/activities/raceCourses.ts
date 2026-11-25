@@ -48,6 +48,9 @@ export const RACE_COURSES: Readonly<Record<string, RaceCourse>> = {
       { x: -260, z: 162 },
       { x: -276, z: 176 },
     ],
+    // It ends deep in the wood, some 55 u off the trail. Critic round 133 finished there with nothing saying
+    // which way was back, as the chimney's card does.
+    after: 'The trail is through the pines to the southeast, about 55 u.',
   },
 
   /*
