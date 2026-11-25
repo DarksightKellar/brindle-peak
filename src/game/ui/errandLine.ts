@@ -284,6 +284,9 @@ export function createErrandLine(guide: GuideContent): ErrandLine {
       story = false;
       if (pinned && tracked === id) {
         pinned = false;
+        // A thing to try let go is let go: unpinned, it stayed the one followed, and critic round 128 pressed
+        // F on its row, saw nothing change and had to follow another to be rid of it.
+        if (id.startsWith(TRY)) tracked = null;
         return;
       }
       s.flags[`${PIN}${id}`] = true;

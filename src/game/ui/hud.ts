@@ -158,6 +158,12 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
   /** What was being followed last frame; undefined before the first. */
   let lastFollowed: string | null | undefined;
   const nearbyNotice = guide ? createNearbyNotice(ACTIVITIES) : null;
+  /**
+   * The nearby line's clock, ms, stopped while a talk holds the HUD: its few seconds ran out under the talk.
+   * Critic round 128 read "Chimney Scramble nearby" by Tuck's bridge, talked to Tuck, and never saw it again.
+   */
+  let lineClock = 0;
+  let lastTick = -1;
 
   const goalEl = layer.querySelector('.ui-hud__goal') as HTMLElement;
   const nextEl = layer.querySelector('.ui-hud__next') as HTMLElement;
@@ -315,6 +321,9 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
       stamina.update(s, p);
       lastState = s;
       lastFrom = { x: p.pos.x, z: p.pos.z };
+      const tick = performance.now();
+      if (!held && lastTick >= 0) lineClock += tick - lastTick;
+      lastTick = tick;
       // A new pick to follow takes the line from the feather's one-time words (hudFeather.ts `quiet`).
       const followed = errands?.trackedId() ?? null;
       if (followed !== null && followed !== lastFollowed && lastFollowed !== undefined) featherNotice.quiet();
@@ -380,7 +389,7 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
         const shop = PICKUPS.find((q) => q.price !== undefined && s.flags[`picked:${q.id}`] !== true && s.bells >= q.price);
         if (shop) notable.push({ id: 'shop:gus', label: `Gus's feathers nearby: ${shop.price} bells each`, pos: { x: shop.pos.x, z: shop.pos.z } });
         const noticed = nextAllowed && feather.line === ''
-          ? nearbyNotice?.update(s, lastFrom, performance.now(), notable, viewYaw) ?? ''
+          ? nearbyNotice?.update(s, lastFrom, lineClock, notable, viewYaw) ?? ''
           : '';
         // Not the place the errand line already names: critic round 49 read "Creek Pool nearby… 43 u" under
         // "Next: Fish the Creek Pool… 43 u".

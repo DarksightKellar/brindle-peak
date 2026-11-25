@@ -397,7 +397,9 @@ export class BuildActivity implements ActivityInstance {
 }
 
 /** The cairn's stones in their row, by step (0 is the biggest): mixed, so the first one looked at is not it. */
-const CAIRN_ROW: readonly number[] = [2, 0, 3, 1];
+// The biggest lies last, by Pip: with the sizes further apart (critic round 128), the smallest lay hidden
+// behind the biggest in the second slot.
+const CAIRN_ROW: readonly number[] = [2, 3, 1, 0];
 /** Where each slot of the row lies, in the site's own frame: across the side shot, between the cairn and Pip. */
 // A clear step from the cairn, and shown a size larger (CAIRN_ROW_SHOW): critic round 77 saw them clumped
 // against the cairn's own stones and could not tell the sizes. Any longer, the last ones lie under Pip.

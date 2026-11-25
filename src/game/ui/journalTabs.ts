@@ -220,7 +220,7 @@ export function tryHTML(activities: readonly ActivityDef[], s: GameState, tracke
   if (near.length > 0) html += `<h3 class="ui-try__head">Things to try close by</h3><ul class="ui-tries">${list(near)}</ul>`;
   if (far.length > 0) html += `<h3 class="ui-try__head">Things to try, a walk away</h3><ul class="ui-tries">${list(far)}</ul>`;
   // Followed like an errand: critic round 77 read "High Tarn, 36 u west" here and had nothing to follow it by.
-  if (rows.length > 0) html += `<p class="ui-journal__meta">↑↓ to one of these and ${KEY.interact} follows it, as it does an errand</p>`;
+  if (rows.length > 0) html += `<p class="ui-journal__meta">↑↓ to one of these and ${KEY.interact} follows it, as it does an errand · ${KEY.interact} again lets it go</p>`;
   return html;
 }
 

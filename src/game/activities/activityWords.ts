@@ -182,7 +182,11 @@ export const WORDS = {
   cueGap: `Over the gap! Press ${KEY.interact}`,
   /** A hoop well above or below the glide: flap to climb, or let the glide go a moment to sink. */
   gateAbove: (dy: number): string => `${Math.round(dy)} u up the rock: climb to it`,
-  hoopFromSnow: `On the snow: run at it, jump and hold ${KEY.jump} to glide`,
+  // A hoop higher over the snow than a jump reaches says to flap: critic round 128 landed short of hoop 2,
+  // read "jump and hold Space to glide", and could not tell whether to climb or sink.
+  hoopFromSnow: (over: number): string => (over > 2
+    ? `On the snow, and it hangs ${Math.round(over)} u up: run at it, jump, then flap (${KEY.jump}) to rise to it`
+    : `On the snow: run at it, jump and hold ${KEY.jump} to glide`),
   hoopHeight: (dy: number): string => (dy > 0 ? `${Math.round(dy)} u above you: flap (${KEY.jump})` : `${Math.round(-dy)} u below you: ease off ${KEY.jump} to sink`),
   // Skate result
   skateResult: (seconds: number): string => `You went down on the ice after ${seconds.toFixed(1)}s. Press F to get up and go round again from here.`,

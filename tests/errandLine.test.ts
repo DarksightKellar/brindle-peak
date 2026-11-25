@@ -62,6 +62,19 @@ describe('the line under the goal', () => {
     expect(line.trackedId()).toBe('bundle');
   });
 
+  it('a followed thing to try picked again is let go (critic round 128)', () => {
+    const s = fresh();
+    const line = createErrandLine(guide);
+    line.pick(s, { x: 0, z: 0 });
+    line.track(s, 'try:pinewind-pinecone-throw');
+    line.pick(s, { x: 0, z: 0 });
+    expect(line.trackedId()).toBe('try:pinewind-pinecone-throw');
+    line.track(s, 'try:pinewind-pinecone-throw');
+    line.pick(s, { x: 0, z: 0 });
+    expect(line.trackedId()).toBeNull();
+    expect(Object.keys(s.flags).some((k) => k.startsWith('track:'))).toBe(false);
+  });
+
   it('a talk a few steps away stands in for a far errand, then the line goes back (critic round 45)', () => {
     const far: GuideContent = {
       ...guide,
