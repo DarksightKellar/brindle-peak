@@ -150,7 +150,8 @@ export const QUESTS: readonly QuestDef[] = [
   q('margit-ice', 'Where the Pike Sit', 'margit', 'reach', "Margit doesn't believe in luck. She believes in keeping records.",
     { offer: 'margit-root', waiting: 'margit-wait', still: 'margit-still' }, [
       // Fresh: Margit records what she watched being caught, so a fish from before she was counting is not hers.
-      s('hole', 'Fish the ice hole in the Frozen Reach while Margit counts.', { kind: 'activity', id: 'reach-ice-fish' }, { fresh: true }),
+      // Says that a catch from before counts for nothing: critic round 135 had fished the hole minutes before.
+      s('hole', 'Fish the ice hole in the Frozen Reach again while Margit counts. She only records what she sees caught.', { kind: 'activity', id: 'reach-ice-fish' }, { fresh: true }),
       talk('skiff', 'Ask Skiff where the pike sit.', 'skiff', 'skiff-pike'),
       talk('report', 'Tell Margit what you caught, and where the pike sit.', 'margit', 'margit-done'),
     ], { item: 'bait', bells: 10 }),

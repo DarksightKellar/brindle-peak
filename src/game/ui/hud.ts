@@ -428,9 +428,12 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
         const sameTrail = goalDistance !== undefined && goalOff >= OFF_TRAIL && Math.abs((errandRoute?.off ?? 0) - goalOff) < 1;
         // Nor for an errand a long walk off: critic round 132 at the mast read "1130 u by the trail, once you're back
         // on it, 16 u away · behind you, to your right · the map can take you back" and could not parse it.
-        const farOff = (walked?.distance ?? 0) > FAR_ERRAND;
+        // Or when the map hop is offered: critic round 135 read "244 u by the trail, once you're back on it, 23 u away
+        // · behind you, to your right · the map can take you back" running to three lines over the compass.
+        const hop = homeward || !step ? '' : hopHint(s, step);
+        const farOff = (walked?.distance ?? 0) > FAR_ERRAND || hop !== '';
         const backTo = errandRoute && errandRoute.off >= OFF_TRAIL && errandTarget !== pointed && !sameTrail && !farOff ? backOn(errandRoute.off) : '';
-        const errandText = step ? `${now}${said}${errandRoute && walked?.distance !== null && !here && !(errandTarget && errandRoute.aim.x === errandTarget.x && errandRoute.aim.z === errandTarget.z) ? `${BY_TRAIL}${backTo}` : ''}${here || homeward ? '' : errandWay(errandAim)}${homeward ? '' : hopHint(s, step)}` : '';
+        const errandText = step ? `${now}${said}${errandRoute && walked?.distance !== null && !here && !(errandTarget && errandRoute.aim.x === errandTarget.x && errandRoute.aim.z === errandTarget.z) ? `${BY_TRAIL}${backTo}` : ''}${here || homeward ? '' : errandWay(errandAim)}${hop}` : '';
         if (feather.line !== '') writeNext(feather.line, null);
         // Two lines at most under the compass: critic round 57 read four, "Now on the line", the errand,
         // its wrap and a nearby line. The nearby line waits while the switch is being said.
