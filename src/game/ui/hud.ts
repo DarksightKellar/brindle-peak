@@ -74,7 +74,7 @@ export interface Hud {
    * same points, so they can never disagree with the strip. `offTrail`: Pip is off the trail the goal follows,
    * and the target is the way back onto it (the chip says "N u to the trail").
    */
-  onFrame(fn: (target: Vec2 | null, from: Vec3, held: boolean, side: Vec2 | null, offTrail: boolean) => void): void;
+  onFrame(fn: (target: Vec2 | null, from: Vec3, held: boolean, side: Vec2 | null, offTrail: boolean, here: Vec2 | null) => void): void;
   /** Flash the stamina bar: the receipt for a lesson that cost breath. */
   pulseStamina(): void;
   destroy(): void;
@@ -204,7 +204,7 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
   let lastState: GameState | null = null;
   let lastFrom: Vec2 = { x: 0, z: 0 };
   const errands = guide ? errandLineFor(guide) : null;
-  const frameListeners: ((target: Vec2 | null, from: Vec3, held: boolean, side: Vec2 | null, offTrail: boolean) => void)[] = [];
+  const frameListeners: ((target: Vec2 | null, from: Vec3, held: boolean, side: Vec2 | null, offTrail: boolean, here: Vec2 | null) => void)[] = [];
 
   /** The walk left to the goal when it follows a route rather than the straight line (route.ts). */
   let goalDistance: number | undefined;
@@ -465,7 +465,8 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
         compass.update({ from: lastFrom, viewYaw, goal: round?.aim ?? heldTarget, goalDistance: goalDistance ?? round?.distance, here: !held && atHand(pointed), toTrail, side, feather: feather.feather, todo, errands: errandMarks });
       }
       const offTrail = !course && goalDistance !== undefined && goalOff >= OFF_TRAIL;
-      for (const fn of frameListeners) fn(heldTarget, p.pos, held, side, offTrail);
+      // Where the prompt up acts, so the arrow on the snow can stand down there (goalMarker.ts).
+      for (const fn of frameListeners) fn(heldTarget, p.pos, held, side, offTrail, promptUp ? promptReach : null);
     },
 
     onFrame(fn): void {

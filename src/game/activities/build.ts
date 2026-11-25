@@ -325,7 +325,9 @@ export class BuildActivity implements ActivityInstance {
       const wrong = this.elapsed - this.wrongAt < 2.5;
       const right = this.slots[this.pick] === this.stage;
       const said = wrong ? `${WORDS.cairnWrong}. ${WORDS.cairnBigger(this.biggerSide())}`
-        : placed >= total ? WORDS.cairnPick : right ? WORDS.cairnRight : WORDS.cairnBigger(this.biggerSide());
+        : placed >= total ? WORDS.cairnPick
+          : placed === 0 ? (right ? WORDS.cairnFirstRight : WORDS.cairnFirst(this.biggerSide()))
+            : right ? WORDS.cairnRight : WORDS.cairnBigger(this.biggerSide());
       return { label: `${said} · ${count}`, fraction: placed / total, urgent: right && !wrong };
     }
     const miss = this.aligned ? this.hand.miss(this.elapsed) : null;

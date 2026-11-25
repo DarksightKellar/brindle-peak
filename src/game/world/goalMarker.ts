@@ -33,7 +33,7 @@ export interface GoalMarker {
   object: THREE.Object3D;
   /**
    * `show` false hides it (a conversation, a panel or an activity owns the screen). `arrowOk` false keeps
-   * its arrow off the snow while the other marker's arrow is down.
+   * its arrow off the snow while the other marker's arrow is down, or while the prompt up acts on its target.
    */
   /**
    * `anyFar`: lay the arrow however far off the target is. Off the trail the target is the way back onto it,
@@ -132,7 +132,7 @@ export interface GoalMarkerDeps {
   scene: THREE.Object3D;
   sampler: TerrainSampler;
   camera: THREE.Camera;
-  hud: { onFrame(fn: (target: Vec2 | null, from: Vec3, held: boolean, side: Vec2 | null, offTrail: boolean) => void): void };
+  hud: { onFrame(fn: (target: Vec2 | null, from: Vec3, held: boolean, side: Vec2 | null, offTrail: boolean, here: Vec2 | null) => void): void };
   /** True while something else owns the screen (an activity): the marker steps aside. */
   busy(): boolean;
 }
@@ -146,7 +146,7 @@ export function mountGoalMarker(d: GoalMarkerDeps): GoalMarker {
   const side = createGoalMarker(d.sampler, SIDE_LOOK);
   d.scene.add(marker.object, side.object);
   let last = performance.now();
-  d.hud.onFrame((target, from, held, errand, offTrail) => {
+  d.hud.onFrame((target, from, held, errand, offTrail, here) => {
     const now = performance.now();
     const dt = Math.min(0.1, (now - last) / 1000);
     last = now;
@@ -154,12 +154,15 @@ export function mountGoalMarker(d: GoalMarkerDeps): GoalMarker {
     // The nearer of the two lays its arrow: critic round 96 followed Bram's errand, 11 u behind it, while
     // the only arrow on the snow pointed the other way, at the goal 42 u off.
     const far = (p: Vec2 | null): number => (p ? Math.hypot(p.x - from.x, p.z - from.z) : Infinity);
+    // No arrow for a thing the prompt up already acts on: critic round 138 read "here" and "TALK TO EDDA"
+    // with the arrow still pointing off to the side, and thought it was not there yet.
+    const atHand = (p: Vec2 | null): boolean => here !== null && p !== null && Math.hypot(p.x - here.x, p.z - here.z) < 1;
     if (far(errand) < far(target)) {
-      side.update(dt, errand, from, d.camera, show);
-      marker.update(dt, target, from, d.camera, show, !side.arrowShown, offTrail);
+      side.update(dt, errand, from, d.camera, show, !atHand(errand));
+      marker.update(dt, target, from, d.camera, show, !side.arrowShown && !atHand(target), offTrail);
     } else {
-      marker.update(dt, target, from, d.camera, show, true, offTrail);
-      side.update(dt, errand, from, d.camera, show, !marker.arrowShown);
+      marker.update(dt, target, from, d.camera, show, !atHand(target), offTrail);
+      side.update(dt, errand, from, d.camera, show, !marker.arrowShown && !atHand(errand));
     }
   });
   return marker;

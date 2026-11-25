@@ -108,6 +108,10 @@ export const WORDS = {
   // again and again. The ring shows the pick; this says whether it is the one, and if not, which way.
   cairnRight: "That's the biggest one left. Set it on top",
   cairnBigger: (side: 'left' | 'right' | null): string => `A bigger stone is still on the ground${side ? `, to your ${side}` : ''}`,
+  // Before the first stone, the rule first: critic round 138 read "A bigger stone is still on the ground"
+  // before it had placed anything and took it for a mistake already made.
+  cairnFirstRight: "That's the biggest. It goes at the bottom",
+  cairnFirst: (side: 'left' | 'right' | null): string => `Biggest at the bottom. It lies${side ? ` to your ${side}` : ' along the row'}`,
   /** A press before the stone has caught: nothing is lost, the stone stays in hand. */
   stoneOff: 'Not yet. Steer it between the two lights, and it catches there',
   /** Pressed again straight after a press: the woodpile and the dam both take one press per swing. */
