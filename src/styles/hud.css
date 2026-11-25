@@ -87,6 +87,9 @@
    Half the horizon, N E S W sliding past as the view turns; the notch on top is where you face.
    The goal's diamond rides the strip, its distance at the end; the tracked errand hangs under it. */
 .ui-hud__compass { position: absolute; left: 50%; transform: translateX(-50%); top: 38px; width: 320px; height: 18px; pointer-events: none; }
+/* In a small window the chip beside the strip ran off the right edge: at 800 wide critic round 129 read
+   "1159 u · behind you, to your" and no more. A narrower strip leaves it room. */
+@media (max-width: 900px) { .ui-hud__compass { width: 230px; } }
 .ui-hud__compass-band { position: absolute; left: 0; right: 0; top: 0; height: 18px; box-sizing: border-box; background: var(--panel); border: 1px solid var(--snow-sh); overflow: hidden; }
 .ui-hud__compass-tick { position: absolute; bottom: 0; width: 1px; height: 4px; margin-left: -1px; background: var(--snow-deep); }
 .ui-hud__compass-pt { position: absolute; top: 1px; transform: translateX(-50%); font-size: 9px; line-height: 14px; color: var(--snow-sh); }

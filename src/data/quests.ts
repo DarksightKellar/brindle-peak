@@ -99,7 +99,9 @@ export const QUESTS: readonly QuestDef[] = [
       talk('owl', 'Ask Fen in the pines if he saw the mitten.', 'fen', 'fen-mitten'),
       // Fresh: the mitten only snags while this step is current, and critic round 29 had fished the pool
       // before Fen's tip, so the step was already done and the mitten never came up.
-      s('creek', 'Fish the Creek Pool below the split pine in Pinewind Wood.', { kind: 'activity', id: 'pinewind-creek-fish' }, { fresh: true }),
+      // It says what the cast is for: critic round 129 had fished this pool before Fen's tip and took a second
+      // go for the same step done twice.
+      s('creek', "Fish the Creek Pool below the split pine in Pinewind Wood. Hollis's mitten blew into it, and a cast will bring it up.", { kind: 'activity', id: 'pinewind-creek-fish' }, { fresh: true }),
       talk('tell', 'Take the mitten back to Hollis.', 'hollis', 'hollis-done'),
     ], { item: 'mitten', bells: 12 }),
 
