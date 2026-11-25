@@ -211,6 +211,9 @@ describe('throw', () => {
       while (game.inFlight > 0 && f++ < 300) step(game, h);
       expect(game.hitCount).toBe(0);
       expect(game.progress()?.label).toMatch(new RegExp(`^Missed, wide ${way}\. Aim a touch more ${way === 'left' ? 'right' : 'left'} · `));
+      // Turning the aim takes the words down, so the aim words show it moving (critic round 124).
+      step(game, h, { moveX: way === 'left' ? -1 : 1 });
+      expect(game.progress()?.label).not.toMatch(/^Missed/);
     }
   });
 

@@ -359,8 +359,12 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
           : '';
         // Not the place the errand line already names: critic round 49 read "Creek Pool nearby… 43 u" under
         // "Next: Fish the Creek Pool… 43 u".
-        const named = step?.target ? ACTIVITIES.find((a) => a.pos.x === step.target?.x && a.pos.z === step.target?.z) : undefined;
-        const nearby = named && noticed.startsWith(`${named.name} nearby`) ? '' : noticed;
+        // Nor the story's own place: critic round 124 read "Photograph the aurora…" as the goal and "Aurora nearby:
+        // photograph the aurora — ahead, 48 u" under it.
+        const at = (t: Vec2 | null | undefined): (typeof ACTIVITIES)[number] | undefined =>
+          t ? ACTIVITIES.find((a) => a.pos.x === t.x && a.pos.z === t.z) : undefined;
+        const lined = [at(step?.target), storyMarked ? at(pointed) : undefined].filter((a) => a !== undefined);
+        const nearby = lined.some((a) => noticed.startsWith(`${a.name} nearby`)) ? '' : noticed;
         // A thing nearby goes on a second line under the errand, not over it: critic round 16 lost the
         // errand's distance to "Pressure Ridges nearby" and "Boathouse Hill nearby" again and again.
         const now = performance.now() < switchedUntil ? `Now on the line: ${switchedTitle}

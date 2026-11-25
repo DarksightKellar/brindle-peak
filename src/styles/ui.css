@@ -123,7 +123,8 @@ html, body { margin: 0; height: 100%; background: var(--night); }
 .ui-quest.is-complete { opacity: 0.65; }
 .ui-quest.is-locked { opacity: 0.45; }
 .ui-quest.is-pickable { cursor: pointer; }
-.ui-quest.is-cursor { background: rgba(255, 255, 255, 0.06); outline: 1px solid var(--snow-mid); outline-offset: -1px; }
+/* The row F acts on: plain to see at a glance, apart from the followed one's lantern edge (critic round 124 could not tell where the cursor was). */
+.ui-quest.is-cursor { background: rgba(255, 255, 255, 0.14); outline: 2px solid var(--snow-hi); outline-offset: -2px; }
 .ui-quest.is-tracked { border-left-width: 4px; }
 .ui-quest.is-tracked .ui-quest__status { color: var(--lantern); }
 .ui-quest__row { display: flex; justify-content: space-between; gap: 12px; }
@@ -138,7 +139,7 @@ html, body { margin: 0; height: 100%; background: var(--night); }
 .ui-try__what { display: block; font-size: 11px; color: var(--snow-mid); }
 .ui-try .ui-quest__where { margin: 0; }
 .ui-try.is-pickable { cursor: pointer; padding-left: 6px; }
-.ui-try.is-cursor { background: rgba(255, 255, 255, 0.06); outline: 1px solid var(--snow-mid); outline-offset: -1px; }
+.ui-try.is-cursor { background: rgba(255, 255, 255, 0.14); outline: 2px solid var(--snow-hi); outline-offset: -2px; }
 .ui-try.is-tracked { border-left: 4px solid var(--lantern); }
 .ui-try.is-tracked .ui-quest__where { color: var(--lantern); }
 .ui-fishrow, .ui-achrow { display: flex; align-items: baseline; gap: 10px; padding: 4px 0; border-bottom: 1px solid rgba(156, 184, 210, 0.2); font-size: 12px; }

@@ -263,6 +263,11 @@ export class TargetActivity implements ActivityInstance {
       const goal = this.bell ? this.bellAim() : this.nearestToAim()?.bearing ?? null;
       const fine = goal !== null && Math.abs(angleDelta(this.aim, goal)) < FINE_AIM;
       this.aim = turnAim(this.aim, host.input.moveX * (fine ? FINE_TURN : 1), step);
+      // Turning after a miss wide is acting on it: the aim words take over and say when it's on. Critic round
+      // 124 held D after "Missed, wide left. Aim a touch more right", read the same words still up, and could
+      // not tell whether the aim had moved.
+      const wide = this.call !== null && !this.call.hit && (this.call.side === 'left' || this.call.side === 'right');
+      if (wide && host.input.moveX !== 0) this.call = null;
     }
 
     if (this.draw < 0) {
