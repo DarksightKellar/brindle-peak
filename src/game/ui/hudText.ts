@@ -33,7 +33,7 @@ export function goalLine(
     // Only on the way: standing in the step's own zone, "the way up" is behind you.
     // And only until two posts have lit as Pip passed: by then the posts have said it themselves, and critic
     // round 137 read the sentence the whole climb as the long top line of three crowding the compass.
-    const shown = (s.counters['lantern'] ?? 0) < LANTERNS_SAID;
+    const shown = Object.keys(s.lanterns).length < LANTERNS_SAID;
     const lanterns = s.abilities.lantern && s.quests[FINALE_QUEST]?.status !== 'complete' && s.zone !== main.zone && shown;
     return lanterns ? `${main.stepText} The lantern posts mark the way up.` : main.stepText;
   }

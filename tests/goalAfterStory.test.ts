@@ -71,9 +71,9 @@ describe('the lantern sentence on the climb', () => {
     s.zone = 'hearth';
     const main = { stepText: 'Take the batteries to Edda.', zone: 'peak' } as unknown as Parameters<typeof goalLine>[1];
     expect(goalLine(s, main)).toBe('Take the batteries to Edda. The lantern posts mark the way up.');
-    s.counters['lantern'] = 1;
+    s.lanterns['post-a'] = 1;
     expect(goalLine(s, main)).toBe('Take the batteries to Edda. The lantern posts mark the way up.');
-    s.counters['lantern'] = 2;
+    s.lanterns['post-b'] = 1;
     expect(goalLine(s, main)).toBe('Take the batteries to Edda.');
   });
 });

@@ -12,7 +12,7 @@
  *   item:gained         items[id] += n            (default 1)
  *   npc:talked          talked[id] = true
  *   zone:entered        visited[id] = true, zone = id, counters['visit:<id>'] += 1
- *   lantern:lit         lanterns[id] = 1, counters['lantern'] += 1 on a post's first lighting
+ *   lantern:lit         lanterns[id] = 1, counters['lantern'] = the posts lit
  *   fish:caught         fish[id] += 1, counters['fish'] += 1
  *   photo:taken         photos[id] += 1, counters['photo'] += 1
  *   spring:soaked       counters['spring'] += 1, counters['spring:<id>'] += 1
@@ -108,8 +108,11 @@ function mutate(s: GameState, name: GameEventName, f: Fields): void {
         // per-id slot stored 4 on the fourth lantern (and persisted it); the journal only counted
         // keys, so the corruption never showed. The slot is a per-lantern flag, so it is always 1.
         // 'lantern' counts distinct posts, so relighting one cannot walk an achievement to twelve.
-        if (s.lanterns[id] !== 1) s.counters['lantern'] = (s.counters['lantern'] ?? 0) + 1;
+        // Counted from the posts themselves: both lighters (session.ts, interactVerb.ts) mark the post lit
+        // before the event, so "+1 unless already lit" never counted, and critic round 139 read the climb's
+        // lantern sentence (hudText.ts) all the way up; "Twelve Lights Up the Hill" could never unlock.
         s.lanterns[id] = 1;
+        s.counters['lantern'] = Object.keys(s.lanterns).length;
       }
       break;
     }

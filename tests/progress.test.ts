@@ -122,6 +122,17 @@ describe('quest engine', () => {
     expect(s.items['rope']).toBe(1);
   });
 
+  it('counts a lantern post its lighter has already marked lit, once', () => {
+    // Both lighters mark the post before the event (critic round 139 found the count stuck at 0).
+    const s = fresh();
+    const engine = createQuestEngine([]);
+    for (const id of ['a', 'b', 'a']) {
+      s.lanterns[id] = 1;
+      applyEvent(s, 'lantern:lit', { id, lit: Object.keys(s.lanterns).length }, engine, createAchievementEngine([]));
+    }
+    expect(s.counters['lantern']).toBe(2);
+  });
+
   it('a visit step needs a fresh entry into the zone', () => {
     const s = fresh();
     const engine = createQuestEngine([questDef({ id: 'walk', steps: [step({ kind: 'visited', id: 'hearth' })] })]);
