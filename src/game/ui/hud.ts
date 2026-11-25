@@ -23,7 +23,7 @@ import { formatNextStep, nextStepFor } from '../../core/guide/nextStep';
 import { goalTarget, unmetAfterStory } from '../../core/guide/goal';
 import { aroundAim, routeAim, type GuideBox } from '../../core/guide/route';
 import { formatDistance } from '../../core/guide/compass';
-import { errandLineFor, type ErrandLine } from './errandLine';
+import { errandLineFor, TRY, type ErrandLine } from './errandLine';
 import { goalLine } from './hudText';
 import { bearing, createHudCompass } from './hudCompass';
 import { createHudStamina } from './hudStamina';
@@ -315,7 +315,10 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
         const goal = unmet
           ? `${line.replace(/\.$/, '')}: ${formatDistance(away)}, ${viewWay(unmet.pos.x - p.pos.x, unmet.pos.z - p.pos.z, viewYaw)}.`
           : storyAway !== null && line !== ''
-            ? `${line.replace(/\.$/, '')} — ${atHand(pointed) ? HERE : `${formatDistance(storyAway)}${goalDistance !== undefined ? `${BY_TRAIL}${goalOff >= OFF_TRAIL ? backOn(goalOff) : ''}` : ''}`}`
+            // Off the trail the chip beside it says how far the trail is (hudCompass.ts `toTrail`), so the line
+            // keeps to one number: critic round 122 read "… 1165 u by the trail, once you're back on it, 15 u
+            // away" crowding the compass, with "15 u to the trail" on the chip under it.
+            ? `${line.replace(/\.$/, '')} — ${atHand(pointed) ? HERE : `${formatDistance(storyAway)}${goalDistance !== undefined ? BY_TRAIL : ''}`}`
             : line;
         if (goal !== lastGoal) {
           lastGoal = goal;
@@ -365,8 +368,15 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
         // "here" says where it is: no way to turn after it. Critic round 113 read "— here — behind you, to your
         // right" beside Tuck.
         const here = atHand(errandTarget);
-        const said = errands?.onTheWay() ? formatNextStep(walked, here).replace(/^Next: /, 'On the way: ') : formatNextStep(walked, here);
-        const errandText = step ? `${now}${said}${errandRoute && walked?.distance !== null && !here ? `${BY_TRAIL}${errandRoute.off >= OFF_TRAIL ? backOn(errandRoute.off) : ''}` : ''}${here ? '' : errandWay(errandAim)}${hopHint(s, step)}` : '';
+        // A thing to try that Pip chose to follow says so: critic round 122 followed the Chimney Scramble, walked
+        // home, and read "Next: Chimney Scramble … 876 u" there as a job the game still wanted done.
+        const following = errands?.trackedId()?.startsWith(TRY) === true;
+        const said = errands?.onTheWay()
+          ? formatNextStep(walked, here).replace(/^Next: /, 'On the way: ')
+          : following ? formatNextStep(walked, here).replace(/^Next: /, 'Following: ') : formatNextStep(walked, here);
+        // As the goal, its way back to the trail is on the chip; the line says it only when it is the second mark.
+        const backTo = errandRoute && errandRoute.off >= OFF_TRAIL && errandTarget !== pointed ? backOn(errandRoute.off) : '';
+        const errandText = step ? `${now}${said}${errandRoute && walked?.distance !== null && !here ? `${BY_TRAIL}${backTo}` : ''}${here ? '' : errandWay(errandAim)}${hopHint(s, step)}` : '';
         if (feather.line !== '') writeNext(feather.line, null);
         // Two lines at most under the compass: critic round 57 read four, "Now on the line", the errand,
         // its wrap and a nearby line. The nearby line waits while the switch is being said.
