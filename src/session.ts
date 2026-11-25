@@ -252,6 +252,9 @@ export function createSession(opts: SessionOptions): Session {
     // or hidden tab had the print still lying across the Quests page (critic round 126).
     if (ui.journal.isOpen() || ui.menu.isOpen()) polaroid.dismiss(true);
     else if (busyNow && !wasBusy) polaroid.dismiss();
+    // An activity's result card goes once someone starts talking: critic round 127 had the woodpile's card
+    // still up at the screen's edge through the talk that followed.
+    if (flow.isOpen() || ui.journal.isOpen()) runner.dismissResult();
     wasBusy = busyNow;
 
     // Any move or jump gets Pip up off the bench; until then Pip stays put on it.

@@ -216,14 +216,19 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
     return guide?.routes ? routeAim(guide.routes, lastFrom, point, holds, guide.gaps) : null;
   };
 
+  /** Pip chose a thing to try to follow from the journal, and the line is on it. */
+  const followingTry = (): boolean => errands?.trackedId()?.startsWith(TRY) === true;
+
   const liveTarget = (): Vec2 | null => {
     if (held) return heldTarget;
     // After the story, an errand under way has the pin, and the hello waits: critic round 41 picked an
     // errand on the Quests page and watched the compass stay on a villager it had not met. The hello gets
     // a mark of its own instead (critic round 49 found nothing pointing at Orla); round 50 gave it the pin
     // when it was nearer, and in the hamlet the pin swapped between villagers under critic round 50.
+    // So does a thing to try followed from the journal (critic round 127: the Market Lamps, with the goal line
+    // and the compass staying on Gus).
     const unmet =
-      guide && lastState && errandTarget && Object.values(lastState.quests).some((q) => q.status === 'active')
+      guide && lastState && errandTarget && (Object.values(lastState.quests).some((q) => q.status === 'active') || followingTry())
         ? unmetAfterStory(lastState, lastFrom, guide)
         : null;
     helloAt = unmet ? { x: unmet.pos.x, z: unmet.pos.z } : null;
@@ -320,7 +325,7 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
       if (!held) {
         const main = guide ? nextStepFor(s, p.pos, guide, 'main') : null;
         const unmet = guide && !main ? unmetAfterStory(s, p.pos, guide) : null;
-        const line = goalLine(s, main, unmet?.name ? { name: unmet.name, zone: guide?.zoneNames[unmet.zone] ?? '' } : null);
+        const line = goalLine(s, main, unmet?.name ? { name: unmet.name, zone: guide?.zoneNames[unmet.zone] ?? '' } : null, followingTry());
         // The hello says where it is itself: critic round 54 read "say hello to Margit, in The Frozen Reach"
         // with nothing saying how far or which way, and round 67 still did with no errand under way, when
         // the hello is the compass's own goal. Then it gives the compass's number (the walk, route.ts).

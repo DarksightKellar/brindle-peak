@@ -20,7 +20,12 @@ import { FINALE_QUEST } from '../../data/quests';
  * The lantern sentence rides along once the lantern is owned, the call has not gone out and the goal
  * lies in another zone: before the lantern it pointed at posts the player could not light.
  */
-export function goalLine(s: GameState, main: GuideStep | null, unmet: { name: string; zone: string } | null = null): string {
+export function goalLine(
+  s: GameState,
+  main: GuideStep | null,
+  unmet: { name: string; zone: string } | null = null,
+  following = false,
+): string {
   if (main) {
     // Only on the way: standing in the step's own zone, "the way up" is behind you.
     const lanterns = s.abilities.lantern && s.quests[FINALE_QUEST]?.status !== 'complete' && s.zone !== main.zone;
@@ -34,9 +39,13 @@ export function goalLine(s: GameState, main: GuideStep | null, unmet: { name: st
     const errand = Object.values(s.quests).some((q) => q.status === 'active');
     // Short: the end card has said the valley is talking, and this line sits over two more (critic round
     // 70 read three lines crowding the compass, the top one two clauses long).
+    // So does a thing to try that Pip chose to follow from the journal: critic round 127 followed the Market
+    // Lamps with no errand under way, and the goal line and the compass stayed on Gus.
     return errand
       ? `After your errands, say hello to ${unmet.name}, in ${unmet.zone}.`
-      : `Go and say hello to ${unmet.name}, in ${unmet.zone}.`;
+      : following
+        ? `Once you've had a go, say hello to ${unmet.name}, in ${unmet.zone}.`
+        : `Go and say hello to ${unmet.name}, in ${unmet.zone}.`;
   }
   return s.talked.nana
     // It names the errands, so the line under it (an errand still open) reads as the same advice. Critic
