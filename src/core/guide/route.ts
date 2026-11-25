@@ -218,6 +218,8 @@ function trailAim(routes: readonly GuideRoute[], from: Vec2, target: Vec2, holds
   // from the mast. The one Pip stands nearest leads. Critic round 121, 19 u above the trail past the bridge,
   // was led 78 u back to the lower trail's end instead, and read two "back on it" distances at one spot.
   let found: RouteAim | null = null;
+  /** How far off its path Pip stands for the way `found` came from. */
+  let foundBest = Infinity;
   routes: for (const [ri, r] of routes.entries()) {
     const p = r.path;
     if (p.length < 2) continue;
@@ -301,9 +303,13 @@ function trailAim(routes: readonly GuideRoute[], from: Vec2, target: Vec2, holds
         held = true;
       }
     }
-    if (found && found.off <= best) continue;
+    if (found && foundBest <= best) continue;
+    foundBest = best;
     if (!held && (fwd ? goal >= stop.at : goal <= stop.at)) {
-      found = { aim: target, distance, off: best };
+      // Pointed straight at it, the walk is the straight line and the trail is not where Pip is sent: critic
+      // round 132, on the summit's east face 74 u from Edda, read "108 u by the trail" with "90 u to the
+      // trail, behind you" beside an arrow pointing at Edda, and walked 100 u away to the trail.
+      found = best > ON_PATH ? { aim: target, distance: straight, off: 0 } : { aim: target, distance, off: best };
       continue;
     }
     let s = 0;

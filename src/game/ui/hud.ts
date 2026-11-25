@@ -132,6 +132,8 @@ const BY_TRAIL = ' by the trail';
 // chimney, read "behind you, to your right" on the line while the strip led ahead.
 const backOn = (off: number): string => `, once you're back on it, ${formatDistance(off)} away`;
 const OFF_TRAIL = 15;
+/** An errand further than this by the trail says nothing of the way back onto it. */
+const FAR_ERRAND = 300;
 /** The strip's thresholds for its words (hudCompass.ts SIDE_SAY, BEHIND_GIVE), for the errand's line. */
 const SIDE_SAY = 0.8;
 const WAY_GIVE = 0.2;
@@ -206,6 +208,8 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
 
   /** The walk left to the goal when it follows a route rather than the straight line (route.ts). */
   let goalDistance: number | undefined;
+  /** The routed aim is the goal itself: the walk is the straight line, not "by the trail" (critic round 132). */
+  let goalStraight = false;
   /** How far Pip stands off the trail the goal follows, when it follows one. */
   let goalOff = 0;
   let buildings: readonly GuideBox[] = [];
@@ -246,6 +250,7 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
     pointed = point;
     const routed = point ? trailAim(point) : null;
     goalDistance = routed?.distance;
+    goalStraight = routed !== null && point !== null && routed.aim.x === point.x && routed.aim.z === point.z;
     goalOff = routed?.off ?? 0;
     return routed?.aim ?? point;
   };
@@ -353,7 +358,7 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
             // Off the trail the chip beside it says how far the trail is (hudCompass.ts `toTrail`), so the line
             // keeps to one number: critic round 122 read "… 1165 u by the trail, once you're back on it, 15 u
             // away" crowding the compass, with "15 u to the trail" on the chip under it.
-            ? `${line.replace(/\.$/, '')} — ${atHand(pointed) ? HERE : `${formatDistance(storyAway)}${goalDistance !== undefined ? BY_TRAIL : ''}`}`
+            ? `${line.replace(/\.$/, '')} — ${atHand(pointed) ? HERE : `${formatDistance(storyAway)}${goalDistance !== undefined && !goalStraight ? BY_TRAIL : ''}`}`
             : line;
         if (goal !== lastGoal) {
           lastGoal = goal;
@@ -421,8 +426,11 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
         // and not when the chip already says the same trail: critic round 123 read "929 u by the trail, once you're
         // back on it, 15 u away · ahead" under a chip of "15 u to the trail · ahead", one fact on two lines.
         const sameTrail = goalDistance !== undefined && goalOff >= OFF_TRAIL && Math.abs((errandRoute?.off ?? 0) - goalOff) < 1;
-        const backTo = errandRoute && errandRoute.off >= OFF_TRAIL && errandTarget !== pointed && !sameTrail ? backOn(errandRoute.off) : '';
-        const errandText = step ? `${now}${said}${errandRoute && walked?.distance !== null && !here ? `${BY_TRAIL}${backTo}` : ''}${here || homeward ? '' : errandWay(errandAim)}${homeward ? '' : hopHint(s, step)}` : '';
+        // Nor for an errand a long walk off: critic round 132 at the mast read "1130 u by the trail, once you're back
+        // on it, 16 u away · behind you, to your right · the map can take you back" and could not parse it.
+        const farOff = (walked?.distance ?? 0) > FAR_ERRAND;
+        const backTo = errandRoute && errandRoute.off >= OFF_TRAIL && errandTarget !== pointed && !sameTrail && !farOff ? backOn(errandRoute.off) : '';
+        const errandText = step ? `${now}${said}${errandRoute && walked?.distance !== null && !here && !(errandTarget && errandRoute.aim.x === errandTarget.x && errandRoute.aim.z === errandTarget.z) ? `${BY_TRAIL}${backTo}` : ''}${here || homeward ? '' : errandWay(errandAim)}${homeward ? '' : hopHint(s, step)}` : '';
         if (feather.line !== '') writeNext(feather.line, null);
         // Two lines at most under the compass: critic round 57 read four, "Now on the line", the errand,
         // its wrap and a nearby line. The nearby line waits while the switch is being said.

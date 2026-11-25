@@ -151,6 +151,16 @@ describe('two ways to one place (critic round 121 above Tuck\'s bridge)', () => 
   });
 });
 
+describe("pointed straight at a target past the path's end (critic round 132 on the summit's east face)", () => {
+  it('says the straight walk, with no way back to the trail', () => {
+    const trail = [{ path: [[0, 0], [100, 0]] as const }];
+    const r = routeAim(trail, { x: 170, z: -60 }, { x: 110, z: -10 });
+    expect(r?.aim).toEqual({ x: 110, z: -10 });
+    expect(r?.distance).toBeCloseTo(Math.hypot(60, 50));
+    expect(r?.off).toBe(0);
+  });
+});
+
 describe("round a gorge by its bridge (critic round 125 on the ledge east of Tuck's gorge)", () => {
   // A trail west to east along z = 0, over a gorge on x = 50 whose walls reach 6 either side and run from
   // z = 30 down to z = -30. The lane over the bridge runs from x = 40 to x = 60.
