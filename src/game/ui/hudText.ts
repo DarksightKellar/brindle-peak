@@ -12,13 +12,16 @@ import type { GameState } from '../../core/contracts';
 import type { GuideStep } from '../../core/guide/nextStep';
 import { FINALE_QUEST } from '../../data/quests';
 
+/** Posts lit by Pip after which the goal line stops saying that the lantern posts mark the way up. */
+const LANTERNS_SAID = 2;
+
 /**
  * Keyed to progress, never to the zone the player stands in. It used to read the zone, so stepping
  * onto the peak said "you made it" and stepping back off said "climb to the mast" again — a loop with
  * no end, reported as "nothing is really happening".
  *
  * The lantern sentence rides along once the lantern is owned, the call has not gone out and the goal
- * lies in another zone: before the lantern it pointed at posts the player could not light.
+ * lies in another zone, until two posts have lit: before the lantern it pointed at posts the player could not light.
  */
 export function goalLine(
   s: GameState,
@@ -28,7 +31,10 @@ export function goalLine(
 ): string {
   if (main) {
     // Only on the way: standing in the step's own zone, "the way up" is behind you.
-    const lanterns = s.abilities.lantern && s.quests[FINALE_QUEST]?.status !== 'complete' && s.zone !== main.zone;
+    // And only until two posts have lit as Pip passed: by then the posts have said it themselves, and critic
+    // round 137 read the sentence the whole climb as the long top line of three crowding the compass.
+    const shown = (s.counters['lantern'] ?? 0) < LANTERNS_SAID;
+    const lanterns = s.abilities.lantern && s.quests[FINALE_QUEST]?.status !== 'complete' && s.zone !== main.zone && shown;
     return lanterns ? `${main.stepText} The lantern posts mark the way up.` : main.stepText;
   }
   // No story step live: either it has not begun (Nana starts it) or every chapter is done. Done, it sends

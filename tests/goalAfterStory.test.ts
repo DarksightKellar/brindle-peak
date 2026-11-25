@@ -62,3 +62,18 @@ describe('the goal after the story', () => {
     expect(unmetAfterStory(s, { x: 299, z: 0 }, guide)?.id).toBe('fen');
   });
 });
+
+describe('the lantern sentence on the climb', () => {
+  // Critic round 137 read it the whole way up, the long top line of three over the compass.
+  it('rides along until two posts have lit, then goes', () => {
+    const s = fresh();
+    s.abilities.lantern = true;
+    s.zone = 'hearth';
+    const main = { stepText: 'Take the batteries to Edda.', zone: 'peak' } as unknown as Parameters<typeof goalLine>[1];
+    expect(goalLine(s, main)).toBe('Take the batteries to Edda. The lantern posts mark the way up.');
+    s.counters['lantern'] = 1;
+    expect(goalLine(s, main)).toBe('Take the batteries to Edda. The lantern posts mark the way up.');
+    s.counters['lantern'] = 2;
+    expect(goalLine(s, main)).toBe('Take the batteries to Edda.');
+  });
+});
