@@ -204,7 +204,7 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
   const trailAim = (point: Vec2) => {
     const valleyLit = lastState?.quests[RADIO_QUEST]?.status === 'complete';
     const holds = lastState?.abilities.lantern && !valleyLit ? POSTS.filter((l) => !lastState?.lanterns[l.id]).map((l) => l.pos) : [];
-    return guide?.routes ? routeAim(guide.routes, lastFrom, point, holds) : null;
+    return guide?.routes ? routeAim(guide.routes, lastFrom, point, holds, guide.gaps) : null;
   };
 
   const liveTarget = (): Vec2 | null => {

@@ -151,6 +151,49 @@ describe('two ways to one place (critic round 121 above Tuck\'s bridge)', () => 
   });
 });
 
+describe("round a gorge by its bridge (critic round 125 on the ledge east of Tuck's gorge)", () => {
+  // A trail west to east along z = 0, over a gorge on x = 50 whose walls reach 6 either side and run from
+  // z = 30 down to z = -30. The lane over the bridge runs from x = 40 to x = 60.
+  const trail = [{ path: [[-200, 0], [100, 0]] as const }];
+  const gaps = [{ line: [[50, 30], [50, -30]], width: 6, ends: [[40, 0], [60, 0]] }] as const;
+  const home = { x: -205, z: 0 };
+
+  it("turns a way back that runs over the gorge to the lane's end on Pip's side", () => {
+    const r = routeAim(trail, { x: 56, z: -18 }, home, [], gaps);
+    expect(r?.aim).toEqual({ x: 60, z: 0 });
+    expect(r?.off).toBeCloseTo(18);
+    // To the lane's end, then the trail home from it.
+    expect(r?.distance).toBeCloseTo(Math.hypot(4, 18) + 265);
+    // A slant at the bridge's middle meets the gorge's line on the planks, but comes down the wall beside
+    // them first: it is turned too, and so is a long slant from further east.
+    expect(routeAim(trail, { x: 58, z: -15 }, home, [], gaps)?.aim).toEqual({ x: 60, z: 0 });
+    expect(routeAim(trail, { x: 80, z: -18 }, home, [], gaps)?.aim).toEqual({ x: 60, z: 0 });
+  });
+
+  it('in the lane but to one side, aims a little way along it, so the walk straightens before the posts', () => {
+    const r = routeAim(trail, { x: 59, z: -1 }, home, [], gaps);
+    expect(r?.aim.x).toBeCloseTo(55);
+    expect(r?.aim.z).toBeCloseTo(0);
+  });
+
+  it('goes round a fence flaring out from the end post when the way to the end runs through it', () => {
+    // A flare from the east end's south post (55, -1.5) out to (61, -15.5).
+    const fenced = [{ ...gaps[0], flares: [[[55, -1.5], [61, -15.5]]] as const }];
+    const r = routeAim(trail, { x: 54, z: -18 }, home, [], fenced);
+    const u = { x: 6 / Math.hypot(6, 14), z: -14 / Math.hypot(6, 14) };
+    expect(r?.aim.x).toBeCloseTo(61 + u.x * 3);
+    expect(r?.aim.z).toBeCloseTo(-15.5 + u.z * 3);
+    // From outside the flare the way to the end is clear.
+    expect(routeAim(trail, { x: 66, z: -18 }, home, [], fenced)?.aim).toEqual({ x: 60, z: 0 });
+  });
+
+  it('leaves the aim alone on the bridge and where the way misses the gorge', () => {
+    expect(routeAim(trail, { x: 52, z: 0 }, home, [], gaps)?.aim.x).toBeLessThan(50);
+    const plain = routeAim(trail, { x: 95, z: -5 }, home, [], gaps);
+    expect(plain).toEqual(routeAim(trail, { x: 95, z: -5 }, home));
+  });
+});
+
 describe('no slant among the cliffs (critic round 49 was led into the chimney face)', () => {
   it('aims close along the path past slantUntil', () => {
     const path = [[0, 0], [100, 0], [400, 0]] as const;

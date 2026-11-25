@@ -92,7 +92,123 @@ function along(p: GuideRoute['path'], pt: Vec2): { at: number; off: number } {
  * used to move on once Pip drew level with a post, and a walk 10 to 15 u off the trail drew level with
  * half of them without lighting one; the walk home goes by the lit posts, and came down half dark.
  */
-export function routeAim(routes: readonly GuideRoute[], from: Vec2, target: Vec2, holds: readonly Vec2[] = []): RouteAim | null {
+export function routeAim(
+  routes: readonly GuideRoute[],
+  from: Vec2,
+  target: Vec2,
+  holds: readonly Vec2[] = [],
+  gaps: readonly GuideGap[] = [],
+): RouteAim | null {
+  const found = trailAim(routes, from, target, holds);
+  return gaps.length > 0 ? roundGap(gaps, routes, from, target, holds, found) : found;
+}
+
+/**
+ * A drop the guide must not point across: Tuck's gorge, and the bridge that crosses it. Critic round 125,
+ * coming home, stood on the ledge east of the gorge 18 u south of the trail, and the aim a little way back
+ * along the trail lay west of it, at the bridge's far end. The straight line there runs over a 14 u drop.
+ */
+export interface GuideGap {
+  /** The gap's deep stretch, as a line. */
+  line: readonly [readonly [number, number], readonly [number, number]];
+  /** How far either side of the line its walls reach. */
+  width: number;
+  /**
+   * The crossing's two ends, one either side of the line, a few steps out from it on its centre line. The
+   * way between them is the lane: Tuck's bridge between its end posts is about 1.5 u wide to walk.
+   */
+  ends: readonly [readonly [number, number], readonly [number, number]];
+  /**
+   * Fences flaring out from the crossing's end posts, each from the post to its outer corner. A walk to an
+   * end comes in between them; from the ledge south of Tuck's gorge the straight line to the bridge's end
+   * ran through the south flare, and the way on is round its corner.
+   */
+  flares?: readonly (readonly [readonly [number, number], readonly [number, number]])[];
+}
+
+/** Round a flare's corner this far out past it, so the walk on to the end clears the corner post. */
+const ROUND = 3;
+
+/** A way that keeps this close to the crossing's centre line where it meets the gap is walking the crossing. */
+const ON_CROSSING = 0.6;
+/** Pip this close to the crossing's centre line, between its ends, is in the lane: the deck's width, and a little. */
+const LANE = 2;
+/**
+ * In the lane, the aim is this far along it: close, so a walk that came in to one side straightens up
+ * before the end posts. With the trail's aim 14 u on, a walk 1 u to one side came onto the deck at its
+ * edge, and Pip slipped off it.
+ */
+const LANE_AHEAD = 4;
+
+/** Where line a→b meets line c→d, as the fraction along a→b; null when they don't meet between the ends. */
+function meet(a: Vec2, b: Vec2, c: Vec2, d: Vec2): number | null {
+  const rx = b.x - a.x, rz = b.z - a.z, sx = d.x - c.x, sz = d.z - c.z;
+  const den = rx * sz - rz * sx;
+  if (Math.abs(den) < 1e-9) return null;
+  const t = ((c.x - a.x) * sz - (c.z - a.z) * sx) / den;
+  const u = ((c.x - a.x) * rz - (c.z - a.z) * rx) / den;
+  return t > 0 && t < 1 && u >= 0 && u <= 1 ? t : null;
+}
+
+/**
+ * The aim, when the way to it runs over a gap: along the lane while Pip is in it, else to the lane's end
+ * on Pip's side.
+ */
+function roundGap(
+  gaps: readonly GuideGap[],
+  routes: readonly GuideRoute[],
+  from: Vec2,
+  target: Vec2,
+  holds: readonly Vec2[],
+  found: RouteAim | null,
+): RouteAim | null {
+  const aim = found?.aim ?? target;
+  const pt = ([x, z]: readonly [number, number]): Vec2 => ({ x, z });
+  for (const g of gaps) {
+    const c = pt(g.line[0]), d = pt(g.line[1]);
+    const e0 = pt(g.ends[0]), e1 = pt(g.ends[1]);
+    // Where the way meets the line and each wall's top. A way over the bridge keeps to the crossing at all
+    // of them: a slant at the bridge's middle meets the line on the planks, but comes down the wall beside
+    // them first, and one to a point on the planks near their end meets only the wall.
+    const len = Math.hypot(d.x - c.x, d.z - c.z) || 1;
+    const nx = -(d.z - c.z) / len * g.width, nz = (d.x - c.x) / len * g.width;
+    const ex = e1.x - e0.x, ez = e1.z - e0.z, elen = Math.hypot(ex, ez) || 1;
+    const offCrossing = (q: Vec2): number => Math.abs((q.x - e0.x) * ez - (q.z - e0.z) * ex) / elen;
+    const hits = [0, 1, -1]
+      .map((k) => meet(from, aim, { x: c.x + nx * k, z: c.z + nz * k }, { x: d.x + nx * k, z: d.z + nz * k }))
+      .filter((tk): tk is number => tk !== null)
+      .map((tk) => ({ x: from.x + (aim.x - from.x) * tk, z: from.z + (aim.z - from.z) * tk }));
+    if (hits.every((q) => offCrossing(q) <= ON_CROSSING)) continue;
+    const side = (p: Vec2): number => Math.sign((d.x - c.x) * (p.z - c.z) - (d.z - c.z) * (p.x - c.x));
+    const walkOn = (end: Vec2): number =>
+      trailAim(routes, end, target, holds)?.distance ?? Math.hypot(target.x - end.x, target.z - end.z);
+    const s = ((from.x - e0.x) * ex + (from.z - e0.z) * ez) / elen;
+    if (offCrossing(from) <= LANE && s >= 0 && s <= elen) {
+      // In the lane: a little way along it, toward the end on the aim's side.
+      const far = side(e1) === side(aim) ? e1 : e0;
+      const on = far === e1 ? Math.min(elen, s + LANE_AHEAD) : Math.max(0, s - LANE_AHEAD);
+      const toFar = Math.hypot(far.x - from.x, far.z - from.z);
+      return { aim: { x: e0.x + (ex * on) / elen, z: e0.z + (ez * on) / elen }, distance: toFar + walkOn(far), off: found?.off ?? 0 };
+    }
+    const end = side(e0) === side(from) ? e0 : e1;
+    const toEnd = Math.hypot(end.x - from.x, end.z - from.z);
+    // Round a flare in the way, past its corner.
+    for (const [p, q] of g.flares ?? []) {
+      const post = pt(p), corner = pt(q);
+      const fl = Math.hypot(corner.x - post.x, corner.z - post.z) || 1;
+      const ux = (corner.x - post.x) / fl, uz = (corner.z - post.z) / fl;
+      // A little past the corner too: a line that grazes it catches on it.
+      if (meet(from, end, post, { x: corner.x + ux, z: corner.z + uz }) === null) continue;
+      const via = { x: corner.x + ux * ROUND, z: corner.z + uz * ROUND };
+      const toVia = Math.hypot(via.x - from.x, via.z - from.z);
+      return { aim: via, distance: toVia + Math.hypot(end.x - via.x, end.z - via.z) + walkOn(end), off: found?.off ?? 0 };
+    }
+    return { aim: end, distance: toEnd + walkOn(end), off: found?.off ?? 0 };
+  }
+  return found;
+}
+
+function trailAim(routes: readonly GuideRoute[], from: Vec2, target: Vec2, holds: readonly Vec2[]): RouteAim | null {
   // A route leads to what stands at its end, not to something beside another stretch of the trail: the
   // Chimney Scramble's post (round 111) stood 55 u past the end of the way to Tuck's bridge, 11 u off the
   // trail beyond it, and critic round 114 at the chimney's foot read 164 u, back to the bridge and out again.

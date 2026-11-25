@@ -57,6 +57,28 @@ const LIP_TOP = 3.2;
 /** Tuck keeps a lamp on each bridge post, so the crossing reads as the way on from along the shelf. */
 const LAMP_UP = 1.78;
 
+/**
+ * The lip fence's flare beside one end of the bridge (`side`: west -1, east 1), on one side of it (`away`:
+ * north 1, south -1): from the outer post out to the corner where it meets the fence along the lip. `gap`
+ * is where the lip fence stops short of the bridge.
+ */
+function flare(side: -1 | 1, away: -1 | 1): { post: [number, number]; corner: [number, number]; gap: number } {
+  const postX = (side < 0 ? B.ax : B.bx) + side * 0.45;
+  const gap = B.az + away * (POST_OUT + 0.15);
+  return { post: [postX, B.az + away * POST_OUT], corner: [postX + side * FUNNEL_OUT, gap + away * FUNNEL_ALONG], gap };
+}
+
+/**
+ * The four flares, post to corner. A walk onto the bridge comes in between a pair, and the guide leads
+ * round their corners to it (core/guide/route.ts `GuideGap`).
+ */
+export const BRIDGE_FLARES: readonly (readonly [readonly [number, number], readonly [number, number]])[] = ([-1, 1] as const).flatMap(
+  (side) => ([-1, 1] as const).map((away) => {
+    const { post, corner } = flare(side, away);
+    return [post, corner] as const;
+  }),
+);
+
 export interface TuckBridge {
   group: THREE.Group;
   colliders: Collider[];
@@ -175,15 +197,12 @@ export function buildTuckBridge(valley: TerrainSampler): TuckBridge {
   // against the entry rope that held Pip fast.
   const lipColliders: Collider[] = [];
   const [[gx, z0], [, z1]] = GULLY_LINE;
-  const gapN = zc + POST_OUT + 0.15, gapS = zc - POST_OUT - 0.15;
-  for (const side of [-1, 1]) {
+  for (const side of [-1, 1] as const) {
     const x = gx + side * LIP;
-    const postX = xAt(side < 0 ? 0 : 1) + side * 0.45, wide = postX + side * FUNNEL_OUT;
-    for (const [end, gap] of [[z0, gapN], [z1, gapS]] as const) {
-      const away = Math.sign(end - gap);
-      const line: [number, number][] = [
-        [x, end], [x, gap + away * (FUNNEL_ALONG + 3)], [wide, gap + away * FUNNEL_ALONG], [postX, zc + away * POST_OUT],
-      ];
+    for (const end of [z0, z1]) {
+      const away = end > zc ? 1 : -1;
+      const { post, corner, gap } = flare(side, away);
+      const line: [number, number][] = [[x, end], [x, gap + away * (FUNNEL_ALONG + 3)], corner, post];
       for (let k = 0; k + 1 < line.length; k++) {
         const [ax, az] = line[k], [bx, bz] = line[k + 1];
         lipColliders.push({ kind: 'segment', ax, az, bx, bz, r: 0.12, top: LIP_TOP, guide: true });

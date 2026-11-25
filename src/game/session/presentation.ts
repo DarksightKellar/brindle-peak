@@ -30,6 +30,8 @@ import type { Naming, RouterDeps } from './router';
 import { suppressSaves } from './saveGuard';
 import { LANDMARKS, TRAIL } from '../world/landmarks';
 import { TURN, WAY_UP } from '../world/trail';
+import { GULLY_RIM, GULLY_X, TUCK_BRIDGE } from '../../core/terrain/carving';
+import { BRIDGE_FLARES } from '../world/tuckBridge';
 import { VIEW_H, VIEW_W, worldX, worldZ, type MapDecor } from '../ui/journalMap';
 import { ICE_SURFACE_Y } from '../world/water';
 import { traceRelief } from '../ui/mapRelief';
@@ -103,6 +105,18 @@ export function createPresentation(uiRoot: HTMLElement, audio: AudioKit, heightA
       { path: WAY_UP, slantUntil: TURN },
       { path: WAY_UP.slice(0, 14), slantUntil: TURN },
       { path: WAY_UP.slice(13).reverse(), slantUntil: 0 },
+    ],
+    // Tuck's gorge, where it is too deep to walk across (carving.ts: 14 u from z -214 to about -250, shallowing
+    // out by -262); the lane over his bridge, from 5 u out past one end post to 5 u past the other; and the
+    // lip fence's flares either side of each end. Critic round 125 stood on the ledge east of the gorge, and
+    // the way back to the trail pointed straight over it.
+    gaps: [
+      {
+        line: [[GULLY_X, -206], [GULLY_X, -260]],
+        width: GULLY_RIM,
+        ends: [[TUCK_BRIDGE.ax - 5, TUCK_BRIDGE.az], [TUCK_BRIDGE.bx + 5, TUCK_BRIDGE.az]],
+        flares: BRIDGE_FLARES,
+      },
     ],
   };
 
