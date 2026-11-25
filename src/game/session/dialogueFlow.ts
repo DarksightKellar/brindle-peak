@@ -39,6 +39,8 @@ export interface DialogueFlowDeps {
 /** An errand on offer in this conversation: its title, and what taking it on, or not, does. */
 export interface PendingOffer {
   title: string;
+  /** The story's own errand: no "not now." beside its yes (`open`). */
+  story?: boolean;
   /** Pip's own line putting the errand, when the talk ends without an answer (data/pipAsks.ts). */
   ask?: string;
   accept(): void;
@@ -140,7 +142,12 @@ export function createDialogueFlow(d: DialogueFlowDeps): DialogueFlow {
     const npc = npcId === PIP.id ? PIP : d.npcs.find((n) => n.id === npcId);
     if (!node || !npc) return;
     const before = node.fill ? d.fill?.(node.fill) ?? [] : [];
-    const said = before.length > 0 ? { ...node, lines: [...before, ...node.lines] } : node;
+    const filled = before.length > 0 ? { ...node, lines: [...before, ...node.lines] } : node;
+    // A yes among the first answers has its "not now." beside it. Pell offered "i'll take the letter." or a
+    // question, and the "not now." came only after the question: critic round 126 found no way to turn
+    // him down. The story's own errand keeps its two answers.
+    const yes = offer !== null && offer.story !== true && node.choices?.some((c) => c.takes === true) === true;
+    const said = yes ? { ...filled, choices: [...(filled.choices ?? []), { text: 'not now.', next: LEAVE }] } : filled;
     speechNode = nodeId;
     // While Pip answers, the villager listening stays the one the camera frames with Pip.
     if (npc !== PIP || speakerId === null) speakerId = npcId;

@@ -108,12 +108,12 @@ describe('a conversation that hands between speakers', () => {
 
   it('ends an errand offer on Pip choosing: only "i\'ll do it" takes it on', () => {
     // A view that plays each node in one press and takes the highlighted (first, or second) choice.
-    const run = (pick: 0 | 1, npc = 'fen', root = 'fen-root', escapeAfter = Infinity): { took: number; left: number; asked: string[]; last?: string } => {
+    const run = (pick: 0 | 1 | 2, npc = 'fen', root = 'fen-root', escapeAfter = Infinity): { took: number; left: number; asked: string[]; last?: string } => {
       let lastLine: string | undefined;
       let node: { id: string; speaker: string; lines: string[]; next?: string; choices?: { next: string }[] } | null = null;
       const asked: string[] = [];
       const view = {
-        open(n: typeof node): void { node = n; lastLine = n?.lines[n.lines.length - 1]; if (n?.choices?.some((c) => c.next.startsWith('§'))) asked.push(n.lines[0]); },
+        open(n: typeof node): void { node = n; lastLine = n?.lines[n.lines.length - 1]; if (n?.speaker === 'pip' && n.choices?.some((c) => c.next.startsWith('§'))) asked.push(n.lines[0]); },
         advance(): { id: string; speaker: string } | 'close' {
           if (!node) return 'close';
           const done = node;
@@ -148,6 +148,8 @@ describe('a conversation that hands between speakers', () => {
     expect(run(0, 'gus', 'gus-root', 1).took).toBe(1);
     expect(run(0, 'skiff', 'skiff-root', 1).took).toBe(1);
     expect(run(0, 'gus', 'gus-root', 0).took).toBe(0);
+    // Beside a yes among the first answers, "not now." turns it down there and then (critic round 126, Pell).
+    expect(run(2, 'pell', 'pell-root')).toMatchObject({ took: 0, left: 1, asked: [] });
   });
 
   it('names whoever is speaking on every node of the radio finale', () => {

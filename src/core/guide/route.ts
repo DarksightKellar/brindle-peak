@@ -68,7 +68,7 @@ const HOLD_BACK = 20;
 const HOLD_REACH = 3;
 
 /** `pt`'s nearest point on `p`, as distance along it and distance off it. */
-function along(p: GuideRoute['path'], pt: Vec2): { at: number; off: number } {
+export function along(p: GuideRoute['path'], pt: Vec2): { at: number; off: number } {
   let total = 0, best = Infinity, at = 0;
   for (let i = 0; i < p.length - 1; i++) {
     const [ax, az] = p[i];

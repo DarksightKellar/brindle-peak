@@ -91,6 +91,7 @@ function offerFor(d: InteractVerbDeps, id: string, npc: string): PendingOffer | 
   const state = d.state;
   return {
     title: offered.title,
+    story: offered.main === true,
     // An activity Pip has already done for the first part is not offered again in Pip's own words.
     ask: offered.steps[0]?.when.kind === 'activity' && evaluate(offered.steps[0].when, state) ? PIP_ASK_REST : PIP_ASKS[id] ?? PIP_ASK_ANY,
     accept: () => d.mech.accept(id),

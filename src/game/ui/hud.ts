@@ -21,7 +21,7 @@ import type { GameState, PlayerState, Vec2, Vec3 } from '../../core/contracts';
 import type { GuideContent } from '../../core/guide/nextStep';
 import { formatNextStep, nextStepFor } from '../../core/guide/nextStep';
 import { goalTarget, unmetAfterStory } from '../../core/guide/goal';
-import { aroundAim, routeAim, type GuideBox } from '../../core/guide/route';
+import { along, aroundAim, routeAim, type GuideBox } from '../../core/guide/route';
 import { formatDistance } from '../../core/guide/compass';
 import { errandLineFor, TRY, type ErrandLine } from './errandLine';
 import { goalLine } from './hudText';
@@ -99,6 +99,15 @@ function hopHint(s: GameState, step: ReturnType<typeof nextStepFor>): string {
   // The way, not the keys (critic round 55 read "M, E" as a key prompt on the goal line).
   return ' · the map can take you back';
 }
+
+/**
+ * An errand's place this far back down the trail, while the story's goal is still up it, is one for the
+ * way home. Critic rounds 125 and 126 had Tuck tie the rope in, then read "Next: Take Tuck's key back to
+ * Bram — 890 u" under the climb to the mast, as if the game wanted the walk back down first.
+ */
+const FOR_LATER = 150;
+/** The story's goal this far further up the trail than Pip is still ahead. */
+const STILL_UP = 30;
 
 /** Two errands' places closer than this are one place: the line names only the one it follows. */
 const SAME_PLACE = 6;
@@ -234,6 +243,17 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
   let pointed: Vec2 | null = null;
   /** The goal line's own place is the compass's big diamond. */
   let storyMarked = false;
+  /**
+   * The errand's place lies far back down the trail while the story's goal is still up it (FOR_LATER): its
+   * line says it is for the way home, and its arrow on the snow is not drawn. Critic round 126 climbed past
+   * Tuck's bridge with an arrow at Pip's feet pointing back down toward Bram.
+   */
+  const forTheWayHome = (): boolean => {
+    const trail = guide?.routes?.[0]?.path;
+    if (!trail || !errandTarget || !pointed || !storyMarked || errandTarget === pointed) return false;
+    const me = along(trail, lastFrom).at;
+    return along(trail, pointed).at > me + STILL_UP && along(trail, errandTarget).at < me - FOR_LATER;
+  };
   /**
    * Which way the errand's mark lies, by the strip's own rule (hudCompass.ts): "ahead" while it is near the
    * view's middle, "on your left/right" further round, "behind you, to your left/right" off the strip, each
@@ -376,15 +396,19 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
         // A thing to try that Pip chose to follow says so: critic round 122 followed the Chimney Scramble, walked
         // home, and read "Next: Chimney Scramble … 876 u" there as a job the game still wanted done.
         const following = errands?.trackedId()?.startsWith(TRY) === true;
+        // A step far back down the trail while the story still climbs it waits for the way home: it says so, and
+        // not which way to turn for it or that the map can take Pip back, both of which sent Pip down mid-climb.
+        const homeward = forTheWayHome();
         const said = errands?.onTheWay()
           ? formatNextStep(walked, here).replace(/^Next: /, 'On the way: ')
-          : following ? formatNextStep(walked, here).replace(/^Next: /, 'Following: ') : formatNextStep(walked, here);
+          : following ? formatNextStep(walked, here).replace(/^Next: /, 'Following: ')
+            : homeward ? formatNextStep(walked, here).replace(/^Next: /, 'For the way home: ') : formatNextStep(walked, here);
         // As the goal, its way back to the trail is on the chip; the line says it only when it is the second mark,
         // and not when the chip already says the same trail: critic round 123 read "929 u by the trail, once you're
         // back on it, 15 u away · ahead" under a chip of "15 u to the trail · ahead", one fact on two lines.
         const sameTrail = goalDistance !== undefined && goalOff >= OFF_TRAIL && Math.abs((errandRoute?.off ?? 0) - goalOff) < 1;
         const backTo = errandRoute && errandRoute.off >= OFF_TRAIL && errandTarget !== pointed && !sameTrail ? backOn(errandRoute.off) : '';
-        const errandText = step ? `${now}${said}${errandRoute && walked?.distance !== null && !here ? `${BY_TRAIL}${backTo}` : ''}${here ? '' : errandWay(errandAim)}${hopHint(s, step)}` : '';
+        const errandText = step ? `${now}${said}${errandRoute && walked?.distance !== null && !here ? `${BY_TRAIL}${backTo}` : ''}${here || homeward ? '' : errandWay(errandAim)}${homeward ? '' : hopHint(s, step)}` : '';
         if (feather.line !== '') writeNext(feather.line, null);
         // Two lines at most under the compass: critic round 57 read four, "Now on the line", the errand,
         // its wrap and a nearby line. The nearby line waits while the switch is being said.
@@ -393,7 +417,7 @@ export function createHud(root: HTMLElement, guide?: GuideContent): Hud {
         else if (nearby !== '') writeNext(nearby, null);
         else writeNext(errandText, step);
       }
-      const side = nextAllowed && errandTarget && errandTarget !== pointed ? errandAim : null;
+      const side = nextAllowed && errandTarget && errandTarget !== pointed && !forTheWayHome() ? errandAim : null;
       // Each line wears the mark it has on the strip. Critic round 69 read "Take the batteries to Edda"
       // over "Next: Take Bram's good rope… 773 u", saw one diamond and 1164 u, and could not tell whose.
       goalEl.classList.toggle('is-goal', !held && storyMarked);

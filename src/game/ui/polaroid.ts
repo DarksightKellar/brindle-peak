@@ -74,8 +74,11 @@ function capture(canvas: HTMLCanvasElement, lens: number): string | null {
 export interface Polaroid {
   /** Print what the canvas shows now (its middle `lens` of it each way), captioned, and keep it under `id`. */
   take(id: string, caption: string, lens?: number): void;
-  /** Send a print that is up on its way early (Esc), true when one was up. */
-  dismiss(): boolean;
+  /**
+   * Send a print that is up on its way early (Esc), true when one was up. `now`: gone at once, with no
+   * slide away, for a page opening over it.
+   */
+  dismiss(now?: boolean): boolean;
   destroy(): void;
 }
 
@@ -114,8 +117,17 @@ export function createPolaroid(root: HTMLElement, canvas: HTMLCanvasElement): Po
       window.clearTimeout(timer);
       timer = window.setTimeout(leave, SHOW_S * 1000);
     },
-    dismiss(): boolean {
-      if (card.hidden || !card.classList.contains('is-in')) return false;
+    dismiss(now = false): boolean {
+      if (card.hidden) return false;
+      if (now) {
+        // Even one already sliding away: its slide runs on the clock, and critic round 126 opened the
+        // journal and read the Quests page with the print still lying across it.
+        window.clearTimeout(timer);
+        card.classList.remove('is-in', 'is-out');
+        card.hidden = true;
+        return true;
+      }
+      if (!card.classList.contains('is-in')) return false;
       window.clearTimeout(timer);
       leave();
       return true;

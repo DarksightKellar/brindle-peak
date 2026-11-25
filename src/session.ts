@@ -248,7 +248,10 @@ export function createSession(opts: SessionOptions): Session {
     // So does one still up when the next activity starts or someone starts talking: critic round 89 had the
     // steam print over the Otter Slide's start and over Ivy's first lines.
     const busyNow = runner.isRunning() || flow.isOpen();
-    if (ui.journal.isOpen() || ui.menu.isOpen() || (busyNow && !wasBusy)) polaroid.dismiss();
+    // Under a page it goes at once: its slide away is timed by the clock, and a page opened over it in a slow
+    // or hidden tab had the print still lying across the Quests page (critic round 126).
+    if (ui.journal.isOpen() || ui.menu.isOpen()) polaroid.dismiss(true);
+    else if (busyNow && !wasBusy) polaroid.dismiss();
     wasBusy = busyNow;
 
     // Any move or jump gets Pip up off the bench; until then Pip stays put on it.
